@@ -106,7 +106,15 @@ library(reldist)
 <!-- graficas con vivienda -->
 ```{r}
 dataset_2006 <- readRDS(file = "casen_2006_c.rds")
+```
+
+
+```{r}
 dataset_2009 <- readRDS(file = "casen_2009_c.rds")
+```
+
+
+```{r}
 dataset_2011 <- readRDS(file = "casen_2011_c.rds")
 dataset_2013 <- readRDS(file = "casen_2013_c.rds")
 dataset_2015 <- readRDS(file = "casen_2015_c.rds")
@@ -130,20 +138,41 @@ Q <- quantile(ab$YTOTAJ, probs=c(.25, .75), na.rm = FALSE)
 iqr <- IQR(ab$YTOTAJ)
 
 eliminated <- subset(ab, ab$YTOTAJ > (Q[1] - 1.5*iqr) & ab$YTOTAJ < (Q[2]+1.5*iqr))
-#eliminated
+
+eliminated <- data.frame(lapply(eliminated, as.character), stringsAsFactors=FALSE)
+
+
+eliminated
+```
+```{r}
+library(ggplot2)
+attach(mtcars)
+mtcars
+
+```
+```{r}
+aggdata <-aggregate(mtcars, by=list(am),
+  FUN=mean, na.rm=TRUE)
+aggdata
 ```
 
 
 
 ```{r, message=FALSE, warning=FALSE, results='hide'}
-a <- eliminated$YTOTAJ
-b <- eliminated$COMUNA
-c <- eliminated$E15C1
-d <- eliminated$T4
-e <- eliminated$SEXO
+b <-  as.numeric(eliminated$YTOTAJ)
+a <- eliminated$COMUNA
+# c <- eliminated$C_T7E
+# d <- eliminated$T4
+# e <- eliminated$SEXO
 
-promedios_grupales <-aggregate(a, by=list(b, c, d, e), FUN = mean , na.rm = TRUE)
-promedios_grupales_sd <-aggregate(a, by=list(b, c, d, e), FUN = sd , na.rm = TRUE)
+promedios_grupales <-aggregate(b, by=list(a), FUN = mean , na.rm = TRUE)
+
+promedios_grupales
+```
+
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+promedios_grupales_sd <-aggregate(a, by=list(b), FUN = sd , na.rm = TRUE)
 promedios_grupales$sd = promedios_grupales_sd$sd.a
 d<-promedios_grupales
 d$Año <- "2006"
