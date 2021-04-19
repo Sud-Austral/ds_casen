@@ -1,0 +1,880 @@
+---
+title: 'Análisis estadísticos sobre la Casen'
+subtitle: 'II Estudio de las deudas y ahorros (expresados como categorías) de las personas en el contexto de tablas de contingencia'
+author:
+- name: VE-IM-CC
+  affiliation: DataIntelligence-Chile
+date: "21-01-2021"
+abstract: |
+  La gran mayoría de la información contenida en la Casen la constituyen datos categóricos y el módulo de ingresos no es la excepción. Los ahorros y las deudas de las personas se registran en torno a categorías que representan tramos de ingresos. Es por ello que para estudiar estas magnitudes no podemos calcular promedios sino que solamente  tablas de contingencia. Éstas las construiremos como siempre considerando la comuna, etnia, alfabetismo y el sexo. Desplegaremos los 6 primeros registros de cada una de las tablas para el periodo 2006 - 2009, generaremos un archivo xlsx consolidado para cada una de las variables estudiadas y construiremos gráficos para cada año para la variable en cuestión y para cada una de las categorías consideradas.
+
+output: html_document
+---
+```{r, include=FALSE,  message=FALSE, warning=FALSE, echo = FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+suppressWarnings(library(RODBC))
+
+library(ggplot2)
+library(ggpubr)
+library(markdown)
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(plotly)
+library(xts)
+library(dygraphs)
+library(kableExtra)
+library(knitr)
+library("readxl")
+library(rsconnect)
+library(dplyr)
+library(summarytools)
+library(epiDisplay)
+#library(leaflet)
+library(haven)
+library(epiDisplay)
+library(expss)
+library(hrbrthemes)
+library(viridis)
+library(viridisLite)
+library(DescTools)
+library(roperators)
+library(shinycssloaders)
+library(writexl)
+library(labelled)
+library(tidyverse)
+library(haven)
+library(readr)
+library(sjmisc)
+library(WriteXLS)
+library(readstata13)
+library(plotly)
+library(readxl)
+
+# https://www.r-bloggers.com/2020/01/how-to-remove-outliers-in-r/
+      
+      
+```
+<br>
+
+### 1. Variables a estudiar
+
+
+Vamos a estudiar dos variables asociadas a valor, la primera se llama **Y21_1TI** e indica que tipo de ahorro tienen las personas, si es que tienen; la segunda **Y21_1TR** indica el rango de ahorro que tiene.
+
+Vamos a estudiar dos variables asociadas a valor, la primera se llama **Y22_1TI** e indica que tipo de deuda tienen las personas, si es que tienen; la segunda **Y22_1TR** indica el rango de deuda que tiene.
+
+
+### 2. Frecuencias de tramos de ingreso por sexo, etnia y alfabetismo durante el periodo 2006 - 2009
+
+### 2006
+
+1. **Ingresos: tipo de ahorro**
+
+### .{#test2}
+
+(**Y21_1TI**) ¿Tiene alguno de los siguientes ahorros,? Tipo (1)
+
+[grafica](#test1)
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+casen_2006 <- readRDS(file = "casen_2006_c.rds")
+
+ab <- casen_2006
+#a <- ab$codigo
+b <- ab$COMUNA
+c <- ab$Y21_1TI
+d <- ab$T4
+e <- ab$SEXO
+f <- ab$E1
+
+# cross_tab = xtabs(ab$EXPC ~  unlist(c) + unlist(e),aggregate(ab$EXPC ~unlist(c) + unlist(e),ab,mean))
+cross_tab = xtabs(ab$EXPC ~ unlist(b) + unlist(c) + unlist(d) + unlist(e) + unlist(f),aggregate(ab$EXPC ~ unlist(b) + unlist(c) + unlist(d) + unlist(e) + unlist(f) ,ab,mean))
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$anio <- "2006"
+
+names(d)[1] <- "Comuna"
+names(d)[2] <- "Cat"
+names(d)[3] <- "Etnia"
+names(d)[4] <- "Sexo"
+names(d)[5] <- "Alfabetismo"
+names(d)[6] <- "Frecuencia"
+names(d)[7] <- "Año"
+
+codigos_comunales <- readRDS(file = "codigos_comunales_2006.rds")
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df_Y21_1TI_2006 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+
+head(df_Y21_1TI_2006,6)%>%
+kbl()%>%
+kable_classic(full_width = F, html_font = "Cambria")
+```
+<br>
+<br>
+2. **Ingresos: monto del ahorro**
+
+Y21_1TR ¿Tiene alguno de los siguientes ahorros,? Tramo (1) 
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+casen_2006 <- readRDS(file = "casen_2006_c.rds")
+
+ab <- casen_2006
+#a <- ab$codigo
+b <- ab$COMUNA
+c <- ab$Y21_1TR
+d <- ab$T4
+e <- ab$SEXO
+f <- ab$E1
+
+# cross_tab = xtabs(ab$EXPC ~  unlist(c) + unlist(e),aggregate(ab$EXPC ~unlist(c) + unlist(e),ab,mean))
+cross_tab = xtabs(ab$EXPC ~ unlist(b) + unlist(c) + unlist(d) + unlist(e) + unlist(f),aggregate(ab$EXPC ~ unlist(b) + unlist(c) + unlist(d) + unlist(e) + unlist(f) ,ab,mean))
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$anio <- "2006"
+
+names(d)[1] <- "Comuna"
+names(d)[2] <- "Cat"
+names(d)[3] <- "Etnia"
+names(d)[4] <- "Sexo"
+names(d)[5] <- "Alfabetismo"
+names(d)[6] <- "Frecuencia"
+names(d)[7] <- "Año"
+
+codigos_comunales <- readRDS(file = "codigos_comunales_2006.rds")
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df_Y21_1TR_2006 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+
+head(df_Y21_1TR_2006,6)%>%
+kbl()%>%
+kable_classic(full_width = F, html_font = "Cambria")
+```
+<br>
+<br>
+3. **Ingresos: Tipo de deuda**
+
+Y22_1TI ¿Tiene alguna de las siguientes deudas? Tipo (1)
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+casen_2006 <- readRDS(file = "casen_2006_c.rds")
+
+ab <- casen_2006
+#a <- ab$codigo
+b <- ab$COMUNA
+c <- ab$Y22_1TI
+d <- ab$T4
+e <- ab$SEXO
+f <- ab$E1
+
+# cross_tab = xtabs(ab$EXPC ~  unlist(c) + unlist(e),aggregate(ab$EXPC ~unlist(c) + unlist(e),ab,mean))
+cross_tab = xtabs(ab$EXPC ~ unlist(b) + unlist(c) + unlist(d) + unlist(e) + unlist(f),aggregate(ab$EXPC ~ unlist(b) + unlist(c) + unlist(d) + unlist(e) + unlist(f) ,ab,mean))
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$anio <- "2006"
+
+names(d)[1] <- "Comuna"
+names(d)[2] <- "Cat"
+names(d)[3] <- "Etnia"
+names(d)[4] <- "Sexo"
+names(d)[5] <- "Alfabetismo"
+names(d)[6] <- "Frecuencia"
+names(d)[7] <- "Año"
+
+codigos_comunales <- readRDS(file = "codigos_comunales_2006.rds")
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df_Y22_1TI_2006 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+
+head(df_Y22_1TI_2006,6)%>%
+kbl()%>%
+kable_classic(full_width = F, html_font = "Cambria")
+```
+<br>
+<br>
+4. 2006 **Ingresos: Monto de deuda**
+Y22_1TR ¿Tiene alguna de las siguientes deudas? Tramo total 
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+casen_2006 <- readRDS(file = "casen_2006_c.rds")
+
+ab <- casen_2006
+#a <- ab$codigo
+b <- ab$COMUNA
+c <- ab$Y22_1TR
+d <- ab$T4
+e <- ab$SEXO
+f <- ab$E1
+
+# cross_tab = xtabs(ab$EXPC ~  unlist(c) + unlist(e),aggregate(ab$EXPC ~unlist(c) + unlist(e),ab,mean))
+cross_tab = xtabs(ab$EXPC ~ unlist(b) + unlist(c) + unlist(d) + unlist(e) + unlist(f),aggregate(ab$EXPC ~ unlist(b) + unlist(c) + unlist(d) + unlist(e) + unlist(f) ,ab,mean))
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$anio <- "2006"
+
+names(d)[1] <- "Comuna"
+names(d)[2] <- "Cat"
+names(d)[3] <- "Etnia"
+names(d)[4] <- "Sexo"
+names(d)[5] <- "Alfabetismo"
+names(d)[6] <- "Frecuencia"
+names(d)[7] <- "Año"
+
+codigos_comunales <- readRDS(file = "codigos_comunales_2006.rds")
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df_Y22_1TR_2006 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+
+head(df_Y22_1TR_2006,6)%>%
+kbl()%>%
+kable_classic(full_width = F, html_font = "Cambria")
+```
+
+########################################################################################################################################################################
+
+### 2009
+<br>
+<br>
+
+1. **Ingresos: Tipo de deuda**
+
+y22ta: ¿Tiene Ud. alguno de los siguientes ahorros, inversiones, acciones o similares? Tipo (1)
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+casen_2009 <- readRDS(file = "casen_2009_c.rds")
+
+ab <- casen_2009
+#a <- ab$codigo
+b <- ab$COMUNA
+c <- ab$Y22TA
+d <- ab$T5
+e <- ab$SEXO
+f <- ab$E1
+
+# cross_tab = xtabs(ab$EXPC ~  unlist(c) + unlist(e),aggregate(ab$EXPC ~unlist(c) + unlist(e),ab,mean))
+cross_tab = xtabs(ab$EXPC ~ unlist(b) + unlist(c) + unlist(d) + unlist(e) + unlist(f),aggregate(ab$EXPC ~ unlist(b) + unlist(c) + unlist(d) + unlist(e) + unlist(f) ,ab,mean))
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$anio <- "2009"
+
+names(d)[1] <- "Comuna"
+names(d)[2] <- "Cat"
+names(d)[3] <- "Etnia"
+names(d)[4] <- "Sexo"
+names(d)[5] <- "Alfabetismo"
+names(d)[6] <- "Frecuencia"
+names(d)[7] <- "Año"
+
+codigos_comunales <- readRDS(file = "codigos_comunales_2009.rds")
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df_Y22TA_2009 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+
+head(df_Y22TA_2009,6)%>%
+kbl()%>%
+kable_classic(full_width = F, html_font = "Cambria")
+```
+<br>
+<br>
+
+2. **Ingresos: Monto de ahorro**
+
+Y22TR1: Señale el tramo (en pesos) del total ahorrado en: Tramo (1)
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+casen_2009 <- readRDS(file = "casen_2009_c.rds")
+
+ab <- casen_2009
+#a <- ab$codigo
+b <- ab$COMUNA
+c <- ab$Y22TR1
+d <- ab$T5
+e <- ab$SEXO
+f <- ab$E1
+
+# cross_tab = xtabs(ab$EXPC ~  unlist(c) + unlist(e),aggregate(ab$EXPC ~unlist(c) + unlist(e),ab,mean))
+cross_tab = xtabs(ab$EXPC ~ unlist(b) + unlist(c) + unlist(d) + unlist(e) + unlist(f),aggregate(ab$EXPC ~ unlist(b) + unlist(c) + unlist(d) + unlist(e) + unlist(f) ,ab,mean))
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$anio <- "2009"
+
+names(d)[1] <- "Comuna"
+names(d)[2] <- "Cat"
+names(d)[3] <- "Etnia"
+names(d)[4] <- "Sexo"
+names(d)[5] <- "Alfabetismo"
+names(d)[6] <- "Frecuencia"
+names(d)[7] <- "Año"
+
+codigos_comunales <- readRDS(file = "codigos_comunales_2009.rds")
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df_Y22TR1_2009 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+
+head(df_Y22TR1_2009,6)%>%
+kbl()%>%
+kable_classic(full_width = F, html_font = "Cambria")
+```
+<br>
+<br>
+3. **Ingresos: Tipo de deuda**
+
+Y23T1: ¿Tiene Ud. alguna de las siguientes deudas? Tipo (1)
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+casen_2009 <- readRDS(file = "casen_2009_c.rds")
+
+ab <- casen_2009
+#a <- ab$codigo
+b <- ab$COMUNA
+c <- ab$Y23T1
+d <- ab$T5
+e <- ab$SEXO
+f <- ab$E1
+
+# cross_tab = xtabs(ab$EXPC ~  unlist(c) + unlist(e),aggregate(ab$EXPC ~unlist(c) + unlist(e),ab,mean))
+cross_tab = xtabs(ab$EXPC ~ unlist(b) + unlist(c) + unlist(d) + unlist(e) + unlist(f),aggregate(ab$EXPC ~ unlist(b) + unlist(c) + unlist(d) + unlist(e) + unlist(f) ,ab,mean))
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$anio <- "2009"
+
+names(d)[1] <- "Comuna"
+names(d)[2] <- "Cat"
+names(d)[3] <- "Etnia"
+names(d)[4] <- "Sexo"
+names(d)[5] <- "Alfabetismo"
+names(d)[6] <- "Frecuencia"
+names(d)[7] <- "Año"
+
+codigos_comunales <- readRDS(file = "codigos_comunales_2009.rds")
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df_Y23T1_2009 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+
+head(df_Y23T1_2009,6)%>%
+kbl()%>%
+kable_classic(full_width = F, html_font = "Cambria")
+```
+<br>
+<br>
+
+4. **Ingresos: Monto de deuda**
+
+Y23TR1: Tramo (en pesos) del total adeudado… Tramo (1) 
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+casen_2009 <- readRDS(file = "casen_2009_c.rds")
+
+ab <- casen_2009
+#a <- ab$codigo
+b <- ab$COMUNA
+c <- ab$Y23TR1
+d <- ab$T5
+f <- ab$E1
+
+# cross_tab = xtabs(ab$EXPC ~  unlist(c) + unlist(e),aggregate(ab$EXPC ~unlist(c) + unlist(e),ab,mean))
+cross_tab = xtabs(ab$EXPC ~ unlist(b) + unlist(c) + unlist(d) + unlist(e) + unlist(f),aggregate(ab$EXPC ~ unlist(b) + unlist(c) + unlist(d) + unlist(e) + unlist(f) ,ab,mean))
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$anio <- "2009"
+
+names(d)[1] <- "Comuna"
+names(d)[2] <- "Cat"
+names(d)[3] <- "Etnia"
+names(d)[4] <- "Sexo"
+names(d)[5] <- "Alfabetismo"
+names(d)[6] <- "Frecuencia"
+names(d)[7] <- "Año"
+
+codigos_comunales <- readRDS(file = "codigos_comunales_2009.rds")
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df_Y23TR1_2009 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+
+head(df_Y23TR1_2009,6)%>%
+kbl()%>%
+kable_classic(full_width = F, html_font = "Cambria")
+```
+
+########################################################################################################################################################################
+
+Se generan 4 consolidados, uno por cada variable, agrupando 2 años cada uno
+
+########################################################################################################################################################################
+
+### 2006 Y21_TI:
+
+**b. Etnia**
+
+### .{#test1}
+
+[tabla](#test2)
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+d <- df_Y21_1TI_2006
+fig <- plot_ly(d, x = ~ d$Cat, y = ~ d$Frecuencia, color = ~d$Etnia, type = 'bar')%>%
+layout(title = " Tipos de ahorros por etnia ",
+xaxis = list(title = "Tramo de ingresos", color = "blues9", tickangle = 40, size = 8),
+yaxis = list(title = ""))
+
+fig
+```
+<br>
+<br>
+
+**c. Alfabetismo**
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+d <- df_Y21_1TI_2006
+fig <- plot_ly(d, x = ~ d$Cat, y = ~ d$Frecuencia, color = ~d$Alfabetismo, type = 'bar')%>%
+layout(title = " Tipos de ahorros por alfabetismo ",
+xaxis = list(title = "Tramo de ingresos", color = "blues9", tickangle = 40, size = 8),
+yaxis = list(title = ""))
+
+fig
+```
+<br>
+<br>
+**d. Sexo**
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+d <- df_Y21_1TI_2006
+fig <- plot_ly(d, x = ~ d$Cat, y = ~ d$Frecuencia, color = ~d$Sexo, type = 'bar')%>%
+layout(title = " Tipos de ahorros por sexo ",
+xaxis = list(title = "Tramo de ingresos", color = "blues9", tickangle = 40, size = 8),
+yaxis = list(title = ""))
+
+fig
+```
+<br>
+<br>
+
+### 2006 Y21_1TR:
+
+**b. Etnia**
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+d <- df_Y21_1TR_2006
+fig <- plot_ly(d, x = ~ d$Cat, y = ~ d$Frecuencia, color = ~d$Etnia, type = 'bar')%>%
+layout(title = " Monto de ahorros por etnia ",
+xaxis = list(title = "Tramo de ingresos", color = "blues9", tickangle = 55, size = 4),
+yaxis = list(title = ""))
+
+
+
+
+fig
+```
+<br>
+<br>
+**c. Alfabetismo**
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+d <- df_Y21_1TR_2006
+fig <- plot_ly(d, x = ~ d$Cat, y = ~ d$Frecuencia, color = ~d$Alfabetismo, type = 'bar')%>%
+layout(title = " Monto de ahorros por alfabetismo ",
+xaxis = list(title = "Tramo de ingresos", color = "blues9", tickangle = 40, size = 8),
+yaxis = list(title = ""))
+
+fig
+```
+<br>
+<br>
+**d. Sexo**
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+d <- df_Y21_1TR_2006
+fig <- plot_ly(d, x = ~ d$Cat, y = ~ d$Frecuencia, color = ~d$Sexo, type = 'bar')%>%
+layout(title = " Monto de ahorros por sexo ",
+xaxis = list(title = "Tramo de ingresos", color = "blues9", tickangle = 40, size = 8),
+yaxis = list(title = ""))
+
+fig
+```
+<br>
+<br>
+### 2006 Y22_1TI:
+
+**b. Etnia**
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+d <- df_Y22_1TI_2006
+fig <- plot_ly(d, x = ~ d$Cat, y = ~ d$Frecuencia, color = ~d$Etnia, type = 'bar')%>%
+layout(title = " Tipo de deuda por etnia ",
+xaxis = list(title = "Tramo de ingresos", color = "blues9", tickangle = 40, size = 8),
+yaxis = list(title = ""))
+
+fig
+```
+<br>
+<br>
+**c. Alfabetismo**
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+d <- df_Y22_1TI_2006
+fig <- plot_ly(d, x = ~ d$Cat, y = ~ d$Frecuencia, color = ~d$Alfabetismo, type = 'bar')%>%
+layout(title = " Tipo de deuda por alfabetismo ",
+xaxis = list(title = "Tramo de ingresos", color = "blues9", tickangle = 40, size = 8),
+yaxis = list(title = ""))
+
+fig
+```
+<br>
+<br>
+**d. Sexo**
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+d <- df_Y22_1TI_2006
+fig <- plot_ly(d, x = ~ d$Cat, y = ~ d$Frecuencia, color = ~d$Sexo, type = 'bar')%>%
+layout(title = " Tipo de deuda por sexo ",
+xaxis = list(title = "Tramo de ingresos", color = "blues9", tickangle = 40, size = 8),
+yaxis = list(title = ""))
+
+fig
+```
+<br>
+<br>
+#### 2006 Y22_1TR:
+
+**b. Etnia**
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+d <- df_Y22_1TR_2006
+fig <- plot_ly(d, x = ~ d$Cat, y = ~ d$Frecuencia, color = ~d$Etnia, type = 'bar')%>%
+layout(title = " Monto de deuda por etnia ",
+xaxis = list(title = "Tramo de ingresos", color = "blues9", tickangle = 55, size = 4),
+yaxis = list(title = ""))
+
+fig
+```
+<br>
+<br>
+**c. Alfabetismo**
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+d <- df_Y22_1TR_2006
+fig <- plot_ly(d, x = ~ d$Cat, y = ~ d$Frecuencia, color = ~d$Alfabetismo, type = 'bar')%>%
+layout(title = " Monto de deuda por alfabetismo ",
+xaxis = list(title = "Tramo de ingresos", color = "blues9", tickangle = 40, size = 8),
+yaxis = list(title = ""))
+
+fig
+```
+<br>
+<br>
+**d. Sexo**
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+d <- df_Y22_1TR_2006
+fig <- plot_ly(d, x = ~ d$Cat, y = ~ d$Frecuencia, color = ~d$Sexo, type = 'bar')%>%
+layout(title = " Monto de deuda por sexo ",
+xaxis = list(title = "Tramo de ingresos", color = "blues9", tickangle = 40, size = 8),
+yaxis = list(title = ""))
+
+fig
+```
+<br>
+<br>
+<!-- ######################################################################################################################################################################################################## -->
+<!-- ###############################################################################@##########---2009---#################################################################################################### -->
+<!-- ######################################################################################################################################################################################################## -->
+
+#### 2009 Y22TA:
+
+**b. Etnia**
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+d <- df_Y22TA_2009
+fig <- plot_ly(d, x = ~ d$Cat, y = ~ d$Frecuencia, color = ~d$Etnia, type = 'bar')%>%
+layout(title = " Tipos de ahorros por etnia ",
+xaxis = list(title = "Tramo de ingresos", color = "blues9", tickangle = 40, size = 8),
+yaxis = list(title = ""))
+
+
+
+
+fig
+```
+<br>
+<br>
+**c. Alfabetismo**
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+d <- df_Y22TA_2009
+fig <- plot_ly(d, x = ~ d$Cat, y = ~ d$Frecuencia, color = ~d$Alfabetismo, type = 'bar')%>%
+layout(title = " Tipos de ahorros por alfabetismo ",
+xaxis = list(title = "Tramo de ingresos", color = "blues9", tickangle = 40, size = 8),
+yaxis = list(title = ""))
+
+
+
+
+fig
+```
+<br>
+<br>
+**d. Sexo**
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+d <- df_Y22TA_2009
+fig <- plot_ly(d, x = ~ d$Cat, y = ~ d$Frecuencia, color = ~d$Sexo, type = 'bar')%>%
+layout(title = " Tipos de ahorros por sexo ",
+xaxis = list(title = "Tramo de ingresos", color = "blues9", tickangle = 40, size = 8),
+yaxis = list(title = ""))
+
+
+
+
+fig
+```
+<br>
+<br>
+
+### 2009 Y22TR:
+
+**b. Etnia**
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+d <- df_Y22TR1_2009
+fig <- plot_ly(d, x = ~ d$Cat, y = ~ d$Frecuencia, color = ~d$Etnia, type = 'bar')%>%
+layout(title = " Monto de ahorro por etnia ",
+xaxis = list(title = "Tramo de ingresos", color = "blues9", tickangle = 55, size = 4),
+yaxis = list(title = ""))
+
+
+
+
+fig
+```
+<br>
+<br>
+
+**c. Alfabetismo**
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+d <- df_Y22TR1_2009
+fig <- plot_ly(d, x = ~ d$Cat, y = ~ d$Frecuencia, color = ~d$Alfabetismo, type = 'bar')%>%
+layout(title = " Monto de ahorro por alfabetismo ",
+xaxis = list(title = "Tramo de ingresos", color = "blues9", tickangle = 40, size = 8),
+yaxis = list(title = ""))
+
+
+
+
+fig
+```
+<br>
+<br>
+
+**d. Sexo**
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+d <- df_Y22TR1_2009
+fig <- plot_ly(d, x = ~ d$Cat, y = ~ d$Frecuencia, color = ~d$Sexo, type = 'bar')%>%
+layout(title = " Monto de ahorro por sexo ",
+xaxis = list(title = "Tramo de ingresos", color = "blues9", tickangle = 40, size = 8),
+yaxis = list(title = ""))
+
+
+
+
+fig
+```
+<br>
+<br>
+
+
+**b. Etnia**
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+d <- df_Y23T1_2009
+fig <- plot_ly(d, x = ~ d$Cat, y = ~ d$Frecuencia, color = ~d$Etnia, type = 'bar')%>%
+layout(title = " Tipo de deuda por etnia ",
+xaxis = list(title = "Tramo de ingresos", color = "blues9", tickangle = 55, size = 4),
+yaxis = list(title = ""))
+
+
+
+
+fig
+```
+<br>
+<br>
+
+**c. alfabetismo**
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+d <- df_Y23T1_2009
+fig <- plot_ly(d, x = ~ d$Cat, y = ~ d$Frecuencia, color = ~d$Alfabetismo, type = 'bar')%>%
+layout(title = " Tipo de deuda por alfabetismo ",
+xaxis = list(title = "Tramo de ingresos", color = "blues9", tickangle = 40, size = 8),
+yaxis = list(title = ""))
+
+
+
+
+fig
+```
+<br>
+<br>
+
+**d. sexo**
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+d <- df_Y23T1_2009
+fig <- plot_ly(d, x = ~ d$Cat, y = ~ d$Frecuencia, color = ~d$Sexo, type = 'bar')%>%
+layout(title = " Tipo de deuda por sexo ",
+xaxis = list(title = "Tramo de ingresos", color = "blues9", tickangle = 40, size = 8),
+yaxis = list(title = ""))
+
+
+
+
+fig
+```
+<br>
+<br>
+
+**b. Etnia**
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+d <- df_Y23TR1_2009
+fig <- plot_ly(d, x = ~ d$Cat, y = ~ d$Frecuencia, color = ~d$Etnia, type = 'bar')%>%
+layout(title = " Monto de deuda por etnia ",
+xaxis = list(title = "Tramo de ingresos", color = "blues9", tickangle = 55, size = 4),
+yaxis = list(title = ""))
+
+
+
+
+fig
+```
+<br>
+<br>
+
+**c. alfabetismo**
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+d <- df_Y23TR1_2009
+fig <- plot_ly(d, x = ~ d$Cat, y = ~ d$Frecuencia, color = ~d$Alfabetismo, type = 'bar')%>%
+layout(title = " Monto de deuda por alfabetismo ",
+xaxis = list(title = "Tramo de ingresos", color = "blues9", tickangle = 40, size = 8),
+yaxis = list(title = ""))
+
+
+
+
+fig
+```
+<br>
+<br>
+
+**d. sexo**
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+d <- df_Y23TR1_2009
+fig <- plot_ly(d, x = ~ d$Cat, y = ~ d$Frecuencia, color = ~d$Sexo, type = 'bar')%>%
+layout(title = " Monto de deuda por sexo ",
+xaxis = list(title = "Tramo de ingresos", color = "blues9", tickangle = 40, size = 8),
+yaxis = list(title = ""))
+
+
+
+
+fig
+```
+<br>
+<br>
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+tipo_horro <- rbind(
+
+df_Y22_1TR_2006,
+df_Y23TR1_2009
+
+)
+# tipo_horro <- tipo_horro[!is.na(codigos_ingresos$Promedio),]
+# saveRDS(codigos_ingresos, "INGRESOS_YTRABHAJ_06_09_11.rds")
+
+write_xlsx(tipo_horro, "rango_deuda_06-09.xlsx")
+```
+
+
+
+
+########################################################################################################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

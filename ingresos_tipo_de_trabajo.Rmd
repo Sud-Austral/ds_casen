@@ -1,0 +1,218 @@
+---
+title: |
+  <font size="16">Relación del Ingreso con el tipo de trabajo</font>
+author:
+- name: 
+  affiliation: DataIntelligence
+subtitle: |
+  Generación de ttcc Ingresos versus tipo de trabajo
+date: "12-02-2021"
+abstract: |
+
+      Tarea_001
+
+
+
+  
+header-includes:
+   - \usepackage[]{babel}
+output: 
+  html_document:
+      theme: flatly
+---
+
+# Índice
+
+## [I Introducción](#test1)
+## [I Primera parte: Identificación de variables](#test1)
+
+
+
+
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+suppressWarnings(library(RODBC))
+
+library(ggplot2)
+library(ggpubr)
+library(markdown)
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(plotly)
+library(xts)
+library(dygraphs)
+library(kableExtra)
+library(knitr)
+library("readxl")
+library(rsconnect)
+library(dplyr)
+library(summarytools)
+library(epiDisplay)
+#library(leaflet)
+library(haven)
+library(epiDisplay)
+library("readxl")
+library(expss)
+library(hrbrthemes)
+library(viridis)
+library(viridisLite)
+library(DescTools)
+library(roperators)
+library(shinycssloaders)
+library(writexl)
+library(labelled)
+library(tidyverse)
+library(haven)
+library(readr)
+library(sjmisc)
+library(WriteXLS)
+
+library(ineq)
+library(readstata13)
+library(reldist)
+# no queremos notacion científica:
+options(scipen=999)
+```
+
+
+<!--  |**variable de ingreso**| | |  -->
+<!-- :-----:|:-----:|:-----:|:-----:|:-----: -->
+<!--  |  |Ingreso total|Ingreso autónomo|Ingreso del trabajo|Ingreso de la ocupación principal -->
+<!-- año| | | -->
+<!-- 2017|ytotcor|yautcor|ytrabajocor|yoprcor -->
+<!-- 2015|ytotcor|yautcor|ytrabajocor|yoprcor -->
+<!-- 2013|ytotcor|yautcor|ytrabajocor|yoprcor -->
+<!-- 2011|ytotaj|yautaj|ytrabaj|yopraj -->
+<!-- 2009|ytotaj|yautaj|ytrabaj|yopraj -->
+<!-- 2006|ytotaj|yautaj|ytrabaj|yopraj -->
+
+
+
+
+
+
+## 1. Introducción{#test1}
+
+Queremos conocer la distribución del ingreso asociado al oficio y actividad específica de las personas en su trabajo, como también respecto al giro productivo del negocio en el que se trabaja, estableciendo tablas de contingencia sobre  la comuna, el alfabetismo,la etnia(migracion) el sexo y la edad de las personas, pero agregando la categorias:
+
+1. ¿Cuál es su ocupación u oficio? 
+2. ¿Qué hace usted en su trabajo o negocio principal?
+3. ¿A qué se dedica o qué hace el negocio, empresa o institución que le paga?
+4. ¿A qué se dedica o qué hace el negocio, empresa o institución donde trabaja?
+
+Las cruzaremos para las 4 categorías de ingreso soibre las que hemos decidido trabajar y sobre las Casen desde el 2006 hasta la del 2017.
+
+Podemos esperar que
+Segun la formalidad de la ocupación, se espera encontrar ingresos diferenciados.
+
+
+
+```{r}
+dataset_2006 <- readRDS(file = "casen_2006_c.rds")
+dataset_2009 <- readRDS(file = "casen_2009_c.rds")
+dataset_2011 <- readRDS(file = "casen_2011_c.rds")
+dataset_2013 <- readRDS(file = "casen_2013_c.rds")
+dataset_2015 <- readRDS(file = "casen_2015_c.rds")
+dataset_2017 <- readRDS(file = "casen_2017_c.rds")
+
+```
+
+Aplicacion al 2017 sobre ytotcor:
+
+```{r}
+ab_2017 <- dataset_2017 
+```
+
+## 1.Excluimos los outliers: 
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+ab_2017 <- ab_2017[!is.na(ab_2017$ytotcor),]
+
+Q <- quantile(ab_2017$ytotcor, probs=c(.25, .75), na.rm = FALSE)
+iqr <- IQR(ab_2017$ytotcor)
+
+eliminated <- subset(ab_2017, ab_2017$ytotcor > (Q[1] - 1.5*iqr) & ab_2017$ytotcor < (Q[2]+1.5*iqr))
+#eliminated
+```
+
+## 2. Generamos los promedios grupales:
+
+### ¿Cuál es su ocupación u oficio? 
+
+```{r, message=FALSE, warning=FALSE}
+a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$o9a #alfabetismo
+d <- eliminated$e1 #alfabetismo
+e <- eliminated$r3 #etnia
+f <- eliminated$sexo
+
+promedios_grupales <-aggregate(a, by=list(b, c, d, e, f), FUN = mean , na.rm = TRUE)
+promedios_grupales <-promedios_grupales[!(promedios_grupales$Group.2 == ""),]
+head(promedios_grupales,5)
+```
+
+### ¿Qué hace usted en su trabajo o negocio principal?
+
+```{r, message=FALSE, warning=FALSE}
+a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$o9b #alfabetismo
+d <- eliminated$e1 #alfabetismo
+e <- eliminated$r3 #etnia
+f <- eliminated$sexo
+
+promedios_grupales <-aggregate(a, by=list(b, c, d, e, f), FUN = mean , na.rm = TRUE)
+promedios_grupales <-promedios_grupales[!(promedios_grupales$Group.2 == ""),]
+head(promedios_grupales,5)
+```
+### ¿A qué se dedica o qué hace el negocio, empresa o institución que le paga?
+
+```{r, message=FALSE, warning=FALSE}
+a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$o21 #alfabetismo
+d <- eliminated$e1 #alfabetismo
+e <- eliminated$r3 #etnia
+f <- eliminated$sexo
+
+promedios_grupales <-aggregate(a, by=list(b, c, d, e, f), FUN = mean , na.rm = TRUE)
+promedios_grupales <-promedios_grupales[!(promedios_grupales$Group.2 == ""),]
+head(promedios_grupales,5)
+```
+
+
+### ¿A qué se dedica o qué hace el negocio, empresa o institución donde trabaja?
+
+
+```{r, message=FALSE, warning=FALSE}
+a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$o22 #alfabetismo
+d <- eliminated$e1 #alfabetismo
+e <- eliminated$r3 #etnia
+f <- eliminated$sexo
+
+promedios_grupales <-aggregate(a, by=list(b, c, d, e, f), FUN = mean , na.rm = TRUE)
+promedios_grupales <-promedios_grupales[!(promedios_grupales$Group.2 == ""),]
+head(promedios_grupales,5)
+```
+
+
+
+
+
+
+
+
+
+
+
+

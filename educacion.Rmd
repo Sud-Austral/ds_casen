@@ -1,0 +1,280 @@
+---
+title: |
+  <font size="14">
+  Ingresos, educación y pobreza en la Casen</font>
+author:
+- name: VE-MS-CC
+  affiliation: DataIntelligence
+subtitle: |
+  Estudio sobre la movilidad intergeneracional
+date: "22-02-2021"
+abstract: |
+  Construiremos tablas de contingencia relacionando los promedios de los cuatro ingresos fundamentales de la Casen con el nivel educativo alcanzado y su tipo, tanto para las personas como para sus padres. 
+  Analizaremos en torno a boxplots éstas distribuciones cruzando con nuestras categorías clásicas de comuna, sexo y alfabetismo, en forma separada para etnia e inmigración. 
+      Sobre los datos generados en tablas de contingencia entre el periodo 2006-2017, evaluaremos la posibilidad de implementar el índice de movilidad intergeneracional de los ingresos propuesto por Shorrocks (1978).
+      
+header-includes:
+   - \usepackage[]{babel}
+output: 
+  html_document:
+      theme: flatly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+suppressWarnings(library(RODBC))
+
+library(ggplot2)
+library(ggpubr)
+library(markdown)
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(plotly)
+library(xts)
+library(dygraphs)
+library(kableExtra)
+library(knitr)
+library("readxl")
+library(rsconnect)
+library(dplyr)
+library(summarytools)
+library(epiDisplay)
+#library(leaflet)
+library(haven)
+library(epiDisplay)
+library("readxl")
+library(expss)
+library(hrbrthemes)
+library(viridis)
+library(viridisLite)
+library(DescTools)
+library(roperators)
+library(shinycssloaders)
+library(writexl)
+library(labelled)
+library(tidyverse)
+library(haven)
+library(readr)
+library(sjmisc)
+library(WriteXLS)
+
+library(ineq)
+library(readstata13)
+library(reldist)
+# no queremos notacion científica:
+options(scipen=999)
+```
+
+<br>
+
+## Índice
+###  [La teoría social: Movilidad social, educación e ingresos](#test1)
+####  [El índice de movilidad de Shorrocks](#test2)
+### [Generación de tablas de contingencia](#test3) 
+
+<br>
+
+##################
+<hr style="height:1px;border-width:1;color:LightGray;background-color:LightGray">
+##################
+
+## Movilidad social, educación e ingresos{#test1}
+
+La movilidad intergeneracional se refiere a la relación que existe entre el nivel socioeconómico de padres e hijos, medido generalmente a través de su **educación** o de sus ingresos. 
+Éste estudio, complementa las investigaciones sobre la desigualdad del ingreso que analiza la distribución desde un punto de vista estático. Comprender el grado de movilidad generacional es un primer paso para entender las consecuencias de la desigualdad de los ingresos.
+
+Se ha afirmado que si existe suficiente movilidad del ingreso no es necesario preocuparse de cuán desigualmente estén distribuidos.
+
+La idea es medir la correlación entre el estatus socioeconómico del padre, su nivel educativo, su tipo de ocupación y el nivel de ingresos con el de sus hijos y así determinar en algún grado la movilidad social.
+
+El lento crecimiento de la educación promedio de la poblacion más pobre durante largos periodos permite esperar una escasa movilidad intergeneracional. En Chile, en las últimas décadas, el importante aumento de la matrícula universitaria en todas la clases sociales hace preveer una tendencia en contra.
+
+Los resultados de los estudios cuantitativos sobre la transmisión intergeneracional se presentan en la tabla de movilidad, también llamadas matrices de transición.
+
+Para interpretar el gran conjunto de datos que facilitan tales tablas se definen los términos técnicos utilizados.
+
+El primero es el grado de movilidad ascendente o descendente. Los términos ascendente y "descendente’ implican un ordenamiento de las categorías a lo largo de algun eje delimitado cuantitativamente (años de escolaridad) o cualitativamente (niveles de educación). Cuando los estados o posiciones sociales se definen en función de los niveles de educación es más fácil establecer un ordenamiento que cuando se usan otras variables como el tipo de ocupación.
+
+###  El índice de movilidad de Shorrocks{#test2}
+
+El Indice de movilidad adoptado es el que propone Shorrocks (1978):
+
+$$ 1 - M = \frac{G(\bar{z})}{\sum_{i=1}^{K} \frac{G({z_t})}{K}}  $$
+
+donde:
+
+$G(.)$ puede ser el coeficiente de Gini o la varianza del log de los ingresos.
+
+$z_t$ es el vector de los ingresos en el periodo t y 
+
+$\bar{z}$ el vector de los ingresos a largo plazo (el promedio entre los K periodos).
+
+
+## Generación de tablas de contingencia, boxplots y ACP{#test3} 
+
+Ya tenemos el nombre de las variables fundamentales del ingreso por año en la Casen:
+
+
+| año |          |   |   |   |
+|-----|----------|---|---|---|
+| 2017 | ytotcor | yautcor | ytrabajocor  | yoprcor  |
+| 2015 | ytotcor | yautcor | ytrabajocor  | yoprcor  | 
+| 2013 |ytotcor  |yautcor  |ytrabajocor   |yoprcor   |   
+| 2011 |ytotaj   |yautaj   |ytrabaj       |yopraj    |  
+| 2009 |ytotaj   |yautaj   |ytrabaj       |yopraj    |  
+| 2006 |ytotaj   |yautaj   |ytrabaj       |yopraj    |  
+
+Para la generación de las tablas de contingencia integraremos al código R cuatro nuevas variables referidas a las siguientes preguntas de la Casen 2017:
+
+e6a: ¿Cuál fue el nivel educacional más alto alcanzado o el nivel educacional actual?
+
+e6b: En ese nivel educacional, ¿cual fue el último curso que aprobó?
+
+r12b: Nivel de educación más alto alcanzado por su padre 
+
+r13b: En ese nivel educacional, ¿cual fue el último curso que aprobó su padre?
+
+### Tarea: 
+
+1. Buscar el nombre ad-hoc de las variales en las Casen anteriores al 2017 en la aplicación shinyCasen y construir 8 tablas, 4 relacionadas a las etnias y cuatro a la población inmigrante relativas a las cuatro variables fundamentales del ingreso  en la Casen. 
+
+2. Se deben construir boxplots que relacionen  ingresos y nivel educacional, haciendo cruces con las diferentes categorías y vinculando la educación de los padres con la de los hijos.
+
+3. Construir gráficos de análisis de componentes principales entre el decil del ingreso autónomo, los años y el tipo de educación de las personas en relación a la de los padres.  
+
+La generación de tablas es fácil, por favor, contactarse con nosotros para las instrucciones para construir boxplot y análisis de componentes principales.
+
+### Generación de la tabla de contingencia para el 2017. Código ejemplo.
+
+```{r , message=FALSE, warning=FALSE, results='hide'}
+# dataset <- readRDS(file = "casen_2017_c.rds")
+ab_2017 <- readRDS(file = "casen_2017_c.rds")
+
+## Excluimos los outliers: 
+
+ab_2017 <- ab_2017[!is.na(ab_2017$ytotcor),]
+
+Q <- quantile(ab_2017$ytotcor, probs=c(.25, .75), na.rm = FALSE)
+iqr <- IQR(ab_2017$ytotcor)
+
+eliminated <- subset(ab_2017, ab_2017$ytotcor > (Q[1] - 1.5*iqr) & ab_2017$ytotcor < (Q[2]+1.5*iqr))
+
+## Generamos los promedios grupales
+
+a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$e1 # alfabetismo
+d <- eliminated$r3 # etnia
+e <- eliminated$sexo
+f <- eliminated$e6a # nivel alcanzado
+g <- eliminated$e6b # anos de estudio
+h <- eliminated$r12b # nivel alcanzado por el padre
+i <- eliminated$r13b # anos de estudio del padre
+
+promedios_grupales <-aggregate(a, by=list(b, c, d, e,f,g,h,i), FUN = mean , na.rm = TRUE)
+promedios_grupales_sd <-aggregate(a, by=list(b, c, d, e,f,g,h,i), FUN = sd , na.rm = TRUE)
+promedios_grupales_gini <-aggregate(a, by=list(b, c, d, e,f,g,h,i), FUN = gini , na.rm = TRUE)
+
+# Calculamos la desviación standard y el Gini:
+promedios_grupales$sd <- promedios_grupales_sd$sd.a
+promedios_grupales$gini <- promedios_grupales_gini$gini.a
+
+# Revisión de la tabla:
+# head(promedios_grupales,5)
+
+names(promedios_grupales)[1] <- "Comuna"
+names(promedios_grupales)[2] <- "Alfabetismo"
+names(promedios_grupales)[3] <- "Etnia"
+names(promedios_grupales)[4] <- "Sexo"
+names(promedios_grupales)[5] <- "Nivel alcanzado"
+names(promedios_grupales)[6] <- "Años de estudio"
+names(promedios_grupales)[7] <- "Nivel alcanzado por el padre"
+names(promedios_grupales)[8] <- "Años de estudio del padre"
+names(promedios_grupales)[9] <- "Promedio del ingreso"
+names(promedios_grupales)[10] <- "ds del ingreso"
+names(promedios_grupales)[11] <- "Gini del ingreso"
+
+codigos_comunales <- readRDS(file = "codigos_comunales_2011-2017.rds")
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df_2017 = merge( x = promedios_grupales, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+df_2017 <-df_2017[!(df_2017$Promedio == 0),]
+# head(df_2017,5)
+```
+```{r}
+head(promedios_grupales,5)
+```
+
+
+## Primer Rmarkdown: Etnia
+
+### Tabla 1 (2006-2017){#tabla001}
+
+Categorías básicas de la tablas de contingencia: comuna, sexo, alfabetismo y etnia\
+Variable de ingreso: ingreso total.\
+Pregunta: e6a, e6b, r12b, r13b
+
+### Tabla 2 (2006-2017){#tabla002}
+
+Categorías básicas de la tablas de contingencia: comuna, sexo, alfabetismo y etnia\
+Variable de ingreso: ingreso autónomo.\
+Pregunta: e6a, e6b, r12b, r13b
+
+### Tabla 3 (2006-2017){#tabla003}
+
+Categorías básicas de la tablas de contingencia: comuna, sexo, alfabetismo y etnia\
+Variable de ingreso: ingreso del trabajo.\
+Pregunta: e6a, e6b, r12b, r13b
+
+### Tabla 4 (2006-2017){#tabla004}
+
+Categorías básicas de la tablas de contingencia: comuna, sexo, alfabetismo y etnia\
+Variable de ingreso: ingreso de la ocupación principal.\
+Pregunta: e6a, e6b, r12b, r13b
+
+
+## Segundo Rmarkdown: Migración
+
+### Tabla 5 (2006-2017){#tabla005}
+
+Categorías básicas de la tablas de contingencia: comuna, sexo, alfabetismo y migra\
+Variable de ingreso: ingreso total.\
+Pregunta: e6a, e6b, r12b, r13b
+
+### Tabla 6 (2006-2017){#tabla006}
+
+Categorías básicas de la tablas de contingencia: comuna, sexo, alfabetismo y migra\
+Variable de ingreso: ingreso autónomo.\
+Pregunta: e6a, e6b, r12b, r13b
+
+### Tabla 7 (2006-2017){#tabla007}
+
+Categorías básicas de la tablas de contingencia: comuna, sexo, alfabetismo y migra\
+Variable de ingreso: ingreso del trabajo.\
+Pregunta: e6a, e6b, r12b, r13b
+
+### Tabla 8 (2006-2017){#tabla008}
+
+Categorías básicas de la tablas de contingencia: comuna, sexo, alfabetismo y etnia\
+Variable de ingreso: ingreso de la ocupación principal.\
+Pregunta: e6a, e6b, r12b, r13b
+
+<hr>
+
+
+<br>
+<br>
+<br>
+
+
+
+
+
+
+

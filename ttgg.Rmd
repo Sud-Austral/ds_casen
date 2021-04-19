@@ -1,0 +1,435 @@
+---
+title: "Tablas de contingencia generalizadas para la Casen"
+author: "DI"
+date: "11-11-2020"
+output: html_document
+---
+
+Una vez resuelto el requerimiento técnico de generalizar Tablas de Contigencia (TTCC), seguimos con la necesidad de plantear preguntas generadoras de TTCC con sentido e interés.
+
+Haremos ejercicios sobre un subset de la tabla Casen 2017 que toma todos los registros de las comunas de Iquique, Alto Hospicio, Pozo Almonte, Huara y Pica.
+
+Como ejemplo haremos un ejercicio de investigación sobre la pregunta:
+
+v38b. ¿Ha presenciado personas consumiendo drogas o alcohol en la vía pública?
+
+Haremos intervenir cuatro variables categóricas:
+*pobreza
+*sexo
+*estado civil
+*etnia
+*comuna
+
+Podemos preveer que los hombres pobres y pertenecientes alguna etnia tenderan a responder más positivamente esta pregunta. Y más que testigos serían participantes.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Tables with labels in R 2020-07-27
+# https://cran.r-project.org/web/packages/expss/vignettes/tables-with-labels.html
+
+# kable(), Demonstration
+# https://rpubs.com/tf_peterson/kableDemo
+
+
+library(ggplot2)
+library(ggpubr)
+library(markdown)
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(plotly)
+library(xts)
+library(dygraphs)
+library(kableExtra)
+library(knitr)
+library("readxl")
+library(rsconnect)
+library(dplyr)
+library(summarytools)
+library(epiDisplay)
+#library(leaflet)
+library(haven)
+library(epiDisplay)
+library("readxl")
+
+library(hrbrthemes)
+library(viridis)
+library(viridisLite)
+library(DescTools)
+library(roperators)
+
+library(writexl)
+
+library(foreign)
+library(expss)
+```
+
+
+
+```{r echo = FALSE, error=FALSE, warning=FALSE, message=FALSE}
+
+data(mtcars)
+mtcars = apply_labels(mtcars,
+                      mpg = "Miles/(US) gallon",
+                      cyl = "Number of cylinders",
+                      disp = "Displacement (cu.in.)",
+                      hp = "Gross horsepower",
+                      drat = "Rear axle ratio",
+                      wt = "Weight (1000 lbs)",
+                      qsec = "1/4 mile time",
+                      vs = "Engine",
+                      vs = c("V-engine" = 0,
+                             "Straight engine" = 1),
+                      am = "Transmission",
+                      am = c("Automatic" = 0,
+                             "Manual"=1),
+                      gear = "Number of forward gears",
+                      carb = "Number of carburetors"
+)
+
+# Tenemos una interfaz más sofisticada para la construcción de tablas con tuberías magrittr. La construcción de la tabla consta de al menos tres funciones encadenadas con el operador de tubería:%>%. Al principio, necesitamos especificar las variables para las que se calcularán las estadísticas con tab_cells. En segundo lugar, calculamos estadísticas con una de las funciones tab_stat_ *. Y por último, finalizamos la creación de la tabla con tab_pivot, e. g .: conjunto de datos%>% tab_cells (variable)%>% tab_stat_cases ()%>% tab_pivot (). Después de eso, opcionalmente podemos ordenar la tabla con tab_sort_asc, soltar filas / columnas vacías con drop_rc y transponer con tab_transpose. La tabla resultante es solo un data.frame, por lo que podemos usar las operaciones habituales de R en ella. La documentación detallada para la creación de tablas se puede ver a través de? Tables. Para las pruebas de significación, consulte? Significación. En general, las tablas se traducen automáticamente a HTML para su salida en blocs de notas Knitr o Jupyter. Sin embargo, si queremos salida HTML en los cuadernos de R o en el visor de RStudio, necesitamos establecer opciones para eso: expss_output_rnotebook () o expss_output_viewer ().
+
+```
+
+
+```{r echo = FALSE, error=FALSE, warning=FALSE, message=FALSE}
+# mtcars
+
+```
+
+
+```{r echo = FALSE, error=FALSE, warning=FALSE, message=FALSE}
+# 'cro' examples
+# just simple crosstabulation, similar to base R 'table' function
+# cro(mtcars$am, mtcars$vs)
+```
+
+
+```{r echo = FALSE, error=FALSE, warning=FALSE, message=FALSE}
+# Table column % with multiple banners
+# cro_cpct(mtcars$cyl, list(total(), mtcars$am, mtcars$vs))
+```
+
+
+```{r echo = FALSE, error=FALSE, warning=FALSE, message=FALSE}
+# or, the same result with another notation
+# mtcars %>% calc_cro_cpct(cyl, list(total(), am, vs))
+```
+
+```{r echo = FALSE, error=FALSE, warning=FALSE, message=FALSE}
+# Table with nested banners (column %).          
+# mtcars %>% calc_cro_cpct(cyl, list(total(), am %nest% vs))    
+```
+
+
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE}
+
+# datasetCasen2017 = read.spss("Casen 2017.sav", to.data.frame=TRUE)
+# write.xlsx(datasetCasen2017,'Casen2017.xlsx')
+# write.csv(datasetCasen2017,'Casen2017.csv')
+
+# dataset <- read.csv('Casen_no_humano.csv')
+
+dataset <- read_excel("casen_2017_6_comunas.xlsx")
+```
+
+
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE}
+nrow(dataset)
+```
+
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE}
+# colnames(dataset)
+```
+
+
+
+
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE}
+# dataset$Sexo
+```
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE}
+# dataset$"Estado civil"
+```
+
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE}
+# dataset$"Situación de pobreza multidimensional (4 dimensiones)"
+```
+
+## Verifiquemos una tendencia: Sexo versus estado civil
+
+```{r echo = FALSE, error=FALSE, warning=FALSE, message=FALSE}
+tabla_cro <- cro(dataset$Sexo, dataset$"Estado civil")
+tabla_cro
+# tabla_cro_df <- data.frame(tabla_cro)
+# tabla_cro_df
+
+```
+## Las viudas son menos pobres que los hombres.
+
+```{r echo = FALSE}
+df0 <- table(dataset$"Situación de pobreza multidimensional (4 dimensiones)", dataset$"Sexo", dataset$"Estado civil")
+
+df0 
+```
+
+# Tablas de contingencia relacionadas al ser testigo del consumo de drogas o alcohol.
+
+## ¿Ha presenciado personas consumiendo drogas o alcohol en la vía pública?
+
+a emular
+
+```{r echo = FALSE, error=FALSE, warning=FALSE, message=FALSE}
+tabla_cro_cpct <- cro_cpct(dataset$"Situación de pobreza multidimensional (4 dimensiones)", list(total(), dataset$"v38b. ¿Ha presenciado?: Personas consumiendo drogas o alcohol en la vía pública"  %nest% dataset$Sexo %nest% dataset$"Estado civil"))
+tabla_cro_cpct
+# tabla_cro_cpct_df <- data.frame(tabla_cro_cpct)
+# tabla_cro_cpct_df
+#dataset$"pobreza_multi_4d"
+```
+
+
+## ¿Ha presenciado personas consumiendo drogas o alcohol en la vía pública? por comuna
+
+```{r echo = FALSE, error=FALSE, warning=FALSE, message=FALSE}
+tabla_cro_cpct <- cro_cpct(dataset$"Situación de pobreza multidimensional (4 dimensiones)", list(total(), dataset$Comuna %nest% dataset$"v38b. ¿Ha presenciado?: Personas consumiendo drogas o alcohol en la vía pública"  %nest% dataset$Sexo %nest% dataset$"Estado civil"))
+tabla_cro_cpct
+# tabla_cro_cpct_df <- data.frame(tabla_cro_cpct)
+# tabla_cro_cpct_df
+#dataset$"pobreza_multi_4d"
+```
+
+## ¿Ha presenciado personas consumiendo drogas o alcohol en la vía pública? por comuna y por pertenencia una comunidad indigena.
+
+```{r echo = FALSE, error=FALSE, warning=FALSE, message=FALSE}
+tabla_cro_cpct <- cro_cpct(dataset$"Situación de pobreza multidimensional (4 dimensiones)", list(total(), dataset$"r3. Pueblos indígenas, ¿pertenece usted o es descendiente de alguno de ellos?"  %nest%  dataset$"v38b. ¿Ha presenciado?: Personas consumiendo drogas o alcohol en la vía pública"))
+tabla_cro_cpct
+# tabla_cro_cpct_df <- data.frame(tabla_cro_cpct)
+# tabla_cro_cpct_df
+#dataset$"pobreza_multi_4d"
+```
+
+Las personas de la etnia Aimara, considerando la totalidad de las 5 comunas que nunca han visto estos hechos y no son pobres, representan el el 61,4%, mientras que los pobres que nunca han visto ésto sólo el 38,6%, lo que indica cierta correlación entre presencia del consumo de alcohol y drogas y pobreza en las comunidades indigenas del Norte de Chile. 
+
+Ocurre lo mismo para la tendencia para la etnia Mapuche.
+
+Se corrobora nuestra hipotesis original.
+
+
+```{r echo = FALSE, error=FALSE, warning=FALSE, message=FALSE}
+
+# head(dataset,10)
+```
+```{r echo = FALSE, error=FALSE, warning=FALSE, message=FALSE}
+# dataset = apply_labels(dataset,
+#                       # sexo = c("h" = 1,
+#                       #        "m" = 2),
+#                       ecivil = c("Casado(a)" = 1,
+#                                  "Conviviente o pareja sin acuerdo de unión civil" = 2,
+#                                  "Conviviente civil (con acuerdo de unión civil)" = 3,
+#                                  "Anulado(a)" = 4,
+#                                  "Separado(a)" = 5,
+#                                  "Divorciado (a)" = 6,
+#                                  "Viudo(a)" = 7,
+#                                  "Soltero(a)" = 8,
+#                                  "No responde" = 9
+#                                  ),
+#                   pareja = c("Legal" = 1,
+#                      "De hecho" = 2,
+#                      "No tiene pareja en el hogar" = 7
+#                      )
+# )
+```
+
+
+
+```{r echo = FALSE, error=FALSE, warning=FALSE, message=FALSE}
+
+data(mtcars)
+mtcars = apply_labels(mtcars,
+                      mpg = "Miles/(US) gallon",
+                      cyl = "Number of cylinders",
+                      disp = "Displacement (cu.in.)",
+                      hp = "Gross horsepower",
+                      drat = "Rear axle ratio",
+                      wt = "Weight (1000 lbs)",
+                      qsec = "1/4 mile time",
+                      vs = "Engine",
+                      vs = c("V-engine" = 0,
+                             "Straight engine" = 1),
+                      am = "Transmission",
+                      am = c("Automatic" = 0,
+                             "Manual"=1),
+                      gear = "Number of forward gears",
+                      carb = "Number of carburetors"
+)
+
+# Tenemos una interfaz más sofisticada para la construcción de tablas con tuberías magrittr. La construcción de la tabla consta de al menos tres funciones encadenadas con el operador de tubería:%>%. Al principio, necesitamos especificar las variables para las que se calcularán las estadísticas con tab_cells. En segundo lugar, calculamos estadísticas con una de las funciones tab_stat_ *. Y por último, finalizamos la creación de la tabla con tab_pivot, e. g .: conjunto de datos%>% tab_cells (variable)%>% tab_stat_cases ()%>% tab_pivot (). Después de eso, opcionalmente podemos ordenar la tabla con tab_sort_asc, soltar filas / columnas vacías con drop_rc y transponer con tab_transpose. La tabla resultante es solo un data.frame, por lo que podemos usar las operaciones habituales de R en ella. La documentación detallada para la creación de tablas se puede ver a través de? Tables. Para las pruebas de significación, consulte? Significación. En general, las tablas se traducen automáticamente a HTML para su salida en blocs de notas Knitr o Jupyter. Sin embargo, si queremos salida HTML en los cuadernos de R o en el visor de RStudio, necesitamos establecer opciones para eso: expss_output_rnotebook () o expss_output_viewer ().
+
+```
+
+
+```{r echo = FALSE, error=FALSE, warning=FALSE, message=FALSE}
+# mtcars
+
+```
+
+
+```{r echo = FALSE, error=FALSE, warning=FALSE, message=FALSE}
+# 'cro' examples
+# just simple crosstabulation, similar to base R 'table' function
+# cro(mtcars$am, mtcars$vs)
+```
+
+
+```{r echo = FALSE, error=FALSE, warning=FALSE, message=FALSE}
+# Table column % with multiple banners
+# cro_cpct(mtcars$cyl, list(total(), mtcars$am, mtcars$vs))
+```
+
+
+```{r echo = FALSE, error=FALSE, warning=FALSE, message=FALSE}
+# or, the same result with another notation
+# mtcars %>% calc_cro_cpct(cyl, list(total(), am, vs))
+```
+
+```{r echo = FALSE, error=FALSE, warning=FALSE, message=FALSE}
+# Table with nested banners (column %).          
+# mtcars %>% calc_cro_cpct(cyl, list(total(), am %nest% vs))    
+```
+
+
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE}
+
+# datasetCasen2017 = read.spss("Casen 2017.sav", to.data.frame=TRUE)
+# write.xlsx(datasetCasen2017,'Casen2017.xlsx')
+# write.csv(datasetCasen2017,'Casen2017.csv')
+
+# dataset <- read.csv('Casen_no_humano.csv')
+
+dataset <- read_excel("casen_2017_6_comunas.xlsx")
+```
+
+
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE}
+# nrow(dataset)
+```
+<br>
+
+## Discriminación
+
+#### La discriminación es una práctica cotidiana que consiste en dar un trato desfavorable o de desprecio inmerecido a determinada persona o grupo, que a veces no percibimos, pero que **todos** en algún momento la hemos causado o recibido. Hay grupos humanos que son víctimas de la discriminación todos los días por alguna de sus características físicas o su forma de vida. El origen étnico o nacional, el sexo, la edad, la discapacidad, la condición social o económica, la condición de salud, el embarazo, la lengua, la religión, las opiniones, las preferencias sexuales, el estado civil y otras diferencias pueden ser motivo de distinción, exclusión o restricción de derechos.
+ 
+#### Los efectos de la discriminación en la vida de las personas suelen ser nefastos y tienen que ver con la pérdida de derechos y la desigualdad para acceder a ellos; lo cual puede orillar al aislamiento, a sufrir violencia e incluso, en casos extremos, a perder la vida.
+
+#### El módulo R de la Casen 2017, "Identidades, redes y participación" contiene un set de discriminación por 17 categorías y un "otro".
+
+### Durante los últimos 12 meses, Ud. o alguien de su hogar ha sido tratado injustamente o discriminado, fuera de su hogar debido a...
+
+<br>
+
+### 1 <span style="color:blue">nivel socioeconómico</span>
+
+#### version I: nido padre: comuna
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE}
+# colnames(dataset)
+# vec %na<-% 0
+tabla_cro_cpct <- cro_cpct(dataset$"Situación de pobreza multidimensional (4 dimensiones)", list(total(), dataset$Comuna   %nest% dataset$Sexo %nest% dataset$"r9a. Discriminado por nivel socioeconómico"))
+tabla_cro_cpct
+```
+
+<!-- <br> -->
+
+<!-- #### version II: nido padre discriminacion -->
+
+<!-- ```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE} -->
+<!-- tabla_cro_cpct <- cro_cpct(dataset$"Situación de pobreza multidimensional (4 dimensiones)", list(total(), dataset$"r9a. Discriminado por nivel socioeconómico", dataset$Comuna   %nest% dataset$Sexo )) -->
+<!-- tabla_cro_cpct -->
+<!-- ``` -->
+
+<!-- <br> -->
+
+<!-- #### version III: nido padre: sexo -->
+
+<!-- ```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE} -->
+<!-- tabla_cro_cpct <- cro_cpct(dataset$"Situación de pobreza multidimensional (4 dimensiones)", list(total(), dataset$Sexo %nest% dataset$"r9a. Discriminado por nivel socioeconómico", dataset$Comuna   )) -->
+<!-- tabla_cro_cpct -->
+<!-- ``` -->
+
+<br>
+
+### 2 <span style="color:blue">por su edad</span>
+
+
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE}
+# colnames(dataset)
+# vec %na<-% 0
+tabla_cro_cpct <- cro_cpct(dataset$"Situación de pobreza multidimensional (4 dimensiones)", list(total(), dataset$Comuna   %nest% dataset$Sexo %nest% dataset$"r9g. Discriminado por su edad"))
+tabla_cro_cpct
+```
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE}
+
+```
+<br>
+
+### 3 <span style="color:blue">por pertenecer a un pueblo indígena</span>
+
+
+
+
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE}
+# colnames(dataset)
+# vec %na<-% 0
+tabla_cro_cpct <- cro_cpct(dataset$"Situación de pobreza multidimensional (4 dimensiones)", list(total(), dataset$Comuna   %nest% dataset$Sexo %nest% dataset$"r9p. Discriminado por pertenecer a un pueblo indígena"))
+tabla_cro_cpct
+```
+
+
+
+
+<br>
+<br>
+
+## Precariedad laboral
+
+#### Uno de los indicadores con los que se puede medir la calidad del trabajo es el grado de su formalidad. Las transformaciones acontecidas en el mundo del trabajo en los últimos años, instituyeron un modelo laboral caracterizado por la transitoriedad y la alta rotación. Esta situación ha tendido a desvincularlos de los marcos reguladores tradicionales de las relaciones laborales. 
+
+#### El módulo O de la Casen 20017, Trabajo, contiene una pregunta que consulta por la existencia de contrato de trabajo: o17.
+
+### En su trabajo principal, ¿tiene contrato de trabajo escrito?
+
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE}
+# colnames(dataset)
+# vec %na<-% 0
+tabla_cro_cpct <- cro_cpct(dataset$"Situación de pobreza multidimensional (4 dimensiones)", list(total(), dataset$Comuna   %nest% dataset$Sexo %nest% dataset$"o17. En su trabajo principal, ¿tiene contrato de trabajo escrito?"))
+tabla_cro_cpct
+```
+
+### En su trabajo principal, ¿qué tipo de contrato o acuerdo de trabajo tiene…?
+
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE}
+# colnames(dataset)
+# vec %na<-% 0
+tabla_cro_cpct <- cro_cpct(dataset$"Situación de pobreza multidimensional (4 dimensiones)", list(total(), dataset$Comuna   %nest% dataset$Sexo %nest% dataset$"o16. En su trabajo principal, ¿qué tipo de contrato o acuerdo de trabajo tiene?"))
+tabla_cro_cpct
+```
+
+<br>
+<br>
+
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE}
+# colnames(dataset)
+# vec %na<-% 0
+tabla_cro_cpct <- cro_cpct(dataset$"Situación de pobreza multidimensional (4 dimensiones)", list(total(), dataset$Comuna   %nest% dataset$Sexo %nest% dataset$"o16. En su trabajo principal, ¿qué tipo de contrato o acuerdo de trabajo tiene?"))
+tabla_cro_cpct
+```
+
+
+
+
+
+
+
+

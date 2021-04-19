@@ -1,0 +1,17 @@
+b.1. Malnutrición en niños(as): Se considera que un hogar es carente en malnutrición en niños (as), si al menos uno de sus integrantes entre los 0 y 6 años, está con sobrepeso u obesidad, sufre de desnutrición o se encuentra en riesgo de desnutrición.
+b.2. Adscripción al Sistema de Salud: Se considera que un hogar es carente en adscripción a un sistema de salud, si al menos uno de sus integrantes no está afiliado a un sistema previsional de salud y no tiene otro seguro de salud.
+b.3. Atención de salud: Se considera que un hogar es carente en acceso a atención de salud, si al menos uno de sus integrantes:
+* Sufrió un problema de salud en los últimos tres meses y no tuvo consulta ni atención por alguna de las siguientes razones:
+* Pensó en consultar pero no tuvo tiempo.
+* Pensó en consultar pero no tuvo dinero.
+* Pensó en consultar pero le cuesta mucho llegar al lugar de atención.
+* Pidió hora pero no la obtuvo.
+* Ha estado en tratamiento médico por enfermedad, cuya patología está cubierta por el sistema AUGE durante los últimos 12 meses y no ha sido cubierto por el Sistema de Garantías Explícitas de Salud, por alguna de las siguientes razones:
+* Decidió no esperar para acceder a la consulta a través del AUGE o GES, para solucionar su problema con mayor rapidez.
+* Pensó que la atención AUGE podría ser de baja calidad.
+* Consideró el trámite para acceder al AUGE o GES muy difícil.
+* El sistema AUGE o GES no cubría las necesidades de la enfermedad.
+* No sabía que su enfermedad estaba cubierta por el AUGE.
+* No pertenece al tramo de edad que está cubierto por al AUGE.
+* Otra razón.
+corresponde de la 787  a la 789

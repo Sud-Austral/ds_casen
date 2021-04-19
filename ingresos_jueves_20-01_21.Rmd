@@ -1,0 +1,233 @@
+---
+title: |
+  <font size="16">Descomposición del concepto "Ingreso" en la Casen 2013</font>
+author:
+- name: VE-CC
+  affiliation: |
+subtitle: |
+  
+date: "28-01-2021"
+abstract: |
+
+  Hemos descompuesto los componentes que forman el concepto Ingreso de la Casen al nivel atómico. Descubrimos que no existen valores agregados que construyan una categoría, digamos, Ingresos autónomos, sino que éstos aparecen corregidos.
+  
+  
+header-includes:
+   - \usepackage[]{babel}
+output: 
+  html_document:
+      theme: flatly
+---
+
+<style type="text/css">
+
+.main-container {
+  max-width: 1300px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+body, td {
+    font-family: Helvetica;
+    font-size: 22px;
+}
+code.r{
+  font-size: 12px;
+}
+pre {
+  font-size: 18px;
+}
+</style>
+```{r , message=FALSE, warning=FALSE, include = FALSE, echo = FALSE}
+
+suppressWarnings(library(RODBC))
+
+library(ggplot2)
+library(ggpubr)
+library(markdown)
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(plotly)
+library(xts)
+library(dygraphs)
+library(kableExtra)
+library(knitr)
+library("readxl")
+library(rsconnect)
+library(dplyr)
+library(summarytools)
+library(epiDisplay)
+#library(leaflet)
+library(haven)
+library(epiDisplay)
+library("readxl")
+library(expss)
+library(hrbrthemes)
+library(viridis)
+library(viridisLite)
+library(DescTools)
+library(roperators)
+library(shinycssloaders)
+library(writexl)
+library(labelled)
+library(tidyverse)
+library(haven)
+library(readr)
+library(sjmisc)
+library(WriteXLS)
+
+library(ineq)
+library(readstata13)
+library(reldist)
+```
+
+
+
+## Teoría
+
+![Mapa](DFDDiagram1.JPG)
+
+## Ejercicio
+
+De acuerdo al diseño conceptual del punto 1 intentaremos calcular el ingreso del trabajo para la persona y para el hogar sumando para la primera los registros del y0301 al y1101 y del hogar y0301h al y1101h
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+# dataset_2006 <- readRDS(file = "casen_2006_c.rds")
+# dataset_2009 <- readRDS(file = "casen_2009_c.rds")
+# dataset_2011 <- readRDS(file = "casen_2011_c.rds")
+dataset_2013 <- readRDS(file = "casen_2013_c.rds")
+# dataset_2015 <- readRDS(file = "casen_2015_c.rds")
+# dataset_2017 <- readRDS(file = "casen_2017_c.rds")
+```
+
+## El quinto de Santiago
+
+```{r}
+a<-dataset_2013[dataset_2013$comuna == "Santiago",]
+aa<-a[5,376:405]
+aa
+```
+
+
+```{r}
+
+e <- sum(aa, na.rm=TRUE)
+e
+```
+
+
+
+
+<!-- ```{r} -->
+<!-- comuna_santiago<-comuna[1,] -->
+<!-- comuna_santiago -->
+<!-- ``` -->
+<!-- ```{r} -->
+<!-- codigos_comunales <- readRDS(file = "codigos_comunales_2011-2017.rds") -->
+<!-- codigos_comunales -->
+<!-- ``` -->
+
+
+
+
+<!-- ```{r, message=FALSE, warning=FALSE, results='hide'} -->
+<!-- # dataset <- readRDS(file = "casen_2013_c.rds") -->
+<!-- ab <- dataset_2013 -->
+
+<!-- ab <- ab[!is.na(ab$yautcorh),] -->
+
+<!-- Q <- quantile(ab$yautcorh, probs=c(.25, .75), na.rm = FALSE) -->
+<!-- iqr <- IQR(ab$yautcorh) -->
+
+<!-- eliminated <- subset(ab, ab$yautcorh > (Q[1] - 1.5*iqr) & ab$yautcorh < (Q[2]+1.5*iqr)) -->
+
+<!-- a <- eliminated$yautcorh -->
+<!-- b <- eliminated$comuna -->
+<!-- c <- eliminated$e12b1 -->
+<!-- d <- eliminated$r6 -->
+<!-- e <- eliminated$sexo -->
+
+<!-- promedios_grupales <-aggregate(a, by=list(b, c, d, e), FUN = mean , na.rm = TRUE) -->
+<!-- promedios_grupales_sd <-aggregate(a, by=list(b, c, d, e), FUN = sd , na.rm = TRUE) -->
+<!-- promedios_grupales$sd = promedios_grupales_sd$sd.a -->
+<!-- d<-promedios_grupales -->
+<!-- d$Año <- "2013" -->
+
+<!-- names(d)[1] <- "Comuna" -->
+<!-- names(d)[2] <- "Beca" -->
+<!-- names(d)[3] <- "Etnia " -->
+<!-- names(d)[4] <- "Sexo" -->
+<!-- names(d)[5] <- "Promedio" -->
+<!-- names(d)[6] <- "Desviación standard" -->
+<!-- # names(d)[7] <- "Año" -->
+
+
+<!-- # codigos_comunales -->
+
+<!-- df_2013 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE) -->
+<!-- df_2013 <-df_2013[!(df_2013$Promedio == 0),] -->
+<!-- # head(df_2013,5) -->
+
+<!-- ``` -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

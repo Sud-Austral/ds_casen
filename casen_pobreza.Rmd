@@ -1,0 +1,677 @@
+---
+title: '¿Cómo mide la pobreza en Chile la Casen?'
+subtitle: 'Aplicación al caso de la Casen 2015 por sus factores de expansión comunales ausentes.'
+author:
+- name: Víctor Enamorado - Christian Castro
+  affiliation: DataIntelligence-Chile
+date: "28-12-2020"
+abstract: |
+  En un trabajo previo ([ir al documento: "Propuesta de solución a la ausencia de factores de expansión comunales en 185 comunas de la Casen 2015"](https://rpubs.com/dataintelligence/prop_sol_fexpc)), propusimos una solución al problema de los factores de expansión ausentes en la Casen del 2015 (una investigación posterior nos reveló que para éstas 185 comunas no se buscó contar con representatividad estadística en la Casen 2015, siendo reemplazados los factores de expansión por una estimación SAE (Small Areas Estimation) cuyos detalles nos son inaccesibles). Sobre ésta base de datos ya corregida, calcularemos nuestro propio porcentaje de pobreza para Chile el 2015 y veremos que un resultado difiere en dos décimas de los resultados oficiales y el otro en una. Calcularemos el porcentaje de pobreza para una comuna que no posee factor de expansión y veremos que el resultado cae dentro de los límites de error para la pobreza estimada con SAE y veremos que para Iquique nuestra estimación coincide con el dato oficial. Revisaremos una definición conceptual de qué es la pobreza y cómo intenta medirla la Casen en sus seis versiones desde el 2006, y concluiremos con gráficos que relacionan algunas variables relevantes con el decil de ingreso al que pertenecen las personas.
+
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(ggpubr)
+library(markdown)
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(plotly)
+library(xts)
+library(dygraphs)
+library(kableExtra)
+library(knitr)
+library("readxl")
+library(rsconnect)
+library(dplyr)
+library(summarytools)
+library(epiDisplay)
+#library(leaflet)
+library(haven)
+library(epiDisplay)
+library("readxl")
+library(hrbrthemes)
+library(viridis)
+library(viridisLite)
+library(writexl)
+library(plyr)
+library(kableExtra)
+library(knitr)
+library(DescTools)
+
+# https://www.datacamp.com/community/tutorials/contingency-tables-r
+
+oldw <- getOption("warn")
+options(warn = -1)
+```
+
+
+
+## 1 Aspectos conceptuales
+
+### La metodología de estimación de la Pobreza y la actualización del 2013.
+
+Desde la década de 1980 y hasta la actualidad, en Chile la medición de la situación de
+pobreza de los hogares se ha realizado utilizando una metodología basada en ingresos.
+Según ésta, un hogar se ha considerado en situación de pobreza extrema si sus ingresos
+totales per cápita mensuales no son suficientes para financiar el valor de la denominada
+canasta de necesidades básicas alimentarias (NBA). En esta metodología tradicional, el valor
+de la NBA es la línea de pobreza extrema o indigencia. En tanto, se entiende que el hogar
+está en situación de pobreza si sus ingresos totales per cápita mensuales no le permiten
+cubrir sus necesidades básicas alimentarias y no alimentarias (el valor de la canasta básica
+alimentaria y no alimentaria es la línea de pobreza).
+
+La composición de la canasta básica alimentaria de la Metodología Tradicional de medición
+de pobreza fue definida sobre la base de los patrones de consumo de los hogares,
+registrados en la Encuesta de Presupuestos Familiares 1986-1987 del Instituto Nacional de
+Estadísticas (INE).
+
+Los ingresos de los hogares han sido estimados utilizando los datos de la
+Encuesta de Caracterización Socioeconómica Nacional (Casen), de responsabilidad del
+Ministerio de Desarrollo Social (ex Ministerio de Planificación). 
+
+En el periodo 1987-2011 los datos de ingreso utilizados para la estimación de la tasa de pobreza han sido
+validados, corregidos por no respuesta y ajustados a Cuentas Nacionales por la Comisión
+Económica para América Latina y el Caribe (CEPAL). Adicionalmente, CEPAL
+tradicionalmente ha validado y editado los subsidios monetarios de monto fijo que no han
+sido declarados con exactitud por los encuestados.
+
+
+El año 2013 se preparó e implementó el levantamiento de la encuesta Casen 2013. Como
+parte de este proceso, se ha llevado a cabo una actualización y perfeccionamiento de la
+metodología de medición de la pobreza.
+
+
+### Pobreza absoluta versus pobreza relativa
+
+Los indicadores de pobreza y pobreza extrema estimados por Ministerio de Desarrollo Social a partir de la información de la Encuesta Casen utilizan el método de ingresos o indirecto. La utilización de esta misma metodología desde 1987 ha permitido la construcción de indicadores comparables a lo largo del tiempo, haciendo posible de esta manera evaluar su evolución. Además, su amplia aplicación a nivel internacional, permite la comparación de la situación nacional con la de otros países.
+
+Este método, al igual que el método directo o de necesidades básicas insatisfechas, NBI, mide pobreza y pobreza extrema en términos absolutos. Esto es, los límites entre quiénes son pobres o indigentes y quiénes no lo son se definen en relación a mínimos de satisfacción de necesidades básicas, en el caso de la pobreza, o alimentarias, en el caso de la pobreza extrema.
+
+A diferencia del método de NBI, este método utiliza el ingreso como indicador de la capacidad de satisfacción de las necesidades básicas, de modo que estos mínimos se establecen en términos de un cierto nivel de ingreso. Así, la línea de pobreza es el ingreso mínimo establecido por persona para satisfacer las necesidades básicas y la línea de pobreza extrema es el mínimo establecido por persona para satisfacer las necesidades alimentarias.
+
+De acuerdo con ello, se considera en situación de pobreza a aquellos hogares cuyos ingresos son inferiores al mínimo establecido para satisfacer las necesidades básicas de sus miembros, y en situación de pobreza extrema a aquellos hogares cuyos ingresos son inferiores al mínimo establecido para satisfacer las necesidades alimentarias de sus miembros.
+
+Para la clasificación de los hogares en estas categorías, el ingreso del hogar se define como la suma del ingreso autónomo del hogar, las transferencias monetarias que recibe el hogar del Estado y una imputación por concepto de arriendo de la vivienda, cuando ésta es habitada por sus propietarios. 
+
+En términos generales, es posible distinguir dos perspectivas de medición de la pobreza, los
+enfoques subjetivo y objetivo. En el enfoque subjetivo, la situación de pobreza se define a
+partir de la percepción que tienen los propios individuos, ya sea personas u hogares, de su
+situación; en tanto, en el enfoque objetivo, la situación de pobreza se define de acuerdo a
+criterios comunes establecidos externamente, que utilizan información recogida sobre los
+individuos.
+A su vez, dentro del enfoque objetivo, se puede distinguir entre las mediciones de pobreza
+absoluta y las mediciones de pobreza relativa. Mientras los métodos de medición de pobreza
+absoluta consideran que hay umbrales absolutos de satisfacción de las necesidades básicas
+de los individuos (y definen el límite de la situación de pobreza en relación a estos mínimos),
+los métodos de medición de pobreza relativa consideran que un individuo se encuentra en
+situación de pobreza cuando está en desventaja respecto a los individuos que conforman la
+sociedad de la que es parte (y definen el límite para la situación de pobreza en relación a
+indicadores del bienestar del conjunto de la sociedad).
+
+
+"Con el objetivo de analizar de manera simultánea y rigurosa un conjunto de dimensiones
+pertinentes al estudio de la pobreza, el desarrollo de una medida multidimensional de la
+pobreza requiere adoptar decisiones metodológicas fundamentadas tanto desde un punto de
+vista técnico como normativo. Reconociendo esta complejidad, la metodología propuesta por
+Alkire y Foster (2007) constituye uno de los principales esfuerzos desarrollados en las
+últimas décadas y es el referente de base para la construcción de una metodología aplicable
+al caso de Chile."
+
+[ir al documento: "Nueva Metodología de Medición de
+la Pobreza por Ingresos y
+Multidimensional"](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwi6m4S_8PDtAhVZHbkGHWSMC1sQFjAAegQIAxAC&url=http%3A%2F%2Fobservatorio.ministeriodesarrollosocial.gob.cl%2Fdocumentos%2FNueva_Metodologia_de_Medicion_de_Pobreza.pdf&usg=AOvVaw3FviZtL_nVKJi4xcLl3hxl)
+
+
+
+## 2 Aspectos Técnicos
+
+### Pobreza por ingresos
+
+Todas las Casen (años 2006, 2009, 2011, 2013, 2015 y 2017)  contienen una sola variable que discrimina la categoría de pobreza en la que cada observación es clasificada. Las categorías son tres, las que si bien se denominan de distinto modo a partir del año 2013, identifican lo mismo:
+
+Hasta el 2011:
+
+1. Indigente
+2. Pobre no indigente
+3. No pobre
+
+A partir del 2013, “MN” a nueva metodología que incluye nuevas líneas de pobreza y nueva
+metodología de datos de ingresos.
+
+[ir al documento: "La batalla en contra la desigualdad - Clapes UC"](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwjU6LegvPHtAhW6HrkGHSyTCrAQFjADegQIARAC&url=https%3A%2F%2Fclapesuc.cl%2Fassets%2Fuploads%2F2017%2F01%2F24-01-17-la-batalla-contra-la-desigualdad-su.pdf&usg=AOvVaw3c5M3oh8kary0hjLBlK2am)
+
+Desde el 2013:
+
+1. Pobres extremos
+2. Pobres no extremos
+3. No pobres      	
+
+|                  |   2006	            |   2009	         |   2011	       |   2013        	     |  2015              |   2017	           |
+|---	             |---	                  |---       	         |---            |---	                 |---                 |---     	           |
+|Variable          | **corte**                | **corte**              | **corte**         | **pobreza_mn**          | **pobreza**       	  | **pobreza**  	     |
+|---	             |---	                  |---       	         |---            |---	                 |---                 |---   	           |
+|Categorías        | Indigente       	| Indigente      	   | Indigente  	 | Pobres extremos     | Pobres extremos    | Pobres extremos    |
+|                  | Pobre no indigente  	| Pobre no indigente | Pobre  	 | Pobres no extremos  | Pobres no extremos | Pobres no extremos |
+|                  | No pobre       	| No pobre     	   | No pobre  	 | No pobres   	     | No pobres          | No pobres          |
+
+### Pobreza multidimensional
+
+|                            |   2013        	     |  2015              |   2017	           |
+|---	                       |---	                 |---                 |---     	           |
+|Variable                    | **pobreza_multi**        | **pobreza_multi_4d**   | **pobreza_multi_4d**   |
+|                            |                      | **pobreza_multi_5d**   | **pobreza_multi_5d**   |
+|---	                       |---	                 |---                 |---   	           |
+|Categorías                  | no pobre             | no pobre           | no pobre           |
+|                            | pobre                | pobre              | pobre              |
+
+La variable: pobreza_multi_5d,  "Situación de pobreza multidimensional" considera la dimensión: "Entorno y Redes".
+
+
+
+### La desigualdad.
+
+Para caracterizar el valor de una observación se puede establecer una estructura divisional –ascendente o descendente- para situar la posición relativa de un caso en el marco de su población de referencia. Las “medidas de posición no central” permiten dividir la distribución en un variable número de segmentos –cuantiles- facilitando la ubicación de orden de un sujeto o caso sobre un conjunto de los datos. Estas medidas requieren que exista un orden en las categorías de la variable, por lo que sólo se pueden determinar a partir de la escala ordinal. Los cuantiles más comunes en el ámbito de la estadística aplicada a las Ciencias Sociales son: cuartiles, deciles y percentiles pero, con la misma lógica podrían generarse otras unidades divisionales como por ejemplo, quintiles, sextiles, etc. Los cuartiles (Qm) dividen el conjunto de las observaciones en cuatro partes iguales, son por tanto tres puntos y se denotan como Q1 Q2 y Q3. Los deciles (Dm) son las nueve marcas que fraccionan la distribución en diez partes iguales, conteniendo cada una de ellas la décima parte de las observaciones y se nombran como D1 D2 … D8 y D9. Los centiles o percentiles (Cm ó Pm) segmentan el conjunto de las observaciones en cien partes iguales y su notación se expresa como P1…P20…P99 ó C1…C20…C99.
+
+#### Clasificación de las observaciones por deciles o quintiles
+
+2006:
+
+<font size="2"> 
+1. qaut: Quintil Autónomo Nacional (se excluye el s.d.p.a)\
+2. qautr: Quintil Autónomo Regional (antigua división administrativa) (se excluye el s.d.p.a)\
+3. dau: Decil Autónomo Nacional (se excluye el s.d.p.a)\
+4. daur: Decil Autónomo Regional (antigua división administrativa) (se excluye el s.d.p.a)\
+5. qautr_15: Quintil Autonomo Regional (nueva división administrativa) (se excluye el s.d.p.a)\
+6. daur_15: Decil Autónomo Regional (nueva división administrativa) (se excluye el s.d.p.a)
+</font>
+
+2009:
+
+<font size="2"> 
+1. dau: Decil de Ingreso Autónomo Per cápita Nacional (se excluye el s.d.p.a)\
+2. daur: Decil de Ingreso Autónomo Per cápita Regional (se excluye el s.d.p.a)\
+3. qaut: Quintil de Ingreso Autónomo Per cápita Nacional (se excluye el s.d.p.a)\
+4. qautr: Quintil de Ingreso Autónomo Per cápita Regional (se excluye el s.d.p.a)
+</font>
+
+2011:
+
+<font size="2"> 
+1. qaut: Quintil de ingreso autónomo\
+2. daut: Decil de ingreso autónomo\
+3. qaur: Quintiles regionales\
+4. daur: Deciles regionales
+</font>
+
+2013:
+
+<font size="2"> 
+1. dau_mn: Decil autónomo nacional Nueva Metodología\
+2. dautr_mn: Decil autónomo regional Nueva Metodología\
+3. qaut_mn: Quintil autónomo nacional Nueva Metodología\
+4. qautr_mn: Quintil autónomo regional Nueva Metodología
+</font>
+
+2015:
+
+<font size="2"> 
+1. dau: Decil autónomo nacional\
+2. dautr: Decil autónomo regional\
+3. qaut: Quintil autónomo nacional\
+4. qautr: Quintil autónomo regional
+</font>
+
+2017:
+
+<font size="2"> 
+1. dau: Decil autónomo nacional\
+2. dautr: Decil autónomo regional\
+3. qaut: Quintil autónomo nacional\
+4. qautr: Quintil autónomo regional
+</font>
+
+
+## 3 Código R: Cálculos propios a partir de la Casen 2015
+
+
+
+Hemos obtenido una tabla corregida para el 2015: CASEN_2015_ds_final.rds, a la que le creamos factores de expansión para las observaciones que no lo tenian.
+
+
+```{r}
+dataset2015_original  <- readRDS("CASEN_2015_ds_final.rds")
+# Como humanos, preferimos trabajar con etiquetas que con códigos.
+dataset2015  <- as_factor(dataset2015_original, only_labelled = TRUE)
+```
+
+Calculamos las frecuencias por categoria de pobreza y por comuna
+
+
+```{r}
+
+    a <- dataset2015$comuna
+    b <- dataset2015$pobreza
+
+    cross_tab =  xtabs(dataset2015$expc ~ unlist(a) + unlist(b),aggregate(dataset2015$expc ~ unlist(a)+unlist(b),dataset2015,mean))
+    tabla <- as.data.frame(cross_tab)
+    d <-tabla[!(tabla$Freq == 0),]
+    d$anio <- "2015"
+
+    head(d,10)
+```
+
+
+
+
+
+Al asignar correctamente los codigos a la Casen del 2015 (los codigos actuales), destruímos la dualidad valor-etiqueta, por lo que debemos asignar correctamente los nombres a las comunas que solo poseen su codigo
+
+```{r}
+d$unlist.a.[d$unlist.a. == 16101] <- "Chillán"
+d$unlist.a.[d$unlist.a. == 16102] <- "Bulnes"
+d$unlist.a.[d$unlist.a. == 16103] <- "Chillán Viejo"
+
+d$unlist.a.[d$unlist.a. == 16104] <- "El Carmen"
+d$unlist.a.[d$unlist.a. == 16105] <- "Pemuco"
+d$unlist.a.[d$unlist.a. == 16106] <- "Pinto"
+
+d$unlist.a.[d$unlist.a. == 16107] <- "Quillón"
+d$unlist.a.[d$unlist.a. == 16108] <- "San Ignacio"
+d$unlist.a.[d$unlist.a. == 16109] <- "Yungay"
+
+
+d$unlist.a.[d$unlist.a. == 16201] <- "Quirihue"
+d$unlist.a.[d$unlist.a. == 16202] <- "Cobquecura"
+d$unlist.a.[d$unlist.a. == 16203] <- "Coelemu"
+
+d$unlist.a.[d$unlist.a. == 16204] <- "Ninhue"
+d$unlist.a.[d$unlist.a. == 16205] <- "Portezuelo"
+d$unlist.a.[d$unlist.a. == 16206] <- "Ranquil"
+
+d$unlist.a.[d$unlist.a. == 16207] <- "Treguaco"
+d$unlist.a.[d$unlist.a. == 16301] <- "San Carlos"
+d$unlist.a.[d$unlist.a. == 16302] <- "Coihueco"
+
+d$unlist.a.[d$unlist.a. == 16303] <- "Ñiquén"
+d$unlist.a.[d$unlist.a. == 16304] <- "San Fabián"
+d$unlist.a.[d$unlist.a. == 16305] <- "San Nicolás"
+
+```
+
+
+hay problemas con 16206
+
+```{r}
+h <- filter(d, Freq == "399")
+h
+```
+En los siguientes registros no aparece el nombre de la comuna: Ránquil.
+```{r}
+newdata <- which(is.na(d$unlist.a.))
+newdata
+```
+
+Le asignamos su nombre:
+
+```{r}
+    d[300,1]<-"Ránquil"
+    d[622,1]<-"Ránquil"
+    d[946,1]<-"Ránquil"
+```
+Verificamos que no existan NAs:
+```{r}
+newdata <- which(is.na(d$unlist.a.))
+newdata
+```
+
+Obtenemos las frecuencias globales de las categorías de pobreza y les asignamos nombres de cabecera coherentes:
+
+```{r}
+sumas_grupales <-aggregate(d$Freq, by=list(d$unlist.b.), FUN = sum, na.rm = TRUE)
+sumas_grupales
+
+names(sumas_grupales)[1] <- "frec_pob"
+names(sumas_grupales)[2] <- "cate_pob"
+
+sumas_grupales
+
+```
+#### Calculemos los porcentajes de población que entran en cada una de las categorías:
+
+```{r}
+sumas_grupales$prob <- prop.table(sumas_grupales$cate_pob)
+sumas_grupales$prob <- round(prop.table(sumas_grupales$cate_pob), 3)*100
+sumas_grupales
+```
+
+#### Comparemos nuestro cálculo total de la pobreza en Chile: 7,9, con los resultados oficiales de la Casen 2015: 8,1 y de la extrema pobreza: 3,4, con 3,5.
+
+![](pobreza_2015_1.png)
+
+
+#### Consideremos el cálculo de la pobreza en alguna comuna que no posea factor de expansión para el 2015.
+
+
+Camiña 1402
+
+```{r}
+h <- filter(d, unlist.a. == "Camiña")
+h
+```
+```{r}
+names(h)[1] <- "comuna"
+names(h)[3] <- "frec"
+h
+```
+
+
+
+
+```{r}
+
+
+
+
+sumas_grupales$prob <- prop.table(h$frec)
+sumas_grupales$prob <- round(prop.table(h$frec), 3)*100
+sumas_grupales
+```
+
+Obtenemos como resultado 40,9%.
+
+![](pobreza_2015_2.png)
+[ir al documento: "Informe de estimaciones comunales
+de pobreza,
+con datos de Casen 2015"](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwi56vb43fHtAhVuILkGHfBMCnsQFjACegQIBhAC&url=http%3A%2F%2Fobservatorio.ministeriodesarrollosocial.gob.cl%2Fdocumentos%2FINFORME_estimaciones_pobreza_comunal_2015.pdf&usg=AOvVaw18NkRGy30WRudUS-VL_EfD)
+
+
+#### Verificamos para una comuna que posea factor de expansión comunal el 2015: Iquique
+
+
+
+```{r}
+h <- filter(d, unlist.a. == "Iquique")
+h
+```
+
+```{r}
+sumas_grupales$prob <- prop.table(h$Freq)
+sumas_grupales$prob <- round(prop.table(h$Freq), 3)*100
+sumas_grupales
+```
+<span style="color:red"> *Da exactamente el valor oficial: 5,3.*</span>
+
+
+#### La metodología SAE
+
+Se intentó averiguar más en detalle la metodología SAE, pero cuando se intentó acceder al siguiente vínculo, éste estaba roto.
+
+![](pobreza_2015_3.png)
+
+
+
+## 4 plot_ly: Algunos gráficos que cruzan la pertenencia a los deciles de ingresos con algunas variables relevantes de la Casen 2015.
+
+
+
+Podemos constrastar ciertas hipótesis con la ayuda de los gráficos:
+
+#### Gráfica de decil por ingreso autónomo versus tipo de educación recibida:
+
+1. El obtener la licencia de educacion media asegura un mejor futuro económico frente a aquellos que tienen una educación aun menor.
+
+No parece haber un efecto significativo el tener educacion media completa frente a quienes no la tienen. El poseer un título universitario o un postgrado completo si.
+
+```{r, echo = FALSE}
+library(dplyr)
+p1 <- plot_ly(dataset2015 , x = ~dau, color = ~e6a) %>% add_histogram()%>%
+    layout(showlegend = TRUE, autosize = F, legend = list(font = list(size = 8)))
+p1
+```
+
+#### Gráfica de decil por ingreso autónomo versus sexo:
+
+2. Las mujeres son mas pobres que los hombres.
+
+Efectivamente en los deciles inferiores priman las mujeres, mientras que en los más ricos, los hombres.
+
+```{r, echo = FALSE}
+library(dplyr)
+p1 <- plot_ly(dataset2015 , x = ~dau, color = ~sexo) %>% add_histogram()%>%
+    layout(showlegend = TRUE, autosize = F, legend = list(font = list(size = 8)))
+p1
+```
+
+
+3. Las etnias están en una situación de desventaja frente  los chilenos.
+
+#### Gráfica de decil por ingreso autónomo versus etnia:
+
+Efectivamente, si se grafica sólo la etnia Mapuche con los que no dicen sentirse representados por ninguna (Chilenos), veremos que la diferencia en frecuencia dentro de un mismo decil va aumentando de manera exponencial a medida que nos acercamos al décimo.
+
+```{r, echo = FALSE}
+library(dplyr)
+p1 <- plot_ly(dataset2015 , x = ~dau, color = ~r3) %>% add_histogram()%>%
+    layout(showlegend = TRUE, autosize = F, legend = list(font = list(size = 8)))
+p1
+```
+
+
+
+
+
+
+#### Conclusiones:
+
+Considerando el cálculo propio que hicimos de los factores de expansión, el llegar al nivel nacional a una diferencia de una y dos décimas en el cálculo de la pobreza y la pobreza extrema demuestra lo **preciso** de nuestro análisis en términos agregados.
+
+Oficialmente no se quiso buscar el factor de expansión para éstas comunas pequeñas en la Casen 2015 a propósito, probablemente por razones presupuestarias, pero nuestras estimaciones, cayendo dentro de los intervalos de aceptación de cálculo oficial SAE, son validadas.
+
+En el caso de Camiña nos alejamos 6 puntos porcentuales del cálculo oficial, estando dentro de los límites de aceptación del modelo SAE propuesto. Con Iquique determinamos el porcentaje de pobreza exacta.
+
+Podemos considerar nuestras estimaciones correctas.
+
+Por último, la herramienta para graficar **plot_ly** parece ser muy relevante a la hora de indagar rápidamente relaciones en forma interactiva en la base de datos de la Casen, tanto en su diseño en el back (en los dashboards Shiny), como por el usuario mismo, que puede manipular y descargar los gráficos.
+
+
+
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+
+
+
+
+
+
+
+
+
+
+<!-- ```{r} -->
+<!-- df_comunas <- stack(attr(dataset2015_original$comuna, 'labels')) -->
+<!-- head(df_comunas,10) -->
+<!-- ``` -->
+
+
+
+
+
+<!-- ```{r} -->
+
+
+<!-- names(df_comunas)[2] <- "unlist.a." -->
+<!-- head(df_comunas,10) -->
+
+<!-- ``` -->
+
+
+
+
+
+<!-- ```{r} -->
+<!-- dataset2015  <- as.data.frame(dataset2015) -->
+<!--     a <- dataset2015$comuna -->
+<!--     b <- dataset2015$r3 -->
+<!--     c <- dataset2015$e1 -->
+<!--     d <- dataset2015$sexo -->
+<!--     expansion <- dataset2015$expc -->
+<!--     ab  <- dataset2015   -->
+<!-- ``` -->
+
+
+<!-- ```{r} -->
+<!--     cross_tab =  xtabs(ab$expc ~ unlist(a) + unlist(b)+unlist(c)+unlist(d),aggregate(ab$expc ~ unlist(a)+unlist(b)+unlist(c)+unlist(d),ab,mean)) -->
+<!-- ``` -->
+
+
+
+<!-- ################################################################# -->
+<!-- ############## Pobreza total en Chile el 2015 -->
+<!-- ################################################################# -->
+
+<!-- ```{r} -->
+
+<!-- dataset2015_original  <- readRDS("CASEN_2015_ds_final.rds") -->
+<!-- dataset2015  <- as_factor(dataset2015_original, only_labelled = TRUE) -->
+
+<!-- ``` -->
+
+
+
+<!-- ```{r} -->
+
+<!--     a <- dataset2015$comuna -->
+<!--     b <- dataset2015$pobreza -->
+
+<!--     cross_tab =  xtabs(dataset2015$expc ~ unlist(a) + unlist(b),aggregate(dataset2015$expc ~ unlist(a)+unlist(b),dataset2015,mean)) -->
+<!--     tabla <- as.data.frame(cross_tab) -->
+<!--     d <-tabla[!(tabla$Freq == 0),] -->
+<!--     d$anio <- "2015" -->
+
+<!--     head(d,10) -->
+<!-- ``` -->
+
+
+
+
+
+
+
+
+
+<!-- ```{r} -->
+<!-- y = count(d, 'unlist.b.') -->
+<!-- y -->
+<!-- ``` -->
+
+<!-- ``` -->
+
+<!-- tasa de pobreza 2015 -->
+
+<!-- ```{r} -->
+
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!--     cross_tab =  xtabs(dataset2015$expc ~ unlist(a) + unlist(b),aggregate(dataset2015$expc ~ unlist(a)+unlist(b),dataset2015,mean)) -->
+<!--     tabla <- as.data.frame(cross_tab) -->
+<!--     d <-tabla[!(tabla$Freq == 0),] -->
+<!--     d$anio <- "2015" -->
+
+<!--     d -->
+<!-- ``` -->
+
+<!-- Al hacer la nueva asignacion de codigos comunales rompimos el diccionario etiqueta-valor para esos codigos. -->
+
+<!-- Veamos el nombres de las comunas del dataset original: -->
+
+<!-- ```{r} -->
+<!-- dataset2015  <- as_factor(dataset2015_original, only_labelled = TRUE) -->
+<!-- df_comunas <- stack(attr(dataset2015_original$comuna, 'labels')) -->
+<!-- #names(df_comunas)[2] <- "unlist.a." -->
+<!-- df_comunas -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- comuna_f <- c('Chillán','Bulnes','Chillán Viejo','El Carmen','Pemuco','Pinto' , 'Quillón','San Ignacio','Yungay',  'Quirihue','Cobquecura','Coelemu', 'Ninhue','Portezuelo','Ranquil', 'Treguaco','San Carlos','Coihueco', 'Ñiquén','San Fabián','San Nicolás') -->
+<!-- codigo_f <- c(16101, 16102, 16103,16104,16105,16106,16107, 16108, 16109,16201, 16202,16203, 16204, 16205, 16206,16207, 16301,16302 , 16303,16304,  16305) -->
+
+
+<!-- data_correcta_2015 <- data.frame(comuna_f, codigo_f) -->
+<!-- data_correcta_2015 -->
+<!-- ``` -->
+
+<!-- Hay que asignar los nombres correctos a los codigos: -->
+
+<!-- ```{r} -->
+
+
+<!-- names(data_correcta_2015)[1] <- "unlist.a." -->
+<!-- names(data_correcta_2015)[2] <- "codigo" -->
+<!-- data_correcta_2015 -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!--     df_merge = merge( x = d, y = data_correcta_2015, by = "unlist.a.", all.x = TRUE) -->
+<!-- df_merge -->
+<!-- ``` -->
+
+
+<!-- ```{r} -->
+
+
+<!-- df_comunas <- stack(attr(dataset2015_original$comuna, 'labels')) -->
+<!-- names(df_comunas)[2] <- "unlist.a." -->
+
+<!-- ``` -->
+
+<!-- ```{r} -->
+
+<!--     tabla <- as.data.frame(cross_tab) -->
+<!--     d <-tabla[!(tabla$Freq == 0),] -->
+<!--     d$anio <- "2015" -->
+
+<!-- d -->
+<!-- ``` -->
+
+<!-- ###################### -->
+
+
+<!-- ```{r} -->
+<!-- dataset2015  <- as_factor(dataset2015_original, only_labelled = TRUE) -->
+<!-- df_comunas <- stack(attr(dataset2015_original$comuna, 'labels')) -->
+<!-- names(df_comunas)[2] <- "unlist.a." -->
+
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!--     tabla <- as.data.frame(cross_tab) -->
+<!--     d <-tabla[!(tabla$Freq == 0),] -->
+<!--     d$anio <- "2015" -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- head(d,15) -->
+<!-- ``` -->
+<!-- ```{r} -->
+<!--     df_merge = merge( x = d, y = df_comunas, by = "unlist.a.", all.x = TRUE) -->
+<!-- df_merge -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- saveRDS(d, file = "CASEN_2015_com_sexo_alfa_etnia.rds") -->
+<!-- write_xlsx(d,'CASEN_2015_com_sexo_alfa_etnia.xlsx') -->
+<!-- ``` -->
+

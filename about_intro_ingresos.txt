@@ -1,0 +1,19 @@
+Módulo de Ingresos.
+
+La Encuesta CASEN 2017 disponible y construida por la Universidad Católica
+llega hasta el módulo séptimo (vivienda) con la pregunta v0b, numero de columna 573:
+¿Dónde se produce la entrevista?.
+
+de la columna 574 a la 766 comienzan las categorias Y:
+Asalariados principal - Sueldos y salarios monetario y0101 574.
+
+La casen 2017
+contiene variables de ingresos generadas por Ministerio de Desarrollo
+Social
+Existe un conjunto de indicadores y sus respectivas
+frecuencias que se calculan a partir de las variables de ingresos de las
+personas generadas por CEPAL, entre ellos los deciles y quintiles
+de ingreso autónomo per cápita, estimados a nivel nacional y regional.
+En términos de nomenclatura, todas las variables que finalicen en “h”,
+corresponden a la suma del ingreso correspondiente para todos los
+integrantes de un mismo hogar.

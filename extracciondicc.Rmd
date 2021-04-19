@@ -1,0 +1,93 @@
+---
+title: "Código para extraer el diccionario de variables de la CASEN"
+author: "DataIntelligence- Christian Castro"
+date: "21-10-2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(labelled)
+library(tidyverse)
+library(haven)
+library(readr)
+library(sjmisc)
+library(WriteXLS)
+library("writexl")
+library(readxl)
+
+```
+```{r cars}
+
+CASEN_2017 <- read_sav("Casen 2017.sav")
+
+```
+```{r}
+sub_dataset <- CASEN_2017[1:10000,]
+```
+
+```{r}
+write.table(CASEN_2017, file = "CASEN_2017.csv", sep = ",", col.names = TRUE, row.names = FALSE)
+```
+
+```{r}
+#dataset <- read.csv('Casen_no_humano.csv')
+dataset <- read.csv('CASEN_2017.csv')
+
+# typeof(dataset) 
+
+datos_df_exp <- colnames(dataset)
+datos_df_exp
+```
+
+
+
+```{r}
+
+
+sub_dataset <- dataset[1:10000,]
+write.table(sub_dataset, file = "CASEN_2017_1-10000.csv", sep = ",", col.names = TRUE, row.names = FALSE)
+
+```
+
+
+```{r}
+# no funciona
+write.xlsx(CASEN_2017, "CASEN_2017_1.xlsx")
+
+#no usar:
+#WriteXLS(CASEN_2017, "CASEN_2017.xlsx")
+```
+```{r}
+write_xlsx(CASEN_2017, "CASEN_2017_2.xlsx")
+```
+
+
+```{r}
+for(i in names(CASEN_2017)){
+
+      w <- CASEN_2017[[i]] %>% class()
+
+      if(w == "haven_labelled"){
+            y <-    CASEN_2017[[i]]
+            # muy importante el print. despliega el diccionario.
+            # print(y[1])
+
+            valor <- CASEN_2017[[i]] %>% attr('labels')
+            df0 <- as.data.frame(valor)
+            categoria <- row.names(df0)
+            ecivil <- cbind(df0, categoria)
+            ecivile <- cbind(ecivil, i)
+            # write.csv(ecivile,"uuu5.csv", row.names = FALSE)
+            write.table(ecivile, "diccionariocasen_2017.csv",
+            append = TRUE,
+            sep = ",",
+            col.names = FALSE,
+            row.names = FALSE,
+            quote = FALSE)
+      }
+}
+```

@@ -1,0 +1,27 @@
+Allegamiento Interno
+
+El allegamiento es la estrategia utilizada por los hogares y núcleos familiares para solucionar la falta de vivienda, compartiendo una vivienda con otro hogar o núcleo. La Encuesta Casen identifica los diferentes hogares al interior de una vivienda y los diferentes núcleos al interior de un hogar, así como si son receptores o allegados, y el tipo de allegamiento: allegamiento externo y allegamiento interno. Se dice que hay presencia de allegamiento interno cuando hay presencia de núcleos adicionales al núcleo principal del hogar.
+
+𝑁ú𝑐𝑙𝑒𝑜𝑠 𝑎𝑙𝑙𝑒𝑔𝑎𝑑𝑜𝑠 = 𝐶𝑎𝑛𝑡𝑖𝑑𝑎𝑑 𝑑𝑒 𝑛ú𝑐𝑙𝑒𝑜𝑠 𝑑𝑒𝑙 ℎ𝑜𝑔𝑎𝑟−1
+
+SPSS:
+WEIGHT OFF.
+SORT CASES BY folio.
+AGGREGATE
+/OUTFILE=* MODE=ADDVARIABLES
+/PRESORTED
+/BREAK=folio
+/N_NUCLEO_HOG 'Número total de núcleos en el hogar'=MAX(nucleo).
+FREQUENCIES VARIABLES=N_NUCLEO_HOG
+/ORDER=ANALYSIS.
+EXECUTE.
+IF (N_NUCLEO_HOG=1) ALLEGA_INT =0.
+IF (N_NUCLEO_HOG>=2) ALLEGA_INT =1.
+VARIABLE LABELS ALLEGA_INT "Presencia de allegamiento interno en el hogar".
+VALUE LABELS ALLEGA_INT 0 "Sin allegamiento interno" 1 "Con allegamiento interno".
+EXECUTE.
+
+
+
+
+

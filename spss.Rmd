@@ -1,0 +1,282 @@
+---
+title: "spss"
+author: "Victor"
+date: "05 de noviembre de 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+```{r}
+library(ggplot2)
+library(ggpubr)
+library(markdown)
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(plotly)
+library(xts)
+library(dygraphs)
+library(kableExtra)
+library(knitr)
+library("readxl")
+library(rsconnect)
+library(dplyr)
+library(summarytools)
+library(epiDisplay)
+library(foreign)
+library(haven)
+```
+
+
+```{r cars}
+#para usar las tablas de contingencia en casen se deben utilizar las tablas .dta
+dataset2006 = read.dta("casen2006.dta")
+
+#dataset2006 <- read.csv('mydata2006_sub.csv')
+
+```
+```{r}
+dataset2006_sub <- dataset2006[1:3000,]
+write.csv(dataset2006_sub,"mydata2006_sub.csv", row.names = FALSE)
+```
+mydata2006_sub.csv
+mydata2006_sub.csv
+
+```{r}
+dataset2006 <- read.csv('mydata2006_dta.csv')
+
+dataset2006_sub <- dataset2006[1:1000,]
+write.csv(dataset2006_sub,"mydata2006_sub_dta.csv", row.names = FALSE)
+dataset2006_sub_dta <- read.csv('mydata2006_sub_dta.csv')
+dataset2006_sub_dta
+
+```
+
+```{r cars}
+dataset = read_sav("casen2006.sav")
+write.csv(dataset,"mydata2006_sav.csv", row.names = FALSE)
+```
+
+```{r}
+dataset2006 <- read.csv('mydata2006_sav.csv')
+
+dataset2006_sub <- dataset2006[1:100,]
+write.csv(dataset2006_sub,"mydata2006_sub_sav.csv", row.names = FALSE)
+dataset2006_sub_sav <- read.csv('mydata2006_sub_sav.csv')
+dataset2006_sub_sav
+
+```
+
+```{r cars}
+dataset = read_sav("casen2009Spss.sav")
+write.csv(dataset,"mydata2009.csv", row.names = FALSE)
+```
+
+
+```{r cars}
+dataset = read_sav("casen2011_octubre2011_enero2012_principal_08032013spss.sav")
+write.csv(dataset,"mydata2011.csv", row.names = FALSE)
+```
+
+
+```{r cars}
+dataset = read_sav("Casen_2013_MN_B_Principal.sav")
+write.csv(dataset,"mydata2013.csv", row.names = FALSE)
+```
+
+```{r cars}
+dataset = read_sav("Casen 2015.sav")
+write.csv(dataset,"mydata2015.csv", row.names = FALSE)
+```
+
+```{r cars}
+dataset = read_sav("Casen 2017.sav")
+write.csv(dataset,"mydata2017.csv", row.names = FALSE)
+```
+
+```{r}
+dataset2013 <- read.csv('mydata2013.csv')
+
+dataset2013_sub <- dataset2013[1:100,]
+write.csv(dataset2013_sub,"mydata2013_sub.csv", row.names = FALSE)
+dataset2013_sub <- read.csv('mydata2013_sub.csv')
+dataset2013_sub
+
+```
+
+
+```{r}
+colnames(dataset2013_sub)
+```
+
+
+
+
+
+
+
+
+
+```{r cars}
+dataset = read.dta("Casen 2017.dta")
+write.csv(dataset,"mydata2017.csv", row.names = FALSE)
+
+
+```
+
+
+```{r}
+dataset2006 <- read.csv('mydata2006.csv')
+dataset2009 <- read.csv('mydata2009.csv')
+dataset2011 <- read.csv('mydata2011.csv')
+
+
+dataset2017 <- read.csv('mydata2017.csv')
+
+```
+```{r}
+dataset2017 <- read.csv('mydata2017.csv')
+```
+
+
+```{r}
+
+dataset2006_sub <- dataset2006[1:3000,]
+write.csv(dataset2006_sub,"mydata2006_sub.csv", row.names = FALSE)
+dataset2006_sub <- read.csv('mydata2006_sub.csv')
+dataset2006_sub
+```
+
+```{r}
+ncol(dataset2006_sub)
+```
+
+
+
+
+```{r}
+
+dataset2009_sub <- dataset2009[1:1000,]
+write.csv(dataset2009_sub,"mydata2009_sub.csv", row.names = FALSE)
+dataset2009_sub <- read.csv('mydata2009_sub.csv')
+dataset2009_sub
+```
+
+```{r}
+
+dataset2011_sub <- dataset2011[1:100,]
+write.csv(dataset2011_sub,"mydata2011_sub.csv", row.names = FALSE)
+dataset2011_sub <- read.csv('mydata2011_sub.csv')
+dataset2011_sub
+```
+
+```{r}
+
+dataset2017_sub <- dataset2017[1:100,]
+write.csv(dataset2017_sub,"mydata2017_sub.csv", row.names = FALSE)
+dataset2017_sub <- read.csv('mydata2017_sub.csv')
+dataset2017_sub
+```
+
+
+```{r}
+colnames(dataset2011_sub)
+```
+
+
+```{r}
+data_2006_3_5 <- dataset2006_sub[, c(40)]
+data_2006_3_5
+```
+
+
+```{r}
+dataset2006_sub$comuna
+dataset2006_sub$edad
+```
+
+
+
+
+
+```{r}
+        
+promedios_grupales <-aggregate(dataset2006_sub$edad, by=list(dataset2006_sub$seg), FUN = mean , na.rm = TRUE)
+promedios_grupales
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+
+dataset2006_sub <- read.csv('mydata2006_sub.csv')
+dataset2006_sub
+```
+
+
+
+
+
+
+
+```{r}
+# cross_tab = xtabs(elements$expc ~ unlist(elements$hacinamiento) + unlist(elements$comuna)+unlist(elements$sexo) + unlist(elements$ecivil), elements)
+cross_tab
+```
+
+```{r}
+ p <-   ggplot(dataset2006_sub, aes(sexo, comuna)) + geom_point()
+p
+```
+
+
+
+
+
+
+```{r}
+dataset2009_sub
+```
+```{r}
+colnames(dataset2009_sub)
+```
+
+
+```{r}
+dataset2009_sub[,6]
+```
+
+
+
+```{r}
+dataset2017 <-  read.csv('mydata2017_sub.csv')
+datos_df_exp <- colnames(dataset2017)
+dataset2017
+```
+
+
+
+
+
+
+
+
+
+
+

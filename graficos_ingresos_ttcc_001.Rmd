@@ -1,0 +1,1147 @@
+---
+title: 'Analisis de las tablas de contigencia creadas sobre Ingresos en la Casen'
+subtitle: 'Etnia TOTAJ'
+author:
+- name: VE
+  affiliation: DataIntelligence
+date: 12 de Febrero del 2021
+abstract: |
+  U
+output: html_document
+---
+
+```{r,echo=FALSE, warning=FALSE, messages=FALSE, include=FALSE}
+
+library(ggplot2)
+library(ggpubr)
+library(markdown)
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(plotly)
+library(xts)
+library(dygraphs)
+library(kableExtra)
+library(knitr)
+library("readxl")
+library(rsconnect)
+library(dplyr)
+library(summarytools)
+library(epiDisplay)
+#library(leaflet)
+library(haven)
+library(epiDisplay)
+library("readxl")
+library(expss)
+library(hrbrthemes)
+library(viridis)
+library(viridisLite)
+library(DescTools)
+library(roperators)
+library(shinycssloaders)
+library(writexl)
+library(vroom)
+library(shinyWidgets)
+library(stringr)
+library(dplyr)
+library(gapminder)
+library(tidyverse)
+library(moderndive)
+library(skimr)
+
+library(ineq)
+library(readstata13)
+library(reldist)
+
+```
+
+
+## Indice
+
+### 1 Etnia TOTAJ
+
+Vamos a revisar la tabla de contingencia que cruza etnia con el ingreso total de las personas 
+
+# YTOTAJ
+
+## El problema.
+
+Al graficar nos dimos cuenta de que existen multiples niveles para una misma categoria:
+
+## 2006
+
+```{r}
+ytotaj <- readRDS("YTOTAJ2.rds")
+```
+
+
+```{r}
+ytotaj_2006 <- filter(ytotaj, ytotaj$Año == "2006")
+# categorias <- unique(ytotaj_2006$Etnia)
+# categorias 
+levels(ytotaj_2006$Etnia)
+```
+
+```{r}
+levels(ytotaj_2006$Etnia)[12] <- NA
+levels(ytotaj_2006$Etnia)[13] <- NA
+levels(ytotaj_2006$Etnia)[14] <- NA
+levels(ytotaj_2006$Etnia)[15] <- NA
+levels(ytotaj_2006$Etnia)[16] <- NA
+levels(ytotaj_2006$Etnia)[17] <- NA
+levels(ytotaj_2006$Etnia)[18] <- NA
+levels(ytotaj_2006$Etnia)[19] <- NA
+levels(ytotaj_2006$Etnia)[20] <- NA
+levels(ytotaj_2006$Etnia)[21] <- NA
+levels(ytotaj_2006$Etnia)[22] <- NA
+levels(ytotaj_2006$Etnia)[23] <- NA
+levels(ytotaj_2006$Etnia)[24] <- NA
+levels(ytotaj_2006$Etnia)[25] <- NA
+levels(ytotaj_2006$Etnia)[26] <- NA
+levels(ytotaj_2006$Etnia)[12] <- NA
+levels(ytotaj_2006$Etnia)[13] <- NA
+levels(ytotaj_2006$Etnia)[14] <- NA
+levels(ytotaj_2006$Etnia)[15] <- NA
+levels(ytotaj_2006$Etnia)[16] <- NA
+levels(ytotaj_2006$Etnia)[17] <- NA
+levels(ytotaj_2006$Etnia)[18] <- NA
+levels(ytotaj_2006$Etnia)[19] <- NA
+levels(ytotaj_2006$Etnia)[12] <- NA
+levels(ytotaj_2006$Etnia)[13] <- NA
+levels(ytotaj_2006$Etnia)[14] <- NA
+levels(ytotaj_2006$Etnia)[12] <- NA
+levels(ytotaj_2006$Etnia)
+```
+
+```{r}
+levels(ytotaj_2006$Etnia)[1] <- 1
+levels(ytotaj_2006$Etnia)[2] <- 2
+levels(ytotaj_2006$Etnia)[3] <- 3
+levels(ytotaj_2006$Etnia)[4] <- 4
+levels(ytotaj_2006$Etnia)[5] <- 5
+levels(ytotaj_2006$Etnia)[6] <- 6
+levels(ytotaj_2006$Etnia)[7] <- 7
+levels(ytotaj_2006$Etnia)[8] <- 8
+levels(ytotaj_2006$Etnia)[9] <- 9
+levels(ytotaj_2006$Etnia)[10] <- 10
+levels(ytotaj_2006$Etnia)[11] <- 11
+```
+
+
+```{r}
+levels(ytotaj_2006$Etnia)
+```
+
+## como cambiamos el valor de un factor en un dataframe
+
+```{r}
+ytotaj_2006
+```
+
+
+
+#################################################################
+###################     2009     ################################
+#################################################################
+
+
+
+```{r}
+ytotaj_2009 <- filter(ytotaj, ytotaj$Año == "2009")
+categorias <- unique(ytotaj_2009$Etnia)
+categorias 
+levels(ytotaj_2009$Etnia)
+```
+
+
+```{r}
+levels(ytotaj_2009$Etnia)[11] <- NA
+levels(ytotaj_2009$Etnia)[12] <- NA
+levels(ytotaj_2009$Etnia)[13] <- NA
+levels(ytotaj_2009$Etnia)[14] <- NA
+levels(ytotaj_2009$Etnia)[15] <- NA
+levels(ytotaj_2009$Etnia)[16] <- NA
+levels(ytotaj_2009$Etnia)[17] <- NA
+levels(ytotaj_2009$Etnia)[18] <- NA
+levels(ytotaj_2009$Etnia)[19] <- NA
+levels(ytotaj_2009$Etnia)[20] <- NA
+levels(ytotaj_2009$Etnia)[21] <- NA
+levels(ytotaj_2009$Etnia)[22] <- NA
+levels(ytotaj_2009$Etnia)[23] <- NA
+levels(ytotaj_2009$Etnia)[24] <- NA
+levels(ytotaj_2009$Etnia)[25] <- NA
+levels(ytotaj_2009$Etnia)[26] <- NA
+
+levels(ytotaj_2009$Etnia)
+```
+
+
+Diccionario:
+
+
+ [1] "Aymara"                                "Rapa Nui"                             
+ [3] "Quechua"                               "Mapuche"                              
+ [5] "Atacameño"                             "Coya"                                 
+ [7] "Kawaskar"                              "Yagan"                                
+ [9] "Diaguita"                              "No pertenece a ningún pueblo indígena"
+[11] "Sin dato" 
+
+
+```{r}
+levels(ytotaj_2009$Etnia)[1] <- 1
+levels(ytotaj_2009$Etnia)[2] <- 2
+levels(ytotaj_2009$Etnia)[3] <- 3
+levels(ytotaj_2009$Etnia)[4] <- 4
+levels(ytotaj_2009$Etnia)[5] <- 5
+levels(ytotaj_2009$Etnia)[6] <- 6
+levels(ytotaj_2009$Etnia)[7] <- 7
+levels(ytotaj_2009$Etnia)[8] <- 8
+levels(ytotaj_2009$Etnia)[9] <- 9
+levels(ytotaj_2009$Etnia)[10] <- 10
+levels(ytotaj_2009$Etnia)[11] <- 11
+```
+
+## 
+
+```{r}
+levels(ytotaj_2009$Etnia)
+```
+
+## Verifiquemos:
+
+```{r}
+ytotaj_2009
+```
+
+
+
+
+#################################################################
+###################     2011     ################################
+#################################################################
+
+1. Identificar los niveles parciales y globales:
+
+```{r}
+ytotaj_2011 <- filter(ytotaj, ytotaj$Año == "2011")
+categorias <- unique(ytotaj_2011$Etnia)
+categorias
+niveles <- as.data.frame(levels(ytotaj_2011$Etnia))
+niveles
+```
+
+2. Eliminar los niveles sobrantes (con una logica recursiva):
+
+```{r}
+levels(ytotaj_2011$Etnia)[11] <- NA
+levels(ytotaj_2011$Etnia)[12] <- NA
+levels(ytotaj_2011$Etnia)[13] <- NA
+levels(ytotaj_2011$Etnia)[14] <- NA
+levels(ytotaj_2011$Etnia)[15] <- NA
+levels(ytotaj_2011$Etnia)[16] <- NA
+levels(ytotaj_2011$Etnia)[17] <- NA
+levels(ytotaj_2011$Etnia)[18] <- NA
+levels(ytotaj_2011$Etnia)[19] <- NA
+levels(ytotaj_2011$Etnia)[20] <- NA
+levels(ytotaj_2011$Etnia)[21] <- NA
+levels(ytotaj_2011$Etnia)[22] <- NA
+levels(ytotaj_2011$Etnia)[23] <- NA
+levels(ytotaj_2011$Etnia)[24] <- NA
+levels(ytotaj_2011$Etnia)[25] <- NA
+levels(ytotaj_2011$Etnia)[26] <- NA
+
+levels(ytotaj_2011$Etnia)[11] <- NA
+levels(ytotaj_2011$Etnia)[12] <- NA
+levels(ytotaj_2011$Etnia)[13] <- NA
+levels(ytotaj_2011$Etnia)[14] <- NA
+levels(ytotaj_2011$Etnia)[15] <- NA
+levels(ytotaj_2011$Etnia)[16] <- NA
+levels(ytotaj_2011$Etnia)[17] <- NA
+levels(ytotaj_2011$Etnia)[18] <- NA
+
+levels(ytotaj_2011$Etnia)[11] <- NA
+levels(ytotaj_2011$Etnia)[12] <- NA
+
+levels(ytotaj_2011$Etnia)
+```
+
+3. Asignar de acuerdo al diccionario original:
+
+Diccionario:
+
+ [1] "Aymara"                                "Rapa Nui"                             
+ [3] "Quechua"                               "Mapuche"                              
+ [5] "Atacameño"                             "Coya"                                 
+ [7] "Kawaskar"                              "Yagan"                                
+ [9] "Diaguita"                              "No pertenece a ningún pueblo indígena"
+[11] "Sin dato" 
+
+
+```{r}
+levels(ytotaj_2011$Etnia)[1] <- 1
+levels(ytotaj_2011$Etnia)[2] <- 2
+levels(ytotaj_2011$Etnia)[3] <- 3
+levels(ytotaj_2011$Etnia)[4] <- 4
+levels(ytotaj_2011$Etnia)[5] <- 5
+levels(ytotaj_2011$Etnia)[6] <- 6
+levels(ytotaj_2011$Etnia)[7] <- 7
+levels(ytotaj_2011$Etnia)[8] <- 8
+levels(ytotaj_2011$Etnia)[9] <- 9
+levels(ytotaj_2011$Etnia)[10] <- 10
+
+```
+
+4. Verificar niveles:
+
+```{r}
+levels(ytotaj_2011$Etnia)
+```
+
+5. Verificar el dataset:
+
+```{r}
+ytotaj_2011
+```
+
+
+
+
+#################################################################
+###################     2013     ################################
+#################################################################
+
+1. Identificar los niveles parciales y globales:
+
+```{r}
+ytotaj_2013 <- filter(ytotaj, ytotaj$Año == "2013")
+categorias <- unique(ytotaj_2013$Etnia)
+categorias
+niveles <- as.data.frame(levels(ytotaj_2013$Etnia))
+niveles
+```
+
+2. Eliminar los niveles sobrantes (con una logica recursiva):
+Se tiene que recurrir desde aqui:
+
+```{r}
+
+levels(ytotaj_2013$Etnia)[12] <- NA
+levels(ytotaj_2013$Etnia)[13] <- NA
+levels(ytotaj_2013$Etnia)[14] <- NA
+levels(ytotaj_2013$Etnia)[15] <- NA
+levels(ytotaj_2013$Etnia)[16] <- NA
+levels(ytotaj_2013$Etnia)[17] <- NA
+levels(ytotaj_2013$Etnia)[18] <- NA
+levels(ytotaj_2013$Etnia)[19] <- NA
+levels(ytotaj_2013$Etnia)[20] <- NA
+levels(ytotaj_2013$Etnia)[21] <- NA
+levels(ytotaj_2013$Etnia)[22] <- NA
+levels(ytotaj_2013$Etnia)[23] <- NA
+levels(ytotaj_2013$Etnia)[24] <- NA
+levels(ytotaj_2013$Etnia)[25] <- NA
+levels(ytotaj_2013$Etnia)[26] <- NA
+
+levels(ytotaj_2013$Etnia)[12] <- NA
+
+levels(ytotaj_2013$Etnia)
+```
+
+3. Asignar de acuerdo al diccionario original:
+
+Diccionario:
+
+ [1] "Aymara"                                "Rapa Nui"                             
+ [3] "Quechua"                               "Mapuche"                              
+ [5] "Atacameño"                             "Coya"                                 
+ [7] "Kawaskar"                              "Yagan"                                
+ [9] "Diaguita"                              "No pertenece a ningún pueblo indígena"
+[11] "Sin dato" 
+
+
+```{r}
+levels(ytotaj_2013$Etnia)[1] <- 1
+levels(ytotaj_2013$Etnia)[2] <- 2
+levels(ytotaj_2013$Etnia)[3] <- 3
+levels(ytotaj_2013$Etnia)[4] <- 4
+levels(ytotaj_2013$Etnia)[5] <- 5
+levels(ytotaj_2013$Etnia)[6] <- 6
+levels(ytotaj_2013$Etnia)[7] <- 7
+levels(ytotaj_2013$Etnia)[8] <- 8
+levels(ytotaj_2013$Etnia)[9] <- 9
+levels(ytotaj_2013$Etnia)[10] <- 10
+levels(ytotaj_2013$Etnia)[11] <- 11
+```
+
+4. Verificar niveles:
+
+```{r}
+levels(ytotaj_2013$Etnia)
+```
+
+5. Verificar el dataset:
+
+```{r}
+ytotaj_2013
+```
+
+6. Verificamos con el dataset original:
+
+```{r}
+ytotaj_2013 <- filter(ytotaj, ytotaj$Año == "2013")
+ytotaj_2013
+```
+
+
+
+
+
+
+#################################################################
+###################     2015     ################################
+#################################################################
+
+Debe ejecutarse todo siempre desde el punto 1:
+
+1. Identificar los niveles parciales y globales:
+
+```{r}
+ytotaj <- readRDS("YTOTAJ2.rds")
+ytotaj_2015 <- filter(ytotaj, ytotaj$Año == "2015")
+categorias <- unique(ytotaj_2015$Etnia)
+categorias
+niveles <- as.data.frame(levels(ytotaj_2015$Etnia))
+niveles
+```
+estos se tienen que quedar:
+
+ [1] No pertenece a ningún pueblo indígena Mapuche                              
+ [3] Aimara                                Diaguita                             
+ [5] Collas                                Quechua                              
+ [7] Sin dato                              Atacameño (Likán-Antai)              
+ [9] Kawashkar o Alacalufes                Rapa-Nui o Pascuenses                
+[11] Yámana o Yagán  
+
+2. Eliminar los niveles sobrantes (con una logica recursiva):
+Se tiene que recurrir desde aqui:
+
+```{r}
+
+# levels(ytotaj_2015$Etnia)[1] <- NA
+# levels(ytotaj_2015$Etnia)[2] <- NA
+# levels(ytotaj_2015$Etnia)[5] <- NA
+# levels(ytotaj_2015$Etnia)[6] <- NA
+# levels(ytotaj_2015$Etnia)[7] <- NA
+# levels(ytotaj_2015$Etnia)[8] <- NA
+# levels(ytotaj_2015$Etnia)[12] <- NA
+# levels(ytotaj_2015$Etnia)[13] <- NA
+# levels(ytotaj_2015$Etnia)[14] <- NA
+# levels(ytotaj_2015$Etnia)[15] <- NA
+# levels(ytotaj_2015$Etnia)[16] <- NA
+# levels(ytotaj_2015$Etnia)[17] <- NA
+# levels(ytotaj_2015$Etnia)[18] <- NA
+# levels(ytotaj_2015$Etnia)[25] <- NA
+# levels(ytotaj_2015$Etnia)[26] <- NA
+
+
+levels(ytotaj_2015$Etnia)
+```
+
+
+estos se tienen que quedar:
+
+
+ [1] No pertenece a ningún pueblo indígena Mapuche                              
+ [3] Aimara                                Diaguita                             
+ [5] Collas                                Quechua                              
+ [7] Sin dato                              Atacameño (Likán-Antai)              
+ [9] Kawashkar o Alacalufes                Rapa-Nui o Pascuenses                
+[11] Yámana o Yagán  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+3. Asignar de acuerdo al diccionario original:
+
+Diccionario:
+
+ [1] "Aymara"                                "Rapa Nui"                             
+ [3] "Quechua"                               "Mapuche"                              
+ [5] "Atacameño"                             "Coya"                                 
+ [7] "Kawaskar"                              "Yagan"                                
+ [9] "Diaguita"                              "No pertenece a ningún pueblo indígena"
+[11] "Sin dato" 
+
+
+```{r}
+levels(ytotaj_2013$Etnia)[1] <- 1
+levels(ytotaj_2013$Etnia)[2] <- 2
+levels(ytotaj_2013$Etnia)[3] <- 3
+levels(ytotaj_2013$Etnia)[4] <- 4
+levels(ytotaj_2013$Etnia)[5] <- 5
+levels(ytotaj_2013$Etnia)[6] <- 6
+levels(ytotaj_2013$Etnia)[7] <- 7
+levels(ytotaj_2013$Etnia)[8] <- 8
+levels(ytotaj_2013$Etnia)[9] <- 9
+levels(ytotaj_2013$Etnia)[10] <- 10
+levels(ytotaj_2013$Etnia)[11] <- 11
+```
+
+4. Verificar niveles:
+
+```{r}
+levels(ytotaj_2013$Etnia)
+```
+
+5. Verificar el dataset:
+
+```{r}
+ytotaj_2013
+```
+
+6. Verificamos con el dataset original:
+
+```{r}
+ytotaj_2013 <- filter(ytotaj, ytotaj$Año == "2013")
+ytotaj_2013
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## como cambiamos el valor de un factor en un dataframe
+
+
+
+```{r}
+ytotaj
+```
+
+
+## 1. Promedio de los ingresos por etnia
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+library(plotly)
+fig <- plot_ly(ytotaj , y = ~ytotaj$`Promedio del Ingreso`, color = ~Etnia, type = "box", boxmean = "sd", colors = "Dark2", boxpoints=T)%>% 
+  layout(title = "Promedio del Ingreso por etnia",
+         xaxis = list(title = "Etnia"), yaxis= list(title = "Promedio del Ingreso"))
+fig
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+ytotaj$Etnia[ytotaj$Etnia == "No pertenece a ningún pueblo indígena" ] <- "ooo"
+ytotaj
+```
+
+
+
+
+
+
+```{r}
+levels(dataset$dataset)
+```
+
+
+
+## leamos anio por anio
+
+
+
+
+
+
+```{r}
+dataset$Etnia[dataset$Etnia == "No sabe/no responde" ] <- "algo"
+dataset$Etnia[dataset$Etnia == "No pertenece a ningún pueblo indígena" ] <- "algo"
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+ytotaj <- readRDS("YTOTAJ.rds")
+dataset <- filter(ytotaj, ytotaj$"Año" =="2015")
+head(dataset,2)
+dataset <- unique(dataset$Etnia)
+dataset <- as.data.frame(dataset)
+head(dataset,11)
+```
+```{r}
+ytotaj <- readRDS("YTOTAJ.rds")
+dataset <- filter(ytotaj, ytotaj$"Año" =="2013")
+head(dataset,2)
+dataset <- unique(dataset$Etnia)
+dataset <- as.data.frame(dataset)
+head(dataset,11)
+```
+```{r}
+ytotaj <- readRDS("YTOTAJ.rds")
+dataset <- filter(ytotaj, ytotaj$"Año" =="2011")
+head(dataset,2)
+dataset <- unique(dataset$Etnia)
+dataset <- as.data.frame(dataset)
+head(dataset,11)
+```
+```{r}
+ytotaj <- readRDS("YTOTAJ.rds")
+dataset <- filter(ytotaj, ytotaj$"Año" =="2009")
+head(dataset,2)
+dataset <- unique(dataset$Etnia)
+dataset <- as.data.frame(dataset)
+head(dataset,11)
+```
+```{r}
+ytotaj <- readRDS("YTOTAJ.rds")
+dataset <- filter(ytotaj, ytotaj$"Año" =="2006")
+head(dataset,2)
+dataset <- unique(dataset$Etnia)
+dataset <- as.data.frame(dataset)
+head(dataset,11)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+######
+
+
+
+
+```{r}
+dataset <- filter(var_YTOTAJ, var_YTOTAJ$"Año" =="2015")
+head(dataset,20)
+dataset <- unique(dataset$Etnia)
+dataset <- as.data.frame(dataset)
+dataset
+```
+```{r}
+dataset <- filter(var_YTOTAJ, var_YTOTAJ$"Año" =="2013")
+head(dataset,2)
+dataset <- unique(dataset$Etnia)
+dataset <- as.data.frame(dataset)
+dataset
+```
+```{r}
+dataset <- filter(var_YTOTAJ, var_YTOTAJ$"Año" =="2011")
+head(dataset,2)
+dataset <- unique(dataset$Etnia)
+dataset <- as.data.frame(dataset)
+dataset
+```
+```{r}
+dataset <- filter(var_YTOTAJ, var_YTOTAJ$"Año" =="2009")
+head(dataset,2)
+dataset <- unique(dataset$Etnia)
+dataset <- as.data.frame(dataset)
+dataset
+```
+```{r}
+dataset6 <- filter(var_YTOTAJ, var_YTOTAJ$"Año" =="2006")
+head(dataset6,2)
+dataset6 <- unique(dataset6$Etnia)
+dataset6 <- as.data.frame(dataset6)
+dataset6
+```
+
+
+```{r}
+dataset6_categorias <- dataset6$Etnia[dataset6$Etnia == "Kawaskar" ] <- 1
+dataset6_categorias
+```
+
+
+
+
+
+
+
+
+## 1. Promedio de los ingresos por etnia
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+library(plotly)
+fig <- plot_ly(var_YTOTAJ , y = ~var_YTOTAJ$`Promedio del Ingreso`, color = ~Etnia, type = "box", boxmean = "sd", colors = "Dark2", boxpoints=T)%>% 
+  layout(title = "Promedio del Ingreso por etnia",
+         xaxis = list(title = "Etnia"), yaxis= list(title = "Promedio del Ingreso"))
+fig
+```
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+library(plotly)
+fig <- plot_ly(var_YTOTAJ , y = ~var_YTOTAJ$`Promedio del Ingreso`, color = ~var_YTOTAJ$Alfabetismo, type = "box", boxmean = "sd", colors = "Dark2", boxpoints=T)%>% 
+  layout(title = "Promedio del Ingreso por Alfabetismo",
+         xaxis = list(title = "Alfabetismo"), yaxis= list(title = "Ingreso total"))
+fig
+```
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+library(plotly)
+fig <- plot_ly(var_YTOTAJ , y = ~var_YTOTAJ$`Promedio del Ingreso`, color = ~var_YTOTAJ$Comuna, type = "box", boxmean = "sd", colors = "Dark2", boxpoints=T)%>% 
+  layout(title = "Promedio del Ingreso por Comuna",
+         xaxis = list(title = "Comuna"), yaxis= list(title = "Ingreso total"))
+fig
+```
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+library(plotly)
+fig <- plot_ly(x = ~var_YTOTAJ$Año, y = ~var_YTOTAJ$`Promedio del Ingreso`, mode = 'lines', color= ~var_YTOTAJ$Año )
+
+fig
+```
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+library(plotly)
+fig <- plot_ly(var_YTOTAJ , y = ~var_YTOTAJ$`Promedio del Ingreso`, color = ~var_YTOTAJ$Sexo, type = "box", boxmean = "sd", colors = "Dark2", boxpoints=T)%>% 
+  layout(title = "Promedio del Ingreso por Sexo",
+         xaxis = list(title = "Sexo"), yaxis= list(title = "Ingreso total"))
+fig
+```
+
+#### 1.1 Analisis de los ingresos por anio
+
+
+
+```{r}
+var_YTOTAJ <- readRDS("variables_ingreso/YTOTAJ.rds")
+# var_YTOTAJ
+var_YTOTAJ_anio <- filter(var_YTOTAJ, var_YTOTAJ$Año==2011)
+var_YTOTAJ_anio
+```
+
+#########################################################################################################################################################
+### generación de la tabla de contingencia para el 2011
+
+```{r , message=FALSE, warning=FALSE, results='hide'}
+# dataset <- readRDS(file = "casen_2011_c.rds")
+ab_2011 <- readRDS(file = "casen_2011_c.rds")
+
+ab_2011 <- ab_2011[!is.na(ab_2011$ytotaj),]
+
+Q <- quantile(ab_2011$ytotaj, probs=c(.25, .75), na.rm = FALSE)
+iqr <- IQR(ab_2011$ytotaj)
+
+eliminated <- subset(ab_2011, ab_2011$ytotaj > (Q[1] - 1.5*iqr) & ab_2011$ytotaj < (Q[2]+1.5*iqr))
+#eliminated
+
+a <- eliminated$ytotaj
+b <- eliminated$comuna
+c <- eliminated$e1 #alfabetismo
+d <- eliminated$r6 #etnia
+e <- eliminated$sexo
+
+promedios_grupales <-aggregate(a, by=list(b, c, d, e), FUN = mean , na.rm = TRUE)
+
+head(promedios_grupales,5)
+
+promedios_grupales_sd <-aggregate(a, by=list(b, c, d, e), FUN = sd , na.rm = TRUE)
+head(promedios_grupales_sd,3)
+
+promedios_grupales_gini <-aggregate(a, by=list(b, c, d, e), FUN = gini , na.rm = TRUE)
+head(promedios_grupales_gini,3)
+
+promedios_grupales$sd = promedios_grupales_sd$sd.a
+promedios_grupales$gini = promedios_grupales_gini$gini.a
+d<-promedios_grupales
+d$Año <- "2011"
+head(d,5)
+
+names(d)[1] <- "Comuna"
+names(d)[2] <- "Alfabetismo"
+names(d)[3] <- "Etnia"
+names(d)[4] <- "Sexo"
+names(d)[5] <- "Promedio del Ingreso"
+names(d)[6] <- "Desviación standard"
+names(d)[7] <- "Gini"
+names(d)[8] <- "Año"
+head(d,3)
+
+codigos_comunales <- readRDS(file = "codigos_comunales_2011-2017.rds")
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df_2011 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+df_2011 <-df_2011[!(df_2011$Promedio == 0),]
+head(df_2011,5)
+```
+
+### reemplazamos del 2011 erroneos con los correctos
+```{r}
+var_YTRABAJ_etnia <- unique(var_YTRABAJ$Etnia)
+var_YTRABAJ_etnia <- as.data.frame(var_YTRABAJ_etnia)
+var_YTRABAJ_etnia
+write_xlsx(var_YTRABAJ_etnia,"variables_ingreso/var_YTRABAJ_etnia_etnia.xlsx")
+```
+
+
+## ahora vaos a homologar las categorias 
+
+#########################################################################################################################################################
+
+```{r}
+var_YAUTAJ <- readRDS("variables_ingreso/YAUTAJ.rds")
+var_YAUTAJ
+
+var_YOPRAJ <- readRDS("variables_ingreso/YOPRAJ.rds")
+var_YOPRAJ
+
+var_YTOTAJ <- readRDS("variables_ingreso/YTOTAJ.rds")
+var_YTOTAJ
+
+var_YTRABAJ <- readRDS("variables_ingreso/YTRABAJ.rds")
+var_YTRABAJ
+```
+
+```{r}
+var_YAUTAJ_año <- var_YAUTAJ$Año==2006
+var_YAUTAJ_año
+```
+
+
+```{r}
+# var_YAUTAJ<-as.data.frame(var_YAUTAJ)
+dataset2006 <- filter(var_YAUTAJ, var_YAUTAJ$"Año" =="2006")
+dataset2006
+# var_YAUTAJ_2006<-var_YAUTAJ[,(var_YAUTAJ$"Año" =="2006")]
+# var_YAUTAJ_2006
+
+# var_YAUTAJ$Año
+# var_YAUTAJ
+```
+
+
+# YAUTAJ
+
+## El coeficiente de Gini proporciona un índice para medir la desigualdad.
+
+Es una forma de comparar la distribución del ingreso en una sociedad con otra similar en la que todos ganasen exactamente lo mismo. La desigualdad en la escala de Gini se mide entre 0, donde todos son iguales y 1, donde todos los ingresos del país los gana una sola persona.
+
+En el indice la desigualdad es mayo en el amplio conjunto de la sociedad que dice no pertenecer a ningún pueblo indígena esto se comprende porque es evidente un mayor vinculo social dentro de comunidades étnicas, la desigualdad del pueblo mapuche en comparación los que declaran no pertenecer a ningún pueblo indígena es casi la misma en promedio, pero mucho mayor en dispersión.
+
+El indice de Gini es el mayor y más concentrado para "los chilenos"
+
+
+## 1
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+library(plotly)
+fig <- plot_ly(dataset2006 , y = ~Gini, color = ~Etnia, type = "box", boxmean = "sd", colors = "Dark2", boxpoints=T)%>% 
+  layout(title = "Gini para los ingresos autonomos por etnia en el 2006",
+         xaxis = list(title = "Etnia"))
+fig
+```
+
+## 2
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+library(plotly)
+fig <- plot_ly(dataset2006 , y = ~dataset2006$`Promedio del Ingreso`, color = ~Etnia, type = "box", boxmean = "sd", colors = "Dark2", boxpoints=T)%>% 
+  layout(title = "Promedio del Ingreso por etnia",
+         xaxis = list(title = "Etnia"))
+fig
+```
+
+## 3
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+library(plotly)
+fig <- plot_ly(x = ~var_YAUTAJ$Año, y = ~var_YAUTAJ$`Promedio del Ingreso`, mode = 'lines', color= ~var_YAUTAJ$Alfabetismo )
+
+fig
+```
+
+
+
+#############################################################################################################################################################
+
+# YOPRAJ
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+library(plotly)
+fig <- plot_ly(var_YOPRAJ , y = ~var_YOPRAJ$`Promedio del Ingreso`, color = ~Etnia, type = "box", boxmean = "sd", colors = "Dark2", boxpoints=T)%>% 
+  layout(title = "Promedio del Ingreso por etnia",
+         xaxis = list(title = "Etnia"))
+fig
+```
+
+
+#############################################################################################################################################################
+
+# YTOTAJ
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+library(plotly)
+fig <- plot_ly(var_YTOTAJ , y = ~var_YTOTAJ$`Promedio del Ingreso`, color = ~Etnia, type = "box", boxmean = "sd", colors = "Dark2", boxpoints=T)%>% 
+  layout(title = "Promedio del Ingreso por etnia",
+         xaxis = list(title = "Etnia"))
+fig
+```
+
+
+#############################################################################################################################################################
+
+# YTRABAJ
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+library(plotly)
+fig <- plot_ly(var_YTRABAJ , y = ~var_YTRABAJ$`Promedio del Ingreso`, color = ~var_YTRABAJ$Etnia, type = "box", boxmean = "sd", colors = "Dark2", boxpoints=T)%>% 
+  layout(title = "Promedio del Ingreso por etnia",
+         xaxis = list(title = "Etnia"))
+fig
+```
+
+#############################################################################################################################################################
+
+```{r}
+casen_2006 <- readRDS(file = "casen_2006_c.rds")
+casen_2009 <- readRDS(file = "casen_2009_c.rds")
+casen_2011 <- readRDS(file = "casen_2011_c.rds")
+casen_2013 <- readRDS(file = "casen_2013_c.rds")
+casen_2015 <- readRDS(file = "casen_2015_c.rds")
+casen_2017 <- readRDS(file = "casen_2017_c.rds")
+```
+## 1 Vamos a graficar sobre una variable original del 2015
+```{r}
+dataset2015 <- casen_2015
+```
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+library(plotly)
+fig <- plot_ly(dataset2015 , y = ~yautcorh, color = ~e1, type = "box", boxmean = "sd", colors = "BrBG", boxpoints=T)%>% 
+  layout(title = "Promedio del ingreso autónomo familiar por e1. ¿Sabe leer y escribir?",
+         xaxis = list(title = "Etnia"))
+fig
+```
+
+
+
+#############################################################################################################################################################
+#############################################################################################################################################################
+#############################################################################################################################################################
+
+
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+d <- df_Y21_1TR_2006
+fig <- plot_ly(d, x = ~ d$Cat, y = ~ d$Frecuencia, color = ~d$Comuna, type = 'bar')%>%
+layout(title = " ¿Tiene alguno de los siguientes ahorros,?",
+xaxis = list(title = "Tramo de ingresos"),
+yaxis = list(title = ""))
+
+fig
+```
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+casen_2009 <- readRDS(file = "casen_2009_c.rds")
+
+ab <- casen_2009
+#a <- ab$codigo
+b <- ab$COMUNA
+c <- ab$Y23TR1
+d <- ab$T5
+f <- ab$E1
+
+# cross_tab = xtabs(ab$EXPC ~  unlist(c) + unlist(e),aggregate(ab$EXPC ~unlist(c) + unlist(e),ab,mean))
+cross_tab = xtabs(ab$EXPC ~ unlist(b) + unlist(c) + unlist(d) + unlist(e) + unlist(f),aggregate(ab$EXPC ~ unlist(b) + unlist(c) + unlist(d) + unlist(e) + unlist(f) ,ab,mean))
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$anio <- "2009"
+
+names(d)[1] <- "Comuna"
+names(d)[2] <- "Cat"
+names(d)[3] <- "Etnia"
+names(d)[4] <- "Sexo"
+names(d)[5] <- "Alfabetismo"
+names(d)[6] <- "Frecuencia"
+names(d)[7] <- "Año"
+
+codigos_comunales <- readRDS(file = "codigos_comunales_2009.rds")
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df_Y23TR1_2009 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+
+```
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+library(plotly)
+fig <- plot_ly(dataset2015 , y = ~yautcorh, color = ~e1, type = "box",
+              boxmean = "sd",
+            colors = "BrBG", boxpoints=F)%>% 
+  layout(title = "Promedio del ingreso autónomo familiar por e1. ¿Sabe leer y escribir?",
+         xaxis = list(title = "Etnia"))
+fig
+```
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+d <- df_Y21_1TR_2006
+fig <- plot_ly(d, x = ~ d$Cat, y = ~ d$Frecuencia, color = ~d$Comuna, type = 'bar')%>%
+layout(title = " ¿Tiene alguno de los siguientes ahorros,?",
+xaxis = list(title = "Tramo de ingresos"),
+yaxis = list(title = ""))
+
+
+
+
+fig
+```
+
+
+```{r}
+library(plotly)
+fig <- plot_ly(y = ~rnorm(50), type = "box")
+fig <- fig %>% add_trace(y = ~rnorm(50, 1))
+
+fig
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

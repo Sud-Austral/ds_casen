@@ -1,0 +1,4 @@
+Este módulo consta de preguntas que permiten: estimar indicadores sobre la situación ocupacional de la población (tasa de participación, tasa de desocupación, tasa de ocupación); caracterizar la situación laboral y previsional de la fuerza de trabajo ocupada (rama de actividad, tamaño de la empresa, grupo ocupacional, categoría ocupacional, jornada de trabajo, contrato, seguro de cesantía, afiliación y cotización previsional, ocupación secundaria). En esta versión de la encuesta se mantienen las preguntas incorporadas en 2015 en relación al tiempo y medio de traslado al trabajo de los
+
+
+integrantes ocupados del hogar, y la pertenencia a organizaciones relacionadas con el trabajo, las que son utilizadas en el cálculo de indicadores de la dimensión de Vivienda y Entorno, y de Redes y Cohesión Social de la medida pobreza multidimensional. Estas se suman a otras variables utilizadas en la dimensión Trabajo y Seguridad Social de esta medida.

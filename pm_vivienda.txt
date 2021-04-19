@@ -1,0 +1,29 @@
+d.1. Habitabilidad: Se considera a un hogar carente en habitabilidad, si presenta carencia en algunos de estos indicadores:
+d.1.1. Hacinamiento: Se considera que un hogar es carente por hacinamiento, si el número de personas en el hogar por dormitorio de uso exclusivo, es mayor o igual a 2,5 personas.
+d.1.2. Estado de la vivienda: Se considera que un hogar es carente en estado de la vivienda que habita, si ésta:
+* Presenta muros, techos o suelos en mal estado (estado de conservación "Malo")
+* Es de tipo precario: mediaguas o mejoras
+* Es precaria o hecha de materiales reutilizados (latas, plásticos, cartones, etc.).
+d.2. Servicios básicos: Se considera que un hogar es carente en servicios básicos si:
+* Reside en una vivienda que no tiene acceso a agua potable procedente de red pública en el caso de áreas urbanas.
+* No tiene acceso a agua procedente de red o sistema de distribución proveniente de fuentes subterráneas o superficiales (incluyendo entre éstas el acceso a agua proveniente de pozo o noria, río, vertiente, lago o estero, o camión aljibe) en áreas rurales.
+* En área urbana o rural, tiene llave de agua fuera de la vivienda.
+* No tiene servicio de eliminación de excretas adecuado (solución diferente a W.C. conectado a un alcantarillado o fosa séptica).
+
+d.3. Entorno (medio ambiente o accesibilidad): Se considera a un hogar carente en entorno si presenta carencia en algunos de estos indicadores:
+d.3.1. Contaminación medioambiental (todos los hogares): Son carentes aquellos hogares que presentan dos o más problemas de contaminación, ya sea que lo han vivido o presenciado en el área de residencia (distancia de no más de 15 minutos caminando), y siempre dentro de los últimos 12 meses:
+1. Contaminación del aire y/o malos olores.
+2. Contaminación en ríos, canales, esteros, lagos, tranques y embalses.
+3. Acumulación de basura en calles, caminos, veredas o espacios públicos.
+4. Contaminación del agua procedente de la red pública.
+d.3.2. Tiempo de Traslado y Distancia de Equipamiento Básico
+* Hogares Con Integrantes Ocupados: Son carentes aquellos hogares que presentan tiempo de traslado de una hora o más al lugar principal de trabajo (en transporte público o no motorizado) y les falta al menos uno de los siguientes tipos de equipamiento básico en el área de residencia:
+1. A 1 km u ocho cuadras o más, de un servicio de transporte público, (paradero, estación).
+2. A 2,5 Km o 20 cuadras o más de un centro de salud, (atención primaria o superior).
+3. A 2,5 Km o 20 cuadras o más de un centro educacional, (colegio o jardín infantil).
+* Hogares Sin Integrantes Ocupados: Son carentes aquellos hogares que presentan falta de al menos un equipamiento básico en el área de residencia:
+1. A 1 km u 8 cuadras o más de un servicio de transporte público, (paradero, estación).
+2. A 2,5 Km o 20 cuadras o más de un centro de salud, (atención primaria o superior).
+3. A 2,5 Km o 20 cuadras o más de un centro educacional, (colegio o jardín infantil).
+
+Corresponde de 793 a la 795

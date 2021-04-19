@@ -1,0 +1,1 @@
+### Esta aplicación resulta muy útil para calcular los promedios de resultados categóricos para respuestas docotómicas, como por ejemplo en los casos de recepción de beneficios económicos en el módulo educación y en la sección de carencias de la sección hh.

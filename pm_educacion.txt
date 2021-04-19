@@ -1,0 +1,11 @@
+a.1. Asistencia: Se considera que un hogar es carente por asistencia escolar, si al menos uno de sus integrantes entre los 4 y 18 años de edad no está asistiendo a un establecimiento educacional y no ha egresado de cuarto medio, o si al menos un integrante entre los 6 y 26 años tiene una condición permanente y/o de larga duración que no asiste a un establecimiento educacional.
+a.2. Rezago Escolar: Se considera que un hogar es carente por rezago escolar, si al menos uno de sus integrantes de 21 años o menos asiste a educación básica o media, en alguna de sus dos modalidades, y se encuentra retrasado dos años o más con respecto al curso que le corresponde de acuerdo a su edad.
+a.3. Escolaridad: Se considera que un hogar es carente en escolaridad, si al menos uno de sus integrantes, mayor de 18 años, tiene menos años de escolaridad que los establecidos por ley de acuerdo a su edad.
+
+hh_d_asis Hogar carente en asistencia
+
+hh_d_rez Hogar carente en rezago escolar
+
+hh_d_esc Hogar carente en escolaridad
+
+corresponde de la 784 a la 786

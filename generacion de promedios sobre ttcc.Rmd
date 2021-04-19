@@ -1,0 +1,263 @@
+---
+title: 'Generación de promedios dentro de tablas de contingencia sobre la Casen'
+subtitle: 'Aplicación al estudio de la evolución de los ingresos autónomos del hogar por etnia, sexo y alfabetismo en Chile entre el 2006 y el 2017'
+author:
+- name: VE - CC
+  affiliation: DataIntelligence-Chile
+date: "04-01-2020"
+abstract: |
+  El codigo de éste trabajo fue construido para que la generación de promedios comunales sobre tablas de contingencia construidas de las Casen corregidas sea un acto trivial.
+output: html_document
+---
+
+```{r, include=FALSE,  message=FALSE, warning=FALSE, echo = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+suppressWarnings(library(RODBC))
+
+library(ggplot2)
+library(ggpubr)
+library(markdown)
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(plotly)
+library(xts)
+library(dygraphs)
+library(kableExtra)
+library(knitr)
+library("readxl")
+library(rsconnect)
+library(dplyr)
+library(summarytools)
+library(epiDisplay)
+#library(leaflet)
+library(haven)
+library(epiDisplay)
+library("readxl")
+library(expss)
+library(hrbrthemes)
+library(viridis)
+library(viridisLite)
+library(DescTools)
+library(roperators)
+library(shinycssloaders)
+library(writexl)
+library(labelled)
+library(tidyverse)
+library(haven)
+library(readr)
+library(sjmisc)
+library(WriteXLS)
+library(readstata13)
+```
+
+## 2006
+
+```{r}
+casen_2006 <- readRDS(file = "casen_2006_c.rds")
+
+ab <- casen_2006
+      
+a <- ab$YAUTHAJ
+b <- ab$COMUNA
+c<- ab$codigo
+d<- ab$E1
+e <- ab$T4
+f <- ab$SEXO
+
+promedios_grupales <-aggregate(a, by=list(b, c, d, e, f), FUN = mean , na.rm = TRUE)
+
+#promedios_grupales_sd <-aggregate(a, by=list(b, c, d, e, f), FUN = sd , na.rm = TRUE)
+
+
+promedios_grupales$anio <- "2006"
+      
+names(promedios_grupales)[1] <- "Comuna"     
+names(promedios_grupales)[2] <- "Código"
+names(promedios_grupales)[3] <- "Sabe leer?"
+names(promedios_grupales)[4] <- "Etnia"
+names(promedios_grupales)[5] <- "Sexo"
+names(promedios_grupales)[6] <- "Promedio del Ingreso autónomo del hogar"
+names(promedios_grupales)[7] <- "Año"  
+
+head(promedios_grupales,5)
+head(promedios_grupales_sd,5)
+#write_xlsx(promedios_grupales, "Promedio_ingresos_autonomoshogar_sexo_etnia_alfa_2006.xlsx")
+```
+
+## 2009
+
+```{r}
+casen_2009 <- readRDS(file = "casen_2009_c.rds")
+
+ab <- casen_2009
+      
+a <- ab$YAUTHAJ
+b <- ab$COMUNA
+c<- ab$codigo
+d<- ab$E1
+e <- ab$T5
+f <- ab$SEXO
+
+promedios_grupales <-aggregate(a, by=list(b, c, d, e, f), FUN = mean , na.rm = TRUE)
+
+promedios_grupales$anio <- "2009"
+      
+names(promedios_grupales)[1] <- "Comuna"     
+names(promedios_grupales)[2] <- "Código"
+names(promedios_grupales)[3] <- "Sabe leer?"
+names(promedios_grupales)[4] <- "Etnia"
+names(promedios_grupales)[5] <- "Sexo"
+names(promedios_grupales)[6] <- "Promedio del Ingreso autónomo del hogar"
+names(promedios_grupales)[7] <- "Año"  
+
+# promedios_grupales
+head(promedios_grupales,5)
+
+#write_xlsx(promedios_grupales, "Promedio_ingresos_autonomoshogar_sexo_etnia_alfa_2009.xlsx")
+```
+
+## 2011
+
+```{r}
+casen_2011 <- readRDS(file = "casen_2011_c.rds")
+
+ab <- casen_2011
+      
+a <- ab$yauthaj
+b <- ab$comuna
+c<- ab$codigo
+d<- ab$e1
+e <- ab$r6
+f <- ab$sexo
+
+promedios_grupales <-aggregate(a, by=list(b, c, d, e, f), FUN = mean , na.rm = TRUE)
+
+promedios_grupales$anio <- "2011"
+      
+names(promedios_grupales)[1] <- "Comuna"     
+names(promedios_grupales)[2] <- "Código"
+names(promedios_grupales)[3] <- "Sabe leer?"
+names(promedios_grupales)[4] <- "Etnia"
+names(promedios_grupales)[5] <- "Sexo"
+names(promedios_grupales)[6] <- "Promedio del Ingreso autónomo del hogar"
+names(promedios_grupales)[7] <- "Año"  
+
+head(promedios_grupales,5)
+
+#write_xlsx(promedios_grupales, "Promedio_ingresos_autonomoshogar_sexo_etnia_alfa_2011.xlsx")
+```
+
+## 2013
+
+```{r}
+casen_2013 <- readRDS(file = "casen_2013_c.rds")
+
+ab <- casen_2013
+      
+a <- ab$yautcorh
+b <- ab$comuna
+c<- ab$codigo
+d<- ab$e1
+e <- ab$r6
+f <- ab$sexo
+
+promedios_grupales <-aggregate(a, by=list(b, c, d, e, f), FUN = mean , na.rm = TRUE)
+
+promedios_grupales$anio <- "2013"
+      
+names(promedios_grupales)[1] <- "Comuna"     
+names(promedios_grupales)[2] <- "Código"
+names(promedios_grupales)[3] <- "Sabe leer?"
+names(promedios_grupales)[4] <- "Etnia"
+names(promedios_grupales)[5] <- "Sexo"
+names(promedios_grupales)[6] <- "Promedio del Ingreso autónomo del hogar"
+names(promedios_grupales)[7] <- "Año"  
+
+head(promedios_grupales,5)
+
+#write_xlsx(promedios_grupales, "Promedio_ingresos_autonomoshogar_sexo_etnia_alfa_2013.xlsx")
+```
+
+## 2015
+
+```{r}
+casen_2015 <- readRDS(file = "casen_2015_c.rds")
+
+ab <- casen_2015
+      
+a <- ab$yautcorh
+b <- ab$comuna
+c<- ab$codigo
+d<- ab$e1
+e <- ab$r3
+f <- ab$sexo
+
+promedios_grupales <-aggregate(a, by=list(b, c, d, e, f), FUN = mean , na.rm = TRUE)
+
+promedios_grupales$anio <- "2015"
+      
+names(promedios_grupales)[1] <- "Comuna"     
+names(promedios_grupales)[2] <- "Código"
+names(promedios_grupales)[3] <- "Sabe leer?"
+names(promedios_grupales)[4] <- "Etnia"
+names(promedios_grupales)[5] <- "Sexo"
+names(promedios_grupales)[6] <- "Promedio del Ingreso autónomo del hogar"
+names(promedios_grupales)[7] <- "Año"  
+
+head(promedios_grupales,5)
+
+#write_xlsx(promedios_grupales, "Promedio_ingresos_autonomoshogar_sexo_etnia_alfa_2015.xlsx")
+```
+
+## 2017
+
+```{r}
+casen_2017 <- readRDS(file = "casen_2017_c.rds")
+
+ab <- casen_2017
+      
+a <- ab$yautcorh
+b <- ab$comuna
+c<- ab$codigo
+d<- ab$e1
+e <- ab$r3
+f <- ab$sexo
+
+promedios_grupales <-aggregate(a, by=list(b, c, d, e, f), FUN = mean , na.rm = TRUE)
+
+promedios_grupales$anio <- "2017"
+      
+names(promedios_grupales)[1] <- "Comuna"     
+names(promedios_grupales)[2] <- "Código"
+names(promedios_grupales)[3] <- "Sabe leer?"
+names(promedios_grupales)[4] <- "Etnia"
+names(promedios_grupales)[5] <- "Sexo"
+names(promedios_grupales)[6] <- "Promedio del Ingreso autónomo del hogar"
+names(promedios_grupales)[7] <- "Año"  
+
+head(promedios_grupales,5)
+
+write_xlsx(promedios_grupales, "Promedio_ingresos_autonomoshogar_sexo_etnia_alfa_2017.xlsx")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

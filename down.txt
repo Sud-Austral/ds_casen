@@ -1,0 +1,130 @@
+
+
+library(shiny)
+library("shinythemes")
+library("readxl")
+library(plotly)
+
+my_data <- read_excel("casen_2006_mil.xlsx")
+#my_data <- read.table(file = "casen_2006_mil.xlsx", sep = "\t", header=TRUE)
+
+
+    
+    
+# Define UI for data download app ----
+ui <- fluidPage(theme = shinytheme("cerulean"),
+                navbarPage("Casen",
+                           
+                           
+              
+                           
+                           
+                    tabPanel("Plot", titlePanel("Descarga de datos Casen"),
+                         
+                        sidebarLayout(
+
+                        sidebarPanel(
+                            
+                        selectInput("dataset", "Escoja una base de datos:",
+                        choices = c("casen 2006", "plot", "casen 2009 ymt")),
+                        
+                        
+                        
+                        
+                        
+                        downloadButton("downloadData", "Descargar"),
+                        br(),
+                        downloadButton("downloadPlot", "Descargar el plot")),
+        
+                 
+           
+              mainPanel(tableOutput("table"),
+                            plotOutput("plot"))
+                           
+        
+                        ))
+         
+    
+    
+    
+
+    
+    
+    
+    
+    ), tabPanel("Summary",
+                verbatimTextOutput("summary")
+    )
+)
+
+# Define server logic to display and download selected file ----
+server <- function(input, output) {
+    
+    # Reactive value for selected dataset ----
+    datasetInput <- reactive({
+        switch(input$dataset,
+               "casen 2006" = my_data,
+               "plot" = plot,
+               "cars" = cars)
+    })
+    
+    
+    
+    # Table of selected dataset ----
+    output$table <- renderTable({
+        datasetInput()
+    })
+    
+    
+    
+    output$ex3 <- renderUI({
+        withMathJax(
+            helpText('La distribucion C-o
+               $$\\frac{1}{\\pi\\gamma\\,\\left[1 +
+               \\left(\\frac{x-x_0}{\\gamma}\\right)^2\\right]}\\!$$'))
+    })
+    
+
+
+    
+    
+    
+    
+    # Downloadable csv of selected dataset ----
+    output$downloadData <- downloadHandler(
+        filename = function() {
+            paste(input$dataset, ".csv", sep = "")
+        },
+        content = function(file) {
+            write.csv(datasetInput(), file, row.names = FALSE)
+        }
+    )
+    
+    
+    
+    #######################################
+    #######################################
+    
+
+
+output$plot <- renderPlot({
+    ggplot(my_data, aes(my_data$"Ingreso Del Trabajo")) + geom_density() 
+
+})
+
+  
+   t <-  ggplot(my_data, aes(my_data$"Ingreso Del Trabajo")) + geom_density()
+    #######################################
+    # se graba sin extension jpeg
+#######################################  
+    output$downloadPlot <- downloadHandler(
+        filename = function(){paste("input$plot3",'.png',sep='')},
+        content = function(file){
+            ggsave(file,plot=ggplot(my_data, aes(my_data$"Ingreso Del Trabajo")) + geom_density())})
+
+    
+    
+}
+
+# Create Shiny app ----
+shinyApp(ui, server)

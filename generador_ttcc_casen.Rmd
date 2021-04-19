@@ -1,0 +1,312 @@
+---
+title: 'Generación de tablas de contingencia sobre la Casen'
+subtitle: 'Aplicación al estudio de la evolución de la pobreza por ingresos por etnia y sexo en Chile entre el 2006 y el 2017'
+author:
+- name: VE - CC
+  affiliation: DataIntelligence-Chile
+date: "04-01-2020"
+abstract: |
+  El codigo de éste trabajo fue construido para que la generación de tablas de contingencia sobre las Casen corregidas sea un acto trivial.
+output: html_document
+---
+
+```{r, include=FALSE,  message=FALSE, warning=FALSE, echo = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+suppressWarnings(library(RODBC))
+
+library(ggplot2)
+library(ggpubr)
+library(markdown)
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(plotly)
+library(xts)
+library(dygraphs)
+library(kableExtra)
+library(knitr)
+library("readxl")
+library(rsconnect)
+library(dplyr)
+library(summarytools)
+library(epiDisplay)
+#library(leaflet)
+library(haven)
+library(epiDisplay)
+library("readxl")
+library(expss)
+library(hrbrthemes)
+library(viridis)
+library(viridisLite)
+library(DescTools)
+library(roperators)
+library(shinycssloaders)
+library(writexl)
+library(labelled)
+library(tidyverse)
+library(haven)
+library(readr)
+library(sjmisc)
+library(WriteXLS)
+library(readstata13)
+```
+
+## 2006
+
+```{r}
+casen_2006 <- readRDS(file = "casen_2006_c.rds")
+
+ab <- casen_2006
+      
+a <- ab$codigo
+b <- ab$COMUNA
+c <- ab$CORTE
+d <- ab$C_T7E
+e <- ab$SEXO
+      
+cross_tab =  xtabs(ab$EXPC ~  unlist(b) + unlist(c)  + unlist(d) + unlist(e),aggregate(ab$EXPC ~ unlist(b) +   unlist(c) + unlist(d) + unlist(e) ,ab,mean))
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$anio <- "2006"
+      
+#names(d)[1] <- "Código"     
+#names(d)[2] <- "Comuna"
+#names(d)[3] <- "Categoría"
+#names(d)[4] <- "Etnia"
+#names(d)[5] <- "Sexo"
+#names(d)[6] <- "Frecuencia"
+#names(d)[6] <- "Año"  
+
+head(d,5)
+
+#write_xlsx(d, "pob_etnia_sexo_2006.xlsx")
+```
+
+## 2009
+
+```{r}
+casen_2009 <- readRDS(file = "casen_2009_c.rds")
+```
+
+
+
+
+
+```{r}
+ab <- casen_2009
+      
+#a <- ab$codigo
+b <- ab$COMUNA
+c <- ab$IAE
+d <- ab$T5
+e <- ab$SEXO
+      
+cross_tab =  xtabs(ab$EXPC ~  unlist(b) + unlist(c)  + unlist(d) + unlist(e),aggregate(ab$EXPC ~   unlist(b) + unlist(c) + unlist(d) + unlist(e) ,ab,mean))
+
+
+tabla <- as.data.frame(cross_tab)
+
+d <-tabla[!(tabla$unlist.d. == 0),]
+
+d <-tabla[!(tabla$Freq == 0),]
+
+d$anio <- "2009"
+      
+#names(d)[1] <- "Código"     
+names(d)[1] <- "comuna"
+names(d)[2] <- "IAE"
+names(d)[3] <- "Etnia"
+names(d)[4] <- "Sexo"
+names(d)[5] <- "Frecuencia"
+names(d)[6] <- "Año"  
+
+#head(d,5)
+
+#write_xlsx(d, "pob_etnia_sexo_2009.xlsx")
+```
+
+```{r}
+codigos <- read_excel("codigos_comunales.xlsx")
+names(codigos)[1] <- "codigo"  
+names(codigos)[2] <- "comuna"  
+
+df_final = merge( x = d, y = codigos, by = "comuna", all.x = TRUE)
+head(df_final,5)
+write_xlsx(df_final, "iae_etnia_sexo_2009.xlsx")
+```
+
+
+
+
+
+
+
+
+# 2011
+
+```{r}
+casen_2011 <- readRDS(file = "casen_2011_c.rds")
+
+ab <- casen_2011
+      
+#a <- ab$codigo
+b <- ab$comuna
+c <- ab$iae
+d <- ab$r6
+e <- ab$sexo
+
+cross_tab =  xtabs(ab$expc_full ~   unlist(b) + unlist(c)  + unlist(d) + unlist(e),aggregate(ab$expc_full ~  unlist(b) + unlist(c) + unlist(d) + unlist(e) ,ab,mean))
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$anio <- "2011"
+      
+names(d)[1] <- "comuna"     
+names(d)[2] <- "IAE"
+names(d)[3] <- "Etnia"
+names(d)[4] <- "Sexo"
+#names(d)[5] <- "Sexo"
+names(d)[5] <- "Frecuencia"
+names(d)[6] <- "Año"  
+
+```
+
+
+
+
+```{r}
+codigos <- read_excel("codigos_comunales.xlsx")
+names(codigos)[1] <- "codigo"  
+names(codigos)[2] <- "comuna"  
+
+df_final = merge( x = d, y = codigos, by = "comuna", all.x = TRUE)
+head(df_final,5)
+write_xlsx(df_final, "iae_etnia_sexo_2011.xlsx")
+```
+
+
+
+
+# 2013
+
+```{r}
+casen_2013 <- readRDS(file = "casen_2013_c.rds")
+
+ab <- casen_2013
+      
+#a <- ab$codigo
+b <- ab$comuna
+c <- ab$iae
+d <- ab$r6
+e <- ab$sexo
+
+cross_tab =  xtabs(ab$expc ~  unlist(b) + unlist(c)  + unlist(d) + unlist(e),aggregate(ab$expc ~  unlist(b) + unlist(c) + unlist(d) + unlist(e) ,ab,mean))
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$anio <- "2013"
+
+names(d)[1] <- "comuna"     
+names(d)[2] <- "IAE"
+names(d)[3] <- "Etnia"
+names(d)[4] <- "Sexo"
+#names(d)[5] <- "Sexo"
+names(d)[5] <- "Frecuencia"
+names(d)[6] <- "Año"  
+
+df_final = merge( x = d, y = codigos, by = "comuna", all.x = TRUE)
+head(df_final,5)
+write_xlsx(df_final, "iae_etnia_sexo_2013.xlsx")
+```
+
+
+
+
+# 2015
+
+```{r}
+casen_2015 <- readRDS(file = "casen_2015_c.rds")
+
+ab <- casen_2015
+      
+# a <- ab$codigo
+b <- ab$comuna
+c <- ab$iae
+d <- ab$r3
+e <- ab$sexo
+
+cross_tab =  xtabs(ab$expc_todas ~  unlist(b) + unlist(c)  + unlist(d) + unlist(e),aggregate(ab$expc_todas ~   unlist(b) + unlist(c) + unlist(d) + unlist(e) ,ab,mean))
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$anio <- "2015"
+    
+names(d)[1] <- "comuna"     
+names(d)[2] <- "IAE"
+names(d)[3] <- "Etnia"
+names(d)[4] <- "Sexo"
+#names(d)[5] <- "Sexo"
+names(d)[5] <- "Frecuencia"
+names(d)[6] <- "Año"  
+  
+
+df_final = merge( x = d, y = codigos, by = "comuna", all.x = TRUE)
+head(df_final,5)
+write_xlsx(df_final, "iae_etnia_sexo_2015.xlsx")
+```
+
+
+# 2017
+
+```{r}
+casen_2017 <- readRDS(file = "casen_2017_c.rds")
+
+ab <- casen_2017
+      
+#a <- ab$codigo
+b <- ab$comuna
+c <- ab$iae
+d <- ab$r3
+e <- ab$sexo
+
+cross_tab =  xtabs(ab$expc ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e) ,aggregate(ab$expc ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e),ab,mean))
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$anio <- "2017"
+      
+names(d)[1] <- "comuna"     
+names(d)[2] <- "IAE"
+names(d)[3] <- "Etnia"
+names(d)[4] <- "Sexo"
+#names(d)[5] <- "Sexo"
+names(d)[5] <- "Frecuencia"
+names(d)[6] <- "Año"  
+
+df_final = merge( x = d, y = codigos, by = "comuna", all.x = TRUE)
+head(df_final,5)
+write_xlsx(df_final, "iae_etnia_sexo_2017.xlsx")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

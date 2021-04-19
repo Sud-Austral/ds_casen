@@ -1,0 +1,11 @@
+Libro de Códigos Base de Datos Casen 
+
+Módulode Ingresos.
+
+Dependiendo  si  las  respuestas  a  las  preguntas  de  este  módulo  son  categóricas  o continuas,  
+se  presentael  detalle  de  los  códigos  de  respuestaobservados  y sus frecuencias,  en  el  primer  caso,  
+o  la  información  de  registros válidos y  blancos  en  el último caso.Cabe mencionar además, que en una primera parte, 
+se presentan las variables originales correspondientes  a  las  respuestas  dadas  por  los  entrevistados/as  a  
+las  preguntas  del Módulo Ingresos  (incluyendo  respuestas  de  ingresos  con  distinta  periodicidad),  
+para luego informar las variables e indicadores generados por CEPAL en el cálculo de ingresos mensualizados, 
+desagregados y agregados, incluyendo corrección por no respuesta a las principales variables de ingresos.

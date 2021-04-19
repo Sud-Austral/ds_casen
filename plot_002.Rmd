@@ -1,0 +1,602 @@
+---
+title: 'Gráficas'
+subtitle: ''
+author:
+- name: VE - CC
+affiliation: DataIntelligence-Chile
+date: "08-01-2021"
+abstract: |
+  En éste documento comenzamos un despliegue masivo de gráficos a modo exploratorio y descriptivo, por lo que se priorizó la cantidad que el análisis.
+
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(plotly)
+library(readxl)
+```
+
+Los análisis se hacen sobre el año 2015.
+
+1 Educación versus decil autónomo del ingreso.
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+library(dplyr)
+dataset2015 <- readRDS(file = "casen_2015_c.rds")
+ab <- dataset2015
+
+```
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+
+p1 <- plot_ly(dataset2015 , x = ~dau, color = ~e6a) %>% add_histogram()%>%
+    layout(showlegend = TRUE, autosize = F, legend = list(font = list(size = 8)))
+p1
+```
+
+2 Ingreso autónomo familiar versus etnia.
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+library(plotly)
+fig <- plot_ly(dataset2015 , y = ~yautcorh, color = ~r3, type = "box",
+              boxmean = "sd",
+            colors = "BrBG", boxpoints=F)%>% 
+  layout(title = "Promedio del ingreso autónomo familiar por Etnia",
+         xaxis = list(title = "Etnia"))
+fig
+```
+
+3 Pobreza multidimensional versus ingreso autónomo familiar
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+library(plotly)
+fig <- plot_ly(dataset2015 , y = ~yautcorh, color = ~pobreza_multi_4d, type = "box",
+              boxmean = "sd",
+            colors = "BrBG", boxpoints=F)%>% 
+  layout(title = "pobreza_multi_4d Situación de pobreza multidimensional (4 Dimensiones)",
+         xaxis = list(title = "Etnia"))
+fig
+```
+
+4 Alfabetismo versus ingreso autónomo familiar
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+library(plotly)
+fig <- plot_ly(dataset2015 , y = ~yautcorh, color = ~e1, type = "box",
+              boxmean = "sd",
+            colors = "BrBG", boxpoints=F)%>% 
+  layout(title = "Promedio del ingreso autónomo familiar por e1. ¿Sabe leer y escribir?",
+         xaxis = list(title = "Etnia"))
+fig
+```
+
+5 Jornadas escolares de asistencia versus ingreso autónomo familiar
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+library(plotly)
+fig <- plot_ly(dataset2015 , y = ~yautcorh, color = ~e9, type = "box",
+              boxmean = "sd",
+            colors = "BrBG", boxpoints=F)%>% 
+  layout(title = "Promedio del ingreso autónomo familiar - e9. ¿A qué jornada asiste regularmente?",
+         xaxis = list(title = "Etnia"))
+fig
+```
+
+6 Becas escolares versus IAF
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+library(plotly)
+fig <- plot_ly(dataset2015 , y = ~yautcorh, color = ~e11bt1, type = "box",
+              boxmean = "sd",
+            colors = "BrBG", boxpoints=F)%>% 
+  layout(title = "Promedio del ingreso autónomo familiar - e11bt1. ¿Ha recibido o recibió algunas de estas becas? Beca 1.?",
+         xaxis = list(title = "Etnia"))
+fig
+```
+
+7 Crédito universitario versus IAF
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+library(plotly)
+fig <- plot_ly(dataset2015 , y = ~yautcorh, color = ~e16t1, type = "box",
+              boxmean = "sd",
+            colors = "BrBG", boxpoints=F)%>% 
+  layout(title = "Promedio del ingreso autónomo familiar - e16.t1. En el año escolar 20.15., ¿recibe alguno de los siguientes créditos universitarios…? Tipo 1.",
+         xaxis = list(title = "Etnia"))
+fig
+```
+
+8 Trabajo versus IAF
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+library(plotly)
+fig <- plot_ly(dataset2015 , y = ~yautcorh, color = ~o1, type = "box",
+              boxmean = "sd",
+            colors = "BrBG", boxpoints=F)%>% 
+  layout(title = "Promedio del ingreso autónomo familiar - o1. “La semana pasada, ¿trabajó al menos una hora, sin considerar los quehaceres del hogar?”",
+         xaxis = list(title = "Etnia"))
+fig
+
+```
+
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+library(plotly)
+fig <- plot_ly(dataset2015 , y = ~yautcorh, color = ~o12, type = "box",
+              boxmean = "sd",
+            colors = "BrBG", boxpoints=F)%>% 
+  layout(title = "Promedio del ingreso autónomo familiar - o12. ¿Su trabajo o negocio principal es de tipo…?",
+         xaxis = list(title = "Etnia"))
+fig
+```
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+library(plotly)
+fig <- plot_ly(dataset2015 , y = ~yautcorh, color = ~o15, type = "box",
+              boxmean = "sd",
+            colors = "BrBG", boxpoints=F)%>% 
+  layout(title = "o15. “En su trabajo o negocio principal, ¿usted trabaja como?”",
+         xaxis = list(title = "Etnia"))
+fig
+```
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+library(plotly)
+fig <- plot_ly(dataset2015 , y = ~yautcorh, color = ~o17, type = "box",
+              boxmean = "sd",
+            colors = "BrBG", boxpoints=F)%>% 
+  layout(title = " o17. En su trabajo principal, ¿tiene contrato de trabajo escrito?",
+         xaxis = list(title = "Etnia"))
+fig
+```
+
+
+
+
+
+
+
+
+
+#El análisis de correspondencia se puede utilizar para resumir y visualizar la información contenida en una gran tabla de contingencia formada por dos variables categóricas.
+
+```{r, include=FALSE, message=FALSE, warning=FALSE, echo = FALSE}
+#http://www.sthda.com/english/articles/32-r-graphics-essentials/129-visualizing-multivariate-categorical-data/
+library(FactoMineR)
+library(factoextra)
+dataset2015 <- readRDS(file = "casen_2015_c.rds")
+u <- table(dataset2015$dau, dataset2015$r3)
+u <- as.data.frame.matrix(u)
+```
+
+Vemos que la etnia Mapuche está muy cerca del DAU I y la categoria no pertenece a ningún pueblo al 10
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+res.ca <- CA(u, graph = FALSE)
+fviz_ca_biplot(res.ca,
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), repel = TRUE)
+```
+
+```{r,include=FALSE, message=FALSE, warning=FALSE, echo = FALSE}
+#http://www.sthda.com/english/articles/32-r-graphics-essentials/129-visualizing-multivariate-categorical-data/
+
+u <- table(dataset2015$dau, dataset2015$pobreza)
+u <- as.data.frame.matrix(u)
+```
+
+Cruzamos las variables DAU con pobreza. Los deciles 1 y 2 con las categorias de pobre difieren notablemente de los demas
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+res.ca <- CA(u, graph = FALSE)
+fviz_ca_biplot(res.ca, gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), repel = TRUE)+
+labs(title = "Pobreza", x = "Dim.1", y ="Dim.2" )
+```
+
+
+```{r,include=FALSE, message=FALSE, warning=FALSE, echo = FALSE}
+u <- table(dataset2015$dau, dataset2015$o15)
+u <- as.data.frame.matrix(u)
+```
+
+El gráfico tiene el siguiente sentido: el decil DAU mas rico se asocia con la actividad "patrón o empleador" mientras que los más pobres 1 y 2 se asocian al familiar no remunerado y al trabajador por cuenta propia
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+res.ca <- CA(u, graph = FALSE)
+fviz_ca_biplot(res.ca, gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), repel = TRUE)+
+
+labs(title = "En su trabajo o negocio principal, ¿usted trabaja como?", x = "Dimensión 1", y ="Dimensión 2" )
+```
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+u <- table(dataset2015$dau, dataset2015$r8resp_cod)
+u <- as.data.frame.matrix(u)
+```
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+res.ca <- CA(u, graph = FALSE)
+fviz_ca_biplot(res.ca, gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), repel = TRUE)+
+
+labs(title = "Usted se ha sentido discriminado por?", x = "Dimensión 1", y ="Dimensión 2" )
+```
+
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+u <- table(dataset2015$dau, dataset2015$r10b)
+u <- as.data.frame.matrix(u)
+
+res.ca <- CA(u, graph = FALSE)
+fviz_ca_biplot(res.ca, gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), repel = TRUE)+
+
+labs(title = "¿Cuál fue el nivel de educación más alto alcanzado por su padre (o figura paterna)?", x = "Dimensión 1", y ="Dimensión 2" )
+```
+
+Observamos una correlación no lineal casi perfecta entre el tipo de educación recibida y el decil del DAU al cual se pertenece.
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+u <- table(dataset2015$dau, dataset2015$r9)
+u <- as.data.frame.matrix(u)
+
+res.ca <- CA(u, graph = FALSE)
+fviz_ca_biplot(res.ca, gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), repel = TRUE)+
+
+labs(title = "Durante sus primeros 15 años de vida, ¿vivió la mayor parte del tiempo con alguno de sus padres?", x = "Dimensión 1", y ="Dimensión 2" )
+```
+
+Vemos que el decil más pobre de la sociedad se asocia al hecho de que durante la mayor parte de su vida no ha vivido con sus padres.
+
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+u <- table(dataset2015$dau, dataset2015$r10a)
+u <- as.data.frame.matrix(u)
+
+res.ca <- CA(u, graph = FALSE)
+fviz_ca_biplot(res.ca, gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), repel = TRUE)+
+
+labs(title = "¿Cuál fue el nivel de educación más alto alcanzado por su madre (o figura materna)?", x = "Dimensión 1", y ="Dimensión 2" )
+```
+
+Sorprendentemente nos encontramos de nuevo con una asociación no lineal casi perfecta entre el nivel educacional alcanzado por la madre y el decil del DAU al que se perrtenece.
+
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+u <- table(dataset2015$dau, dataset2015$r21)
+u <- as.data.frame.matrix(u)
+
+res.ca <- CA(u, graph = FALSE)
+fviz_ca_biplot(res.ca, gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), repel = TRUE)+
+
+labs(title = "¿Cuál de estas alternativas define mejor su orientación sexual?", x = "Dimensión 1", y ="Dimensión 2" )
+```
+
+Las categorías bi y gay se relacionan a los deciles más ricos de la sociedad.
+
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+u <- table(dataset2015$dau, dataset2015$ESC)
+u <- as.data.frame.matrix(u)
+
+res.ca <- CA(u, graph = FALSE)
+fviz_ca_biplot(res.ca, gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), repel = TRUE)+
+
+labs(title = "Escolaridad", x = "Dimensión 1", y ="Dimensión 2" )
+```
+
+Quizás la relación no lineal de la que hemos hablado entre educación y decil del DAU sea en éste ejemplo la más perfecta y asocia años de estudios con pertenencia al decil.
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+u <- table(dataset2015$dau, dataset2015$depen)
+u <- as.data.frame.matrix(u)
+
+res.ca <- CA(u, graph = FALSE)
+fviz_ca_biplot(res.ca, gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), repel = TRUE)+
+
+labs(title = "Dependencia", x = "Dimensión 1", y ="Dimensión 2" )
+```
+
+La variable construída dependencia de la Casen, que indica el tipo de establecimiento educacional al que se asiste también posee una relación no lineal muy marcada con el DAU.
+
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+u <- table(dataset2015$dau, dataset2015$s31c1)
+u <- as.data.frame.matrix(u)
+
+res.ca <- CA(u, graph = FALSE)
+fviz_ca_biplot(res.ca, gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), repel = TRUE)+
+
+labs(title = "¿Tiene Ud. alguna de las siguientes condiciones permanentes y/ o de larga duración?", x = "Dimensión 1", y ="Dimensión 2" )
+```
+
+La dificultad psiquiátrica y mental se orienta en la misma dirección que los deciles más pobres del DAU.
+
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+u <- table(dataset2015$dau, dataset2015$s32d)
+u <- as.data.frame.matrix(u)
+
+res.ca <- CA(u, graph = FALSE)
+fviz_ca_biplot(res.ca, gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), repel = TRUE)+
+
+labs(title = "Dificultad para: Desempeñarse en sus estudios, trabajo o actividad productiva?", x = "Dimensión 1", y ="Dimensión 2" )
+```
+
+Las dificultades para desempeñarse en los estudios o en el trabajp se asocia a más pobreza.
+
+
+
+##################################################################################################################################################################################
+
+
+Ésta función dibuja una matriz gráfica donde cada celda contiene un punto cuyo tamaño refleja la magnitud relativa del componente correspondiente.
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+
+# http://www.sthda.com/english/articles/31-principal-component-methods-in-r-practical-guide/113-ca-correspondence-analysis-in-r-essentials/
+
+library("gplots")
+dataset2015 <- readRDS(file = "casen_2015_c.rds")
+```
+
+
+“La semana pasada, ¿trabajó al menos una hora, sin considerar los quehaceres del hogar?”
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+u <- table(dataset2015$dau, dataset2015$o1)
+
+dt <- as.table(as.matrix(u))
+balloonplot(t(dt), main ="DAU 2015", xlab ="Trabajo", ylab="dau",
+            label = F, show.margins = F )
+```
+
+El chi-cuadrado nos da una medida de la correlación entre las variables.
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+chisq <- chisq.test(u)
+chisq
+```
+
+Si el chi-cuadrado en menor a 0.05, hay correlación significativa al 95% de confianza.
+
+
+Si le ofrecieran un trabajo, ¿estaría disponible para comenzar a trabajar?
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+u <- table(dataset2015$dau, dataset2015$o5)
+
+dt <- as.table(as.matrix(u))
+balloonplot(t(dt), main ="DAU 2015", xlab ="Trabajo", ylab="dau",
+            label = F, show.margins = F )
+```
+
+
+Oficio u ocupación
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+u <- table(dataset2015$dau, dataset2015$oficio1)
+
+dt <- as.table(as.matrix(u))
+balloonplot(t(dt), main ="Oficios y DAU 2015", xlab ="Oficio", ylab="dau",
+            label = F, show.margins = F, dotcolor="skyblue", text.size=0.3, colsrt=30)
+```
+
+
+
+¿Cuál es el estado nutricional de [NIÑO/A]
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+u <- table(dataset2015$dau, dataset2015$s1)
+
+dt <- as.table(as.matrix(u))
+balloonplot(t(dt), main ="Estado nutricional y DAU 2015", xlab ="Oficio", ylab="dau",
+            label = F, show.margins = F, dotcolor="skyblue", text.size=1, colsrt=30)
+```
+
+
+En los últimos tres años, ¿se ha hecho una mamografía?
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+u <- table(dataset2015$dau, dataset2015$s10)
+
+dt <- as.table(as.matrix(u))
+balloonplot(t(dt), main ="Mamografía y DAU 2015", xlab ="Oficio", ylab="dau",
+            label = F, show.margins = F, dotcolor="skyblue", text.size=0.7, colsrt=30)
+```
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+chisq <- chisq.test(u)
+chisq
+```
+
+Su núcleo, ¿tiene en uso y en funcionamiento: Smart TV o Televisión con internet?
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+u <- table(dataset2015$dau, dataset2015$r14e)
+
+dt <- as.table(as.matrix(u))
+balloonplot(t(dt), main ="Electrodomestico y DAU 2015", xlab ="tv-smart", ylab="dau",
+            label = F, show.margins = F, dotcolor="skyblue", text.size=0.7, colsrt=30)
+```
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+chisq <- chisq.test(u)
+chisq
+```
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+u <- table(dataset2015$dau, dataset2015$numper)
+
+dt <- as.table(as.matrix(u))
+balloonplot(t(dt), main ="Numero de personas y DAU 2015", xlab ="numper", ylab="dau",
+            label = F, show.margins = F, dotcolor="skyblue", text.size=0.7, colsrt=30)
+```
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+chisq <- chisq.test(u)
+chisq
+```
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+u <- table(dataset2015$dau, dataset2015$hacinamiento)
+
+dt <- as.table(as.matrix(u))
+balloonplot(t(dt), main ="hacinamiento y DAU 2015", xlab ="hacinamiento", ylab="dau",
+            label = F, show.margins = F, dotcolor="skyblue", text.size=0.7, colsrt=30)
+```
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+chisq <- chisq.test(u)
+chisq
+```
+
+Algunos de los indicadores de carencias con los que se amplían los conceptos de pobreza hacia una multi dimensional se vuelven difíciles de interpretar porque plantean una doble negación, como el caso de carencia en malnutición, en rigor el concepto se traduciría en buena nutrición pero tal como esta planteada en la casen esa carencia mas bien indica la presencia de la mal nutrición en los niños.
+
+0 indica buena nutrición 
+1 indica mal nutrición
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+u <- table(dataset2015$dau, dataset2015$hh_d_mal)
+
+dt <- as.table(as.matrix(u))
+balloonplot(t(dt), main ="Hogar carente en Malnutrición en niños/as y DAU 2015", xlab ="Malnutrición", ylab="dau",
+            label = F, show.margins = F, dotcolor="skyblue", text.size=0.7, colsrt=30)
+```
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+chisq <- chisq.test(u)
+chisq
+```
+
+
+También es posible visualizar una tabla de contingencia como un diagrama de mosaico.
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+
+library(FactoMineR)
+library(factoextra)
+dataset2015 <- readRDS(file = "casen_2015_c.rds")
+
+
+u <- table(dataset2015$dau, dataset2015$r3)
+
+
+u <- as.data.frame.matrix(u)
+
+# http://www.sthda.com/english/wiki/chi-square-test-of-independence-in-r
+library("graphics")
+mosaicplot(u, shade = TRUE, las=2,
+           main = "Etnia y DAE")
+```
+
+El color azul indica que el valor observado es mayor que el valor esperado si los datos fueran aleatorios
+El color rojo especifica que el valor observado es menor que el valor esperado si los datos fueran aleatorios.
+ 
+type: especifica el tipo de residuo que queremos representar
+---
+
+######---2
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+
+u <- table(dataset2015$dau, dataset2015$s31c1)
+
+
+u <- as.data.frame.matrix(u)
+
+# http://www.sthda.com/english/wiki/chi-square-test-of-independence-in-r
+library("graphics")
+mosaicplot(u, shade = TRUE, las=2,
+           main = "Discapacidad y DAE")
+```
+
+El color azul indica que el valor observado es mayor que el valor esperado si los datos fueran aleatorios
+El color rojo especifica que el valor observado es menor que el valor esperado si los datos fueran aleatorios.
+ 
+---
+
+######---3
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+
+u <- table(dataset2015$dau, dataset2015$s34_1g)
+
+
+u <- as.data.frame.matrix(u)
+
+# http://www.sthda.com/english/wiki/chi-square-test-of-independence-in-r
+library("graphics")
+mosaicplot(u, shade = TRUE, las=2,
+           main = "Tiene dificultad para salir a la calle?")
+```
+
+El color azul indica que el valor observado es mayor que el valor esperado si los datos fueran aleatorios
+El color rojo especifica que el valor observado es menor que el valor esperado si los datos fueran aleatorios.
+ 
+---
+
+######---4
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+
+u <- table(dataset2015$dau, dataset2015$e6a)
+
+
+u <- as.data.frame.matrix(u)
+
+# http://www.sthda.com/english/wiki/chi-square-test-of-independence-in-r
+library("graphics")
+mosaicplot(u, shade = TRUE, las=2,
+           main = "¿Cuál es el nivel más alto alcanzado o el nivel educacional actual?")
+```
+
+El color azul indica que el valor observado es mayor que el valor esperado si los datos fueran aleatorios
+El color rojo especifica que el valor observado es menor que el valor esperado si los datos fueran aleatorios.
+ 
+---
+
+######---5
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+
+u <- table(dataset2015$dau, dataset2015$hh_d_entorno)
+
+
+u <- as.data.frame.matrix(u)
+
+# http://www.sthda.com/english/wiki/chi-square-test-of-independence-in-r
+library("graphics")
+mosaicplot(u, shade = TRUE, las=2,
+           main = "Hogar carente en Entorno")
+```
+
+El color azul indica que el valor observado es mayor que el valor esperado si los datos fueran aleatorios
+El color rojo especifica que el valor observado es menor que el valor esperado si los datos fueran aleatorios.
+ 
+---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

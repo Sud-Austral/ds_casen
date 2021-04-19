@@ -1,0 +1,36 @@
+Las variables de identificación son aquéllas que permiten 
+caracterizar las distintas unidades de análisis de la encuesta 
+de manera innominada, respetando el secreto estadístico de los 
+entrevistados. Estas variables se derivan de las primeras páginas 
+del cuestionario. Algunas de ellas fueron creadas para facilitar 
+tanto el cálculo del error muestral, como el análisis con paquetes 
+estadísticos de análisis de encuestas complejas.
+
+Las variables de identificación se detallan a continuación:
+
+	ffolio	Corresponde a un identificador único por hogar.  
+	Tomemos como ejemplo el primer registro de la Casen 2017: 510910650901  
+	región	comuna		zona		segmento	vivienda 	hogar  
+	5	109		1		065		09		01 
+
+
+	o 		Número de orden de la persona dentro del hogar.
+
+	id_vivienda 	Identificador de la vivienda (comuna area seg viv)
+
+	region 		Región
+	
+	provincia 	Provincia (Ver en Anexo los Códigos de Comunas).
+
+	comuna 		Comuna (Ver en Anexo los Códigos de Comunas).
+
+	zona Área geográfica
+
+		1 Urbano
+
+		2 Rural
+
+	vastrat 	Estratos de Varianza
+	varunit 	Conglomerados de Varianza
+
+

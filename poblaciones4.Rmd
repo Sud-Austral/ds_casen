@@ -1,0 +1,316 @@
+---
+title: "Una relación entre tamaño muestral y el factor de expansión comunal."
+author: "Víctor Enamorado-Christian Castro. DI"
+date: "17-12-2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+library(ggpubr)
+library(markdown)
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(plotly)
+library(xts)
+library(dygraphs)
+library(kableExtra)
+library(knitr)
+library("readxl")
+library(rsconnect)
+library(dplyr)
+library(summarytools)
+library(epiDisplay)
+#library(leaflet)
+library(haven)
+library(epiDisplay)
+library(expss)
+library(hrbrthemes)
+library(viridis)
+library(viridisLite)
+library(DescTools)
+library(roperators)
+library(shinycssloaders)
+library(writexl)
+library(vroom)
+library(shinyWidgets)
+library(stringr)
+library(dplyr)
+library(gapminder)
+library(tidyverse)
+library(moderndive)
+library(skimr)
+library(stringr)
+
+oldw <- getOption("warn")
+options(warn = -1)
+
+```
+
+
+
+
+
+### Queremos a partir del campo **folio** de la base de datos de la Casen descubrir un patrón para el factor de expansión comunal faltante en algunas comunas de la Casen del 2015.
+
+
+```{r}
+dataset2013  <- readRDS("dataset2013.rds")
+dataset2015  <- readRDS("dataset2015.rds")
+dataset2017  <- readRDS("dataset2017.rds")
+```
+
+
+
+## El marco muestral.
+
+El INE mantiene vigente al año 2015 un marco muestral conformado por dos marcos independientes, el marco de manzanas para la parte urbana y el marco de secciones para la parte rural. 
+
+Las unidades que lo componen se denominan **conglomerados**, que corresponden a conjuntos de viviendas agrupadas y contenidas en áreas geográficas definidas por límites de calles, pasajes, alturas de calles o aglomeraciones de viviendas particulares conformadas a partir de una o más entidades pobladas. 
+
+A través del tiempo, **estos conglomerados han sido denominados segmentos** (secciones y manzanas) y corresponden a las unidades primarias de muestreo o UPM, obedeciendo a distintos criterios de agrupación, tanto en límites como en tamaño. A través de estos conglomerados se accede a la vivienda y al hogar, cuyos integrantes son las personas, generalmente el objeto final de estudio. A petición del Ministerio de Desarrollo Social, para la encuesta Casen 2015 el INE realizó una actualización parcial menor y focalizado no superior al 2% de viviendas del marco de manzanas.
+
+## El método.
+
+Tenemos que el factor de expansión comunal esta asociado al codigo de la zona y el segmento, por lo que si determinamos que éstos códigos son los mismos en el 2015 que en el 2017 (o en el 2013), podemos reemplazar los factores de expansión de éste último en el primero en las comunas que faltan.
+
+
+
+## El campo **folio** para el año 2015
+
+Analicemos como se construye el codigo para el campo **folio** en la Casen 2015.
+
+![Codificación del campo folio en la Casen2015](folio.jpg)
+la descomposición del folio es:
+
+Region-Comuna \
+Zona-Segmento \
+Vivienda-Hogar \
+
+Tomemos un ejemplo de folio:
+
+```{r}
+# eliminamos la notacion científica:
+options(scipen=999)
+huara_2015 <- dataset2015[dataset2015$comuna == "huara", ] 
+head(huara_2015$folio, 1)
+```
+
+01-404   3-001   01-1
+
+
+########################################
+### Método.
+########################################
+
+1 Determinemos las comunas sin fdee en el 2015
+
+```{r}
+new_DF <- subset(dataset2015, is.na(dataset2015$expc))
+newdata <- new_DF[c("comuna", "expc")]
+newdata <- distinct(newdata, comuna, .keep_all = TRUE)
+head(newdata,50)
+```
+
+
+
+La idea es que el producto entre el número de muestras y el factor de expansión dé la población de la comuna del año respectivo, lo que veremos es cierto. El problema es que dos variables lo son simultáneamente: la frecuencia y el fdeec.
+
+Tomemos como ejemplo el caso de ALgarrobo.
+
+### 2015 algarrobo
+
+Generemos una tabla sólo para verificar los NA en los fdee.
+
+```{r}
+# huara_2015 <- dataset2015[dataset2015$comuna == "algarrobo", ] 
+huara_2015 <- dataset2015
+huara_2015_sub <- str_sub(huara_2015$folio, 5,8)
+huara_2015_fdee <- huara_2015$expc
+huara_2015_unido <- cbind(huara_2015_sub, huara_2015_fdee)
+unique(huara_2015_unido)
+
+```
+
+Tenemos que en algarrobo existen 2 zonas para el 2015: en la primera 7segmentos; en la segunda 2.
+
+Multipliquemos las frecuencias de las muestras de cada código, con el fdeec para el 2017 y sumémoslos. Veamos si se acercan a la población proyectada del INE al año.
+
+### 2017 Algarrobo
+
+La siguiente tabla asocia el código extraído del folio con el fdeec:
+
+```{r}
+options(scipen=999)
+huara_2017 <- dataset2017[dataset2017$comuna == "Concepción", ] 
+
+huara_2017_sub <- str_sub(huara_2017$folio, 5,9)
+huara_2017_fdee <- huara_2017$expc
+huara_2017_folio<- huara_2017$folio
+
+
+huara_2017_unido <- cbind(huara_2017_sub, huara_2017_fdee,huara_2017_folio)
+
+colnames(huara_2017_unido)[1] <- "Codigo"
+colnames(huara_2017_unido)[2] <- "fdeec_2017"
+
+sss <-  huara_2017_unido[!duplicated(huara_2017_unido[,c('Codigo')]),]
+
+# sss <- unique(huara_2017_unido$Codigo)
+sss <- data.frame(sss)
+sss$fdeec_2017 <- strtoi(sss$fdeec_2017) 
+sss
+```
+
+¿Cuántos n tiene cada código?
+
+
+```{r}
+
+ggg <- table(huara_2017_unido[,1])
+ggg <- data.frame(ggg)
+ggg
+```
+
+Multipliquemos frecuencia por n y sumémoslas:
+
+```{r}
+multiplicacion <- sss$fdeec_2017 * ggg$Freq
+
+a <- cbind(sss, ggg)
+
+b <- cbind(a,multiplicacion)
+
+
+names(b)[3] <- "folio"
+
+b <- b[,-4]
+b
+write_xlsx(b,'Concepcion_2017.xlsx')
+
+#sum(mmm)
+```
+
+
+
+
+
+
+
+
+
+Comparemos con la poblacion proyectada del INE para Algarrobo el 2017 que veremos es 14221.	
+
+```{r}
+pob_chilena  <- readRDS("poblacion_chilena.rds")
+```
+Visualicemos sus cuatro primeras líneas:
+
+```{r}
+
+head(pob_chilena,4)
+
+```
+
+Ésta información la tenemos desglosada por sexo y edad, pero la queremos simplemente agregada a nivel de comuna y 2017. 
+```{r}
+pob_por_comuna_ine_2017 <- aggregate(pob_chilena$Poblacion.2017, by=list(Comuna=pob_chilena$Nombre.Comuna), FUN=sum)
+
+
+
+```
+Despleguemos la población para las primeras 4 comunas del dataset para el 2017:
+
+
+```{r}
+head(pob_por_comuna_ine_2017,4)
+```
+
+Vemos que la población de Algarrobo para el 2017 estimada era de 14221 personas.
+
+
+### 2013 Algarrobo
+
+La siguiente tabla asocia el código extraído del folio con el fdeec:
+
+```{r}
+options(scipen=999)
+huara_2017 <- dataset2013[dataset2013$comuna == "algarrobo", ] 
+huara_2017_sub <- str_sub(huara_2017$folio, 5,8)
+huara_2017_fdee <- huara_2017$expc
+huara_2017_unido <- cbind(huara_2017_sub, huara_2017_fdee)
+colnames(huara_2017_unido)[1] <- "Codigo"
+colnames(huara_2017_unido)[2] <- "fdeec_2017"
+sss <- unique(huara_2017_unido)
+sss <- data.frame(sss)
+sss$fdeec_2017 <- strtoi(sss$fdeec_2017) 
+sss
+```
+
+¿Cuántos n tiene cada código?
+
+
+```{r}
+
+ggg <- table(huara_2017_unido[,1])
+ggg <- data.frame(ggg)
+ggg
+```
+
+Multipliquemos frecuencia por n y sumémoslas:
+
+```{r}
+mmm <- sss$fdeec_2017 * ggg$Freq
+mmm
+# sum(mmm)
+```
+
+Comparemos con la poblacion proyectada del INE para Algarrobo el 2013 que veremos es 12992.	
+
+```{r}
+pob_chilena  <- readRDS("poblacion_chilena.rds")
+```
+Visualicemos sus cuatro primeras líneas:
+
+```{r}
+
+head(pob_chilena,4)
+
+```
+
+Ésta información la tenemos desglosada por sexo y edad, pero la queremos simplemente agregada a nivel de comuna y 2017. 
+```{r}
+pob_por_comuna_ine_2017 <- aggregate(pob_chilena$Poblacion.2013, by=list(Comuna=pob_chilena$Nombre.Comuna), FUN=sum)
+
+
+
+```
+Despleguemos la población para las primeras 4 comunas del dataset para el 2017:
+
+
+```{r}
+head(pob_por_comuna_ine_2017,4)
+```
+
+Vemos que la población de Algarrobo para el 2013 estimada era de 12992 personas.
+
+
+<!---
+# yyy <- pob_por_comuna_ine_2006[109,]
+# yyy
+-->
+
+
+
+
+
+
+
+
+
+

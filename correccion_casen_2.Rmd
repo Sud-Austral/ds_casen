@@ -1,0 +1,250 @@
+---
+title: 'Corrección de las Casen II'
+subtitle: ''
+author:
+- name: VE - CC
+  affiliation: DataIntelligence-Chile
+date: "04-01-2020"
+abstract: |
+  Las Casen publicadas oficialmente poseen anomalías en sus factores de expansión comunal, [ir al link de descarga](http://observatorio.ministeriodesarrollosocial.gob.cl) los cuales son ausencias (Casen 2015) o errores (comuna de Primavera en el 2006). Asimismo, los códigos comunales no están homologados a los actuales. Éste documento presenta los códigos para la generación de bases de datos Casen corregidas, para la posterior construcción de tablas de contingencia que se presentan en el Rpubs: generador_ttcc-casen.
+output: html_document
+---
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE, echo = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+suppressWarnings(library(RODBC))
+
+library(ggplot2)
+library(ggpubr)
+library(markdown)
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(plotly)
+library(xts)
+library(dygraphs)
+library(kableExtra)
+library(knitr)
+library("readxl")
+library(rsconnect)
+library(dplyr)
+library(summarytools)
+library(epiDisplay)
+#library(leaflet)
+library(haven)
+library(epiDisplay)
+library("readxl")
+library(expss)
+library(hrbrthemes)
+library(viridis)
+library(viridisLite)
+library(DescTools)
+library(roperators)
+library(shinycssloaders)
+library(writexl)
+library(labelled)
+library(tidyverse)
+library(haven)
+library(readr)
+library(sjmisc)
+library(WriteXLS)
+
+
+library(readstata13)
+```
+
+## Reparación 2013
+
+```{r}
+casen_2013 <- read_sav("Casen2013.sav")
+```
+
+```{r}
+casen_2013_labeled  <- as_factor(casen_2013, only_labelled = TRUE)
+```
+
+```{r}
+data_code <- stack(attr(casen_2013$comuna, 'labels'))
+
+
+data_code <- data_code[c(2,1)]
+names(data_code)[1] <- "comuna"
+names(data_code)[2] <- "codigo"
+#data_code
+```
+
+
+```{r}
+    data_code[171,2]<-16101
+    data_code[172,2]<-16102
+    data_code[173,2]<-16202
+    data_code[174,2]<-16203
+    data_code[175,2]<-16302
+    data_code[176,2]<-16103
+    data_code[177,2]<-16104
+    data_code[178,2]<-16204
+    data_code[179,2]<-16303
+    data_code[180,2]<-16105
+    data_code[181,2]<-16106
+    data_code[182,2]<-16205
+    data_code[183,2]<-16107
+    data_code[184,2]<-16201
+    data_code[185,2]<-16206
+    data_code[186,2]<-16301
+    data_code[187,2]<-16304
+    data_code[188,2]<-16108
+    data_code[189,2]<-16305
+    data_code[190,2]<-16207
+    data_code[191,2]<-16109
+```
+
+
+```{r}
+df_final = merge( x = casen_2013_labeled, y = data_code, by = "comuna", all.x = TRUE)
+```
+```{r}
+#saveRDS(df_final, file = "casen_2013_c.rds")
+```
+
+
+## Reparación 2015
+
+```{r}
+dataset2015  <- read_sav("casen2015.sav")
+dataset2015_fexc = read_sav("Casen 2015_FE todasComunas.sav")
+```
+
+
+
+
+
+Acá hay que tener cuidado porque las observaciones quedan individualizadas por la unión de dos columnas, folio y o, por lo que hay que construir nuevas columnas en ambos datasets para poder hacer el join adecuado.
+
+```{r}
+dataset2015$identificador <- paste(dataset2015$folio,dataset2015$o)
+dataset2015_fexc$identificador <- paste(dataset2015_fexc$folio,dataset2015_fexc$o)
+```
+
+Hacemos la unión con los factores de expansión correctos:
+
+```{r}
+df_2015_final = merge( x = dataset2015, y = dataset2015_fexc, by = "identificador", all.x = TRUE)
+```
+
+
+
+
+
+```{r}
+casen_2015_labeled  <- as_factor(df_2015_final, only_labelled = TRUE)
+```
+
+
+
+
+
+```{r}
+data_code <- stack(attr(df_2015_final$comuna, 'labels'))
+names(data_code)[2] <- "comuna"
+
+data_code <- data_code[c(2,1)]
+names(data_code)[1] <- "comuna"
+names(data_code)[2] <- "codigo"
+#data_code
+```
+
+```{r}
+    data_code[171,2]<-16101
+    data_code[172,2]<-16102
+    data_code[173,2]<-16202
+    data_code[174,2]<-16203
+    data_code[175,2]<-16302
+    data_code[176,2]<-16103
+    data_code[177,2]<-16104
+    data_code[178,2]<-16204
+    data_code[179,2]<-16303
+    data_code[180,2]<-16105
+    data_code[181,2]<-16106
+    data_code[182,2]<-16205
+    data_code[183,2]<-16107
+    data_code[184,2]<-16201
+    data_code[185,2]<-16206
+    data_code[186,2]<-16301
+    data_code[187,2]<-16304
+    data_code[188,2]<-16108
+    data_code[189,2]<-16305
+    data_code[190,2]<-16207
+    data_code[191,2]<-16109
+```
+
+
+```{r}
+df_final = merge( x = casen_2015_labeled, y = data_code, by = "comuna", all.x = TRUE)
+```
+
+
+
+
+
+```{r}
+#saveRDS(df_final, file = "casen_2015_c.rds")
+```
+
+
+
+## Reparación 2017
+
+```{r}
+dataset2017  <- read_sav("casen2017.sav")
+
+```
+
+```{r}
+casen_2017_labeled  <- as_factor(dataset2017, only_labelled = TRUE)
+```
+
+```{r}
+data_code <- stack(attr(dataset2017$comuna, 'labels'))
+data_code <- data_code[c(2,1)]
+names(data_code)[1] <- "comuna"
+names(data_code)[2] <- "codigo"
+#data_code
+```
+
+
+
+```{r}
+    data_code[172,2]<-16102
+    data_code[171,2]<-16101
+    data_code[176,2]<-16103
+    data_code[173,2]<-16202
+    data_code[174,2]<-16203
+    data_code[175,2]<-16302
+    data_code[177,2]<-16104
+    data_code[178,2]<-16204
+    data_code[179,2]<-16303
+    data_code[180,2]<-16105
+    data_code[181,2]<-16106
+    data_code[182,2]<-16205
+    data_code[183,2]<-16107
+    data_code[184,2]<-16201
+    data_code[185,2]<-16206
+    data_code[186,2]<-16301
+    data_code[187,2]<-16304
+    data_code[188,2]<-16108
+    data_code[189,2]<-16305
+    data_code[190,2]<-16207
+    data_code[191,2]<-16109
+```
+
+```{r}
+df_final = merge( x = casen_2017_labeled, y = data_code, by = "comuna", all.x = TRUE)
+```
+```{r}
+#saveRDS(df_final, file = "casen_2017_c.rds")
+```
+
+

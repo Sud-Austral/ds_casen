@@ -1,0 +1,814 @@
+---
+title: |
+  <font size="16">Teoría de Machine Learning I. Aprendizaje supervisado: Clasificación</font>
+author:
+- name: VE-CC
+  affiliation: |
+subtitle: |
+  Preparación para el análisis de la Casen.
+date: "10-01-2020"
+abstract: |
+
+  Un algoritmo de aprendizaje automático supervisado (a diferencia de un algoritmo de aprendizaje automático no supervisado) se basa en datos de entrada etiquetados (datos de entrenamiento) para deducir una función que produzca una salida adecuada cuando se le den nuevos datos sin etiquetar.
+
+  Los datos de entrenamiento consisten de pares de objetos (normalmente vectores): una componente del par son los datos de entrada y el otro, los resultados deseados. La salida de la función puede ser un valor numérico (como en los problemas de regresión) o una etiqueta de clase (como en los de clasificación). 
+
+  A diferencia del aprendizaje supervisado que intenta aprender una función que nos permitirá hacer predicciones dados algunos datos nuevos sin etiquetar, el aprendizaje no supervisado intenta aprender la estructura básica de los datos para darnos más información sobre los datos.
+  
+  La idea central es el adquirir la capacidad de predecir a qué categoría pertenece una observación dado un conjunto de sus razgos, cuantitativos y/o cualitativos.
+  
+header-includes:
+   - \usepackage[]{babel}
+output: 
+  html_document:
+      theme: cosmo
+---
+
+<style type="text/css">
+
+.main-container {
+  max-width: 1300px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+body, td {
+    font-family: Helvetica;
+    font-size: 22px;
+}
+code.r{
+  font-size: 12px;
+}
+pre {
+  font-size: 18px;
+}
+</style>
+
+
+
+```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width = 9, fig.height=9)
+library(kableExtra)
+# https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html
+```
+
+```{r, echo=FALSE}
+htmltools::img(src = knitr::image_uri("C:/Users/usuario/Desktop/dataintelligence.png"), 
+               style = 'position:absolute; top:0; right:0; padding:10px;')
+```
+
+
+# Índice
+
+[1. La matriz de confusión. ](#test1)
+
+[2. Análisis de componentes principales](#test2)
+
+[3. Diagramas ROC](#test3)
+
+[4. Los árboles de clasificación.](#test4)
+
+[5. Bosques aleatorios.](#test5)
+
+[6. Máquinas de soporte vectorial](#test6)
+
+[7. Clasificador bayesiano ingenuo (Bayes Naive)](#test7)
+
+[8. K Nearest Neighbors](#test8)
+
+[9. Redes neuronales para clasificar](#test9)
+
+[10. Análisis del discriminante lineal](#test10)
+
+[11. La regresión logística](#test11)
+
+<hr/>
+<br>
+<br>
+
+# 1 La matriz de confusión. {#test1}
+
+<br>
+
+
+
+
+A veces tenemos un modelo que predice y sobre el que podemos comparar nuevos datos para evaluar su precision. Una clasificación que ha hecho el modelo.
+
+Una matriz de confusión es un caso especial de tabla de contingencia.
+
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+library(knitr)
+library(dplyr)
+library(kableExtra)
+# cp <- read.csv("../data/tema3/college-perf.csv")
+
+cp <- read.csv("C:/Users/usuario/Desktop/6_enero/clase/data/tema3/college-perf.csv")
+```
+
+1 Observemos nuestra bded:
+
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+head(cp,5) %>% kable(table.attr = "style='width:70%;'", align = "ccccccc") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), full_width = T) 
+```
+2 Despleguemos una matriz de confusion para darle un sentido a los valores que hemos obtenido.
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# C:\Users\usuario\Desktop\clasificacion con R\data\tema3/college-perf.csv
+
+cp$Perf <- ordered(cp$Perf, 
+                   levels = c("Low", "Medium", "High"))
+cp$Pred <- ordered(cp$Pred,
+                   levels = c("Low", "Medium", "High"))
+
+
+table <- table(cp$Perf, cp$Pred, dnn =  c("Actual", "Predicho"))
+
+
+table %>% kable(table.attr = "style='width:70%;'", align = "lccc") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), full_width = T)
+```
+Si un adulto tiene discapacidad media, el modelo lo ha predicho alto en 170 casos.
+
+obtengamos probabilidades totales
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+prop.table(table) %>% kable(table.attr = "style='width:70%;'", align = "lccc") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), full_width = T)
+```
+obtengamos probabilidades totales por filas pones en entredicho al modelo, porque, 
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+round(prop.table(table, 1)*100, 2) %>% kable(table.attr = "style='width:70%;'", align = "lccc") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), full_width = T)
+```
+obtengamos probabilidades totales por columnas
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+round(prop.table(table, 2)*100, 2) %>% kable(table.attr = "style='width:70%;'", align = "lccc") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), full_width = T)
+```
+
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+barplot(table, legend = TRUE, xlab = "Nota predicha por el modelo", col = rainbow(6))
+```
+
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+mosaicplot(table, main = "Eficiencia del modelo", color = 12:20)
+
+#summary(table) 
+
+
+
+```
+```{r}
+summary(table) 
+```
+
+<hr/>
+<br>
+<br>
+
+# 2 Análisis de componentes principales. {#test2}
+
+<br>
+
+
+
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+usarrests <- read.csv("C:/Users/usuario/Desktop/6_enero/clase/data/tema3/USArrests.csv", stringsAsFactors = F)
+rownames(usarrests) <- usarrests$X 
+usarrests$X <- NULL
+head(usarrests)
+
+apply(usarrests, 2, var)
+
+acp <- prcomp(usarrests, center = TRUE, scale = TRUE)
+print(acp)
+
+plot(acp, type = "l")
+
+summary(acp)
+
+biplot(acp, scale = 0)
+
+pc1 <- apply(acp$rotation[,1]*usarrests, 1, sum)
+pc2 <- apply(acp$rotation[,2]*usarrests, 1, sum)
+
+usarrests$pc1 <- pc1 
+usarrests$pc2 <- pc2
+usarrests[,1:4] <- NULL
+```
+<hr/>
+<br>
+<br>
+
+# 3. Diagramas ROC. {#test3}
+
+<br>
+
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# install.packages("ROCR")
+library(ROCR)
+
+data1 <- read.csv("C:/Users/usuario/Desktop/6_enero/clase/data/tema3/roc-example-1.csv")
+data2 <- read.csv("C:/Users/usuario/Desktop/6_enero/clase/data/tema3/roc-example-2.csv")
+#0 -> fallo
+#1 -> éxito
+pred1 <- prediction(data1$prob, data1$class)
+perf1 <- performance(pred1, "tpr", "fpr")
+plot(perf1)
+lines(par()$usr[1:2], par()$usr[3:4])
+
+prob.cuts.1 <- data.frame(cut = perf1@alpha.values[[1]],
+                          fpr = perf1@x.values[[1]],
+                          tpr = perf1@y.values[[1]])
+head(prob.cuts.1)
+
+tail(prob.cuts.1)
+
+prob.cuts.1[prob.cuts.1$tpr>=0.8,]
+
+
+
+pred2 <- prediction(data2$prob, data2$class, label.ordering = c("non-buyer", "buyer"))
+perf2 <- performance(pred2, "tpr", "fpr")
+plot(perf2, col="blue")
+lines(par()$usr[1:2], par()$usr[3:4])
+
+```
+
+<hr/>
+<br>
+<br>
+
+# 4 Los árboles de clasificación. {#test4}
+
+<br>
+
+Los árboles de decisión se pueden utilizar para resultados continuos (árboles de regresión) o categóricos (árboles de clasificación). Los árboles de clasificación y regresión a veces se denominan CART.una variable continua, para árboles de regresión
+una variable categórica, para árboles de clasificación
+
+El algoritmo de los modelos de árbol de decisión funciona dividiendo repetidamente los datos en múltiples subespacios para que los resultados en cada subespacio final sean lo más homogéneos posible. Este enfoque se denomina técnicamente partición recursiva. El resultado producido consta de un conjunto de reglas que se utilizan para predecir la variable de resultado, que puede ser:
+
+El algoritmo busca la variable independiente que mejor separa nuestros datos en grupos, que corresponden con las categorías de la variable objetivo. Esta mejor separación es expresada con una regla. A cada regla corresponde un nodo.
+
+Por ejemplo, supongamos que nuestra variable objetivo tiene dos niveles, deudor y no deudor. Encontramos que la variable que mejor separa nuestros datos es ingreso mensual, y la regla resultante es que ingreso mensual > X pesos. Esto quiere decir que los datos para los que esta regla es verdadera, tienen más probabilidad de pertenecer a un grupo, que al otro. En este ejemplo, digamos que si la regla es verdadera, un caso tiene más probabilidad de formar parte del grupo no deudor.
+
+Una vez hecho esto, los datos son separados (particionados) en grupos a partir de la regla obtenida. Después, para cada uno de los grupos resultantes, se repite el mismo proceso. Se busca la variable que mejor separa los datos en grupos, se obtiene una regla, y se separan los datos. Hacemos esto de manera recursiva hasta que nos es imposible obtener una mejor separación. Cuando esto ocurre, el algoritmo se detiene. Cuando un grupo no puede ser partido mejor, se le llama nodo terminal u hoja.
+
+
+
+
+Las reglas de decisión generadas por el modelo predictivo CART (árboles de clasificación y regresión) generalmente se visualizan como un árbol binario.
+
+
+
+
+Una característica muy importante en este algoritmo es que una vez que alguna variable ha sido elegida para separar los datos, ya no es usada de nuevo en los grupos que ha creado. Se buscan variables distintas que mejoren la separación de los datos.
+
+Además, supongamos después de una partición que hemos creado dos grupos, A y B. Es posible que para el grupo A, la variable que mejor separa estos datos sea diferente a la que mejor separa los datos en el grupo B. Una vez que los grupos se han separado, al algoritmo “no ve” lo que ocurre entre grupos, estos son independientes entre sí y las reglas que aplican para ellos no afectan en nada a los demás.
+
+El resultado de todo el proceso anterior es una serie de bifurcaciones que tiene la apariencia de un árbol que va creciendo ramas, de allí el nombre del procedimiento (aunque a mí en realidad me parece más parecido a la raíz del árbol que a las ramas).
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+#install.packages(c("rpart", "rpart.plot", "caret"))
+library(caret)
+library(rpart)
+library(rpart.plot)
+
+banknote <- read.csv("C:/Users/usuario/Desktop/6_enero/clase/data/tema3/banknote-authentication.csv")
+# https://rpubs.com/jboscomendoza/arboles_decision_clasificacion
+# https://bookdown.org/tpinto_home/Beyond-Additivity/regression-and-classification-trees.html
+```
+
+## 4.1 Observemos los datos.
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+head(banknote,5) %>% kable(table.attr = "style='width:70%;'", align = "ccccc") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), full_width = T) 
+```
+## 4.2 Hacemos un subset con los datos de entrenamiento
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+set.seed(2018)
+
+training.ids <- createDataPartition(banknote$class, p = 0.7, list = F)
+
+
+```
+
+## 4.3 Generamos el modelo:
+
+class ~ . <-> class ~ variance + skew + curtosis + entropy
+
+creamos el modelo 
+un arbol aleatorio
+                        
+definimos a class como variable independiente
+
+rpart: clasificame respecto a las cuatro variables restantes
+
+queremos que clasifique datos, no que los infiera como lo hace la regresion
+
+construccion el arbol
+
+## 4.4 desplegamos el modelo:
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+mod <- rpart(class ~ ., 
+             data = banknote[training.ids,],
+             method = "class", 
+             control = rpart.control(minsplit = 20, cp = 0.01))
+mod
+```
+
+## 4.5 desplegamos el modelo graficamente:
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+prp(mod, type = 2, extra = 104, nn = TRUE, 
+    fallen.leaves = TRUE, faclen = 4, varlen = 8,
+    shadow.col = "blue")
+```
+
+
+Podando el arbol
+
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+mod$cptable
+```
+
+Modelo recortado
+
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+mod.pruned <- prune(mod, mod$cptable[4, "CP"])
+
+prp(mod.pruned, type = 2, extra = 104, nn = TRUE,
+    fallen.leaves = TRUE, faclen = 4, varlen = 8,
+    shadow.col = "gray")
+```
+
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+pred.pruned <- predict(mod.pruned, banknote[-training.ids,], type="class")
+
+table(banknote[-training.ids,]$class, pred.pruned, 
+      dnn = c("Actual", "Predicho"))
+
+
+```
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+pred.pruned2 <- predict(mod.pruned, banknote[-training.ids,], type = "prob")
+
+head(pred.pruned)
+head(pred.pruned2)
+```
+
+Digramas ROC
+
+
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+
+library(ROCR)
+
+pred <- prediction(pred.pruned2[,2], banknote[-training.ids, "class"])
+perf <- performance(pred, "tpr", "fpr")
+plot(perf)
+
+```
+Casi nunca nos equivocamos.
+
+
+<hr/>
+<br>
+<br>
+
+# 5 Bosques aleatorios (random forest). {#test5}
+
+<br>
+
+El bosque aleatorio, como su nombre lo indica, consta de una gran cantidad de árboles de decisión individuales que operan como un conjunto. Cada árbol individual en el bosque aleatorio escupe una predicción de clase y la clase con más votos se convierte en la predicción de nuestro modelo.
+El concepto fundamental detrás del bosque aleatorio es simple pero poderoso: la sabiduría de las multitudes. En términos de ciencia de datos, la razón por la que el modelo de bosque aleatorio funciona tan bien es:
+
+    Un gran número de modelos (árboles) relativamente no correlacionados que operan como un comité superarán a cualquiera de los modelos constituyentes individuales.
+
+La baja correlación entre modelos es la clave. Al igual que las inversiones con correlaciones bajas (como acciones y bonos) se unen para formar una cartera que es mayor que la suma de sus partes, los modelos no correlacionados pueden producir predicciones de conjunto que son más precisas que cualquiera de las predicciones individuales. La razón de este maravilloso efecto es que los árboles se protegen unos a otros de sus errores individuales (siempre que no se equivoquen constantemente en la misma dirección). Si bien algunos árboles pueden estar equivocados, muchos otros árboles serán correctos, por lo que, como grupo, los árboles pueden moverse en la dirección correcta.
+
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+#install.packages("randomForest")
+library(caret)
+library(randomForest)
+
+banknote <- read.csv("C:/Users/usuario/Desktop/6_enero/clase/data/tema3/banknote-authentication.csv")
+banknote$class <- factor(banknote$class)
+
+head(banknote,5) %>% kable(table.attr = "style='width:70%;'", align = "ccccc") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), full_width = T) 
+```
+
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+set.seed(2018)
+
+training.ids <- createDataPartition(banknote$class, p = 0.7, list = F)
+
+mod <- randomForest(x = banknote[training.ids, 1:4],
+                    y = banknote[training.ids, 5],
+                    ntree = 500,
+                    keep.forest = TRUE)
+
+pred <- predict(mod, banknote[-training.ids,], type = "class")
+
+#Creamos una matriz de confusion:
+table(banknote[-training.ids,"class"], pred, dnn= c("Actual", "Predicho"))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+library(ROCR)
+probs <- predict(mod, banknote[-training.ids,], type = "prob")
+head(probs)
+pred <- prediction(probs[,2], banknote[-training.ids,"class"])
+perf <- performance(pred, "tpr", "fpr")
+plot(perf)
+
+```
+
+
+
+
+<hr/>
+<br>
+<br>
+
+# 6 Máquinas de soporte vectorial (SVM) {#test6}
+
+<br>
+
+
+Nos ayudan tanto en la clasificacion como en la regresion.
+Las Máquinas de Vectores de Soporte (Support Vector Machines) permiten encontrar la forma óptima de clasificar entre varias clases. La clasificación óptima se realiza maximizando el margen de separación entre las clases. Los vectores que definen el borde de esta separación son los vectores de soporte. En el caso de que las clases no sean linealmente separables, podemos usar el truco del kernel para añadir una dimensión nueva donde sí lo sean.
+La idea es el elaborar un modelo de puntos en el hiperplano y separarlo de una manera optima, el margen maximo entre los elementos a separar. Este margen no siempre es muy facil de representar.
+
+Los vectores de soporte son estos hiperplanos de separacion.
+
+### 1 Observemos la base de datos.
+
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+#install.packages("e1071")
+library(caret)
+library(e1071)
+
+banknote <- read.csv("C:/Users/usuario/Desktop/6_enero/clase/data/tema3/banknote-authentication.csv")
+banknote$class = factor(banknote$class)
+
+head(banknote,5) %>% kable(table.attr = "style='width:70%;'", align = "ccccc") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), full_width = T) 
+```
+### 2 Extraigamos un 70% de el para entrenamiento que sea array de indices (list = F).
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+set.seed(2018)
+t.ids <- createDataPartition(banknote$class, p = 0.7, list = F)
+head(t.ids,5) %>% kable(table.attr = "style='width:30%;'", align = "ccccc") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), full_width = T) 
+```
+
+### 3 Obtenemos un hiperplano que separa de forma perfecta ambos grupos
+
+```{r, message = FALSE, warning = FALSE}
+mod <- svm(class ~ ., data = banknote[t.ids, ], 
+           class.weights = c("0"=0.3, "1"=0.7),
+           cost=1000)
+
+table(banknote[t.ids,"class"], fitted(mod), dnn = c("Actual", "Predicho"))
+```
+### 4 Aplicamos a los datos de test:
+
+```{r, message = FALSE, warning = FALSE}
+pred <- predict(mod, banknote[-t.ids,])
+head(pred,8) 
+```
+### 5 y generamos la tabla de contingencia:
+
+```{r, message = FALSE, warning = FALSE}
+table(banknote[-t.ids, "class"], pred, dnn = c("Actual", "Predicho")) 
+```
+
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+plot(mod, data = banknote[t.ids,], entropy ~ variance, col= c('magenta','green'))
+```
+
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+plot(mod, data = banknote[-t.ids,], entropy ~ variance, col= c('magenta','green'))
+```
+
+
+
+
+
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+tuned <- tune.svm(class ~ ., data = banknote[t.ids,], 
+                  gamma = 10^(-6:-1), cost = 10^(1:2))
+summary(tuned)
+
+```
+
+
+<hr/>
+<br>
+<br>
+
+# 7 Bayes Naive {#test7}
+
+<br>
+
+
+
+En términos más generales y menos matemáticos, el teorema de Bayes es de enorme relevancia puesto que vincula la probabilidad de A dado B con la probabilidad de B dado A. Es decir, por ejemplo, que sabiendo la probabilidad de tener un dolor de cabeza dado que se tiene gripe, se podría saber (si se tiene algún dato más), la probabilidad de tener gripe si se tiene un dolor de cabeza. Muestra este sencillo ejemplo la alta relevancia del teorema en cuestión para la ciencia en todas sus ramas, puesto que tiene vinculación íntima con la comprensión de la probabilidad de aspectos causales dados los efectos observados. 
+
+
+$$ 
+P(A \mid B) = \frac{P(B \mid A) \, P(A)}{P(B)} 
+$$
+```{r}
+library(e1071)
+library(caret)
+ep <- read.csv("C:/Users/usuario/Desktop/6_enero/clase/data/tema3/electronics-purchase.csv")
+```
+
+
+```{r}
+set.seed(2018)
+t.ids <- createDataPartition(ep$Purchase, p = 0.67, list = F)
+mod <- naiveBayes(Purchase ~ ., data = ep[t.ids,])
+mod
+```
+
+
+```{r}
+# pred <- predict(mod, ep[-t.ids,])
+# tab <- table(ep[-t.ids,]$Purchase, pred, dnn = c("Actual", "Predicha"))
+# confusionMatrix(tab)
+
+```
+<hr/>
+<br>
+<br>
+
+# 8 K Nearest Neighbors {#test8}
+
+<br>
+
+
+
+
+El algoritmo de k vecinos más cercanos (KNN) es un algoritmo de aprendizaje automático supervisado simple y fácil de implementar que se puede usar para resolver problemas de clasificación y regresión.
+
+
+
+K-vecinos más cercanos
+
+El algoritmo KNN asume que existen cosas similares en las proximidades. En otras palabras, cosas similares están cerca unas de otras.
+
+    "Dios los cría y ellos se juntan."
+
+https://towardsdatascience.com/machine-learning-basics-with-the-k-nearest-neighbors-algorithm-6a6e71d01761
+
+
+
+
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+#install.packages("class")
+library(class)
+library(caret)
+
+vac <- read.csv("C:/Users/usuario/Desktop/6_enero/clase/data/tema3/vacation-trip-classification.csv")
+vac$Income.z <- scale(vac$Income)
+vac$Family_size.z <- scale(vac$Family_size)
+
+set.seed(2018)
+t.ids <- createDataPartition(vac$Result, p=0.5, list = F)
+train <- vac[t.ids, ]
+temp <- vac[-t.ids, ]
+v.ids <- createDataPartition(temp$Result, p=0.5, list = F)
+val <- temp[v.ids,]
+test <- temp[-v.ids,]
+
+
+pred1 <- knn(train[,4:5], val[,4:5], train[,3], k = 5)
+errmat1 <- table(val$Result, pred1, dnn = c("Actual", "Predichos"))
+errmat1
+
+pred2 <- knn(train[,4:5], test[,4:5], train[,3], k = 1)
+errmat2 <- table(test$Result, pred2, dnn = c("Actual", "Predichos"))
+errmat2
+
+
+knn.automate <- function(tr_predictors, val_predictors, tr_target,
+                         val_target, start_k, end_k){
+  for (k in start_k:end_k) {
+    pred <- knn(tr_predictors, val_predictors, tr_target, k)
+    tab <- table(val_target, pred, dnn = c("Actual", "Predichos") )
+    cat(paste("Matriz de confusión para k = ",k,"\n"))
+    cat("==============================\n")
+    print(tab)
+    cat("------------------------------\n")
+  }
+}
+
+knn.automate(train[,4:5], val[,4:5], train[,3], val[,3], 1,8)
+
+
+trcntrl <- trainControl(method="repeatedcv", number = 10, repeats = 3)
+caret_knn_fit <- train(Result ~ Family_size + Income, data = train,
+                       method = "knn", trControl = trcntrl,
+                       preProcess = c("center", "scale"),
+                       tuneLength = 10)
+
+caret_knn_fit
+
+
+pred5 <- knn(train[,4:5], val[,4:5], train[,3], k=5, prob = T)
+pred5
+```
+
+<hr/>
+<br>
+<br>
+
+# 9. Redes neuronales para clasificar. {#test9}
+
+<br>
+
+
+
+
+
+```{r}
+# install.packages("nnet")
+
+library(nnet)
+library(caret)
+
+bn <- read.csv("C:/Users/usuario/Desktop/6_enero/clase/data/tema3/banknote-authentication.csv")
+bn$class <- factor(bn$class)
+
+t.id <- createDataPartition(bn$class, p= 0.7, list = F)
+
+mod <- nnet(class ~ ., data = bn[t.id,], 
+            size = 3, maxit = 10000, decay = .001, rang = 0.05,
+            na.action = na.omit, skip = T)
+#rang * max(|variables|) ~ 1
+apply(bn, 2, max)
+
+pred <- predict(mod, newdata = bn[-t.id,], type = "class")
+
+table(bn[-t.id,]$class, pred,dnn = c("Actual", "Predichos") )
+
+library(ROCR)
+pred2 <- predict(mod, newdata = bn[-t.id,], type = "raw")
+perf <- performance(prediction(pred2, bn[-t.id,"class"]), 
+                    "tpr", "fpr")
+plot(perf)
+
+```
+
+
+<hr/>
+<br>
+<br>
+
+# 10. Análisis del discriminante lineal. {#test10}
+
+<br>
+
+
+El Análisis Discriminante Lineal o Linear Discrimiant Analysis (LDA) es un método de clasificación supervisado de variables cualitativas en el que dos o más grupos son conocidos a priori y nuevas observaciones se clasifican en uno de ellos en función de sus características. Haciendo uso del teorema de Bayes, LDA estima la probabilidad de que una observación, dado un determinado valor de los predictores, pertenezca a cada una de las clases de la variable cualitativa, P(Y=k|X=x)
+
+. Finalmente se asigna la observación a la clase k para la que la probabilidad predicha es mayor.
+
+Es una alternativa a la regresión logística cuando la variable cualitativa tiene más de dos niveles. Si bien existen extensiones de la regresión logística para múltiples clases, el LDA presenta una serie de ventajas:
+
+    Si las clases están bien separadas, los parámetros estimados en el modelo de regresión logística son inestables. El método de LDA no sufre este problema.
+    Si el número de observaciones es bajo y la distribución de los predictores es aproximadamente normal en cada una de las clases, LDA es más estable que la regresión logística.
+
+Cuando se trata de un problema de clasificación con solo dos niveles, ambos métodos suelen llegar a resultados similares.
+
+
+```{r}
+# install.packages("MASS")
+library(MASS)
+library(caret)
+
+bn<- read.csv("C:/Users/usuario/Desktop/6_enero/clase/data/tema3/banknote-authentication.csv")
+bn$class <- factor(bn$class)
+head(bn,5) %>% kable(table.attr = "style='width:70%;'", align = "ccccccc") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), full_width = T) 
+```
+
+
+```{r}
+set.seed(2018)
+t.id <- createDataPartition(bn$class, p=0.7, list = F)
+
+mod <- lda(bn[t.id,1:4], bn[t.id,5])
+#mod <- lda(class ~., data = bn[t.id,])
+mod
+```
+
+
+```{r}
+bn[t.id, "Pred"] <- predict(mod, bn[t.id, 1:4])$class
+
+table(bn[t.id, "class"], bn[t.id, "Pred"], dnn = c("Actual", "Predichos"))
+```
+
+
+```{r}
+bn[-t.id, "Pred"] <- predict(mod, bn[-t.id, 1:4])$class 
+
+table(bn[-t.id, "class"], bn[-t.id, "Pred"], dnn = c("Actual", "Predichos"))
+
+bn[-t.id, "Pred"]
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+<hr/>
+<br>
+<br>
+
+# 11. La regresión logística. {#test11}
+
+<br>
+
+
+```{r}
+library(caret)
+
+bh <- read.csv("C:/Users/usuario/Desktop/6_enero/clase/data/tema3/boston-housing-logistic.csv")
+bh$CLASS <- factor(bh$CLASS, levels = c(0,1))
+head(bh,5)
+```
+
+
+```{r}
+set.seed(2018)
+t.id <- createDataPartition(bh$CLASS, p=0.7, list = F)
+
+mod <- glm(CLASS ~ ., data = bh[t.id, ], family = binomial)
+summary(mod)
+
+
+bh[-t.id, "PROB_SUCCESS"] <- predict(mod, newdata = bh[-t.id,], type="response")
+bh[-t.id, "PRED_50"] <- ifelse(bh[-t.id, "PROB_SUCCESS"]>=0.5, 1, 0)
+
+table(bh[-t.id,"CLASS"], bh[-t.id,"PRED_50"], dnn=c("Actual","Predicho"))
+
+```
+
+
+
+
+
+
+

@@ -1,0 +1,255 @@
+---
+title: "Propuesta de solución a la ausencia de factores de expansión comunales en 185 comunas de la Casen 2015"
+author: "Víctor Enamorado - Christian Castro. DI."
+date: "24-12-2020"
+output: html_document
+---
+
+```{r setup, , message=FALSE, warning=FALSE, include = FALSE, echo = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+library(ggpubr)
+library(markdown)
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(plotly)
+library(xts)
+library(dygraphs)
+library(kableExtra)
+library(knitr)
+library("readxl")
+library(rsconnect)
+library(dplyr)
+library(summarytools)
+library(epiDisplay)
+#library(leaflet)
+library(haven)
+library(epiDisplay)
+library("readxl")
+library(hrbrthemes)
+library(viridis)
+library(viridisLite)
+library(writexl)
+library(plyr)
+library(kableExtra)
+library(knitr)
+library(DescTools)
+
+# https://www.datacamp.com/community/tutorials/contingency-tables-r
+
+oldw <- getOption("warn")
+options(warn = -1)
+```
+
+## I Definición del problema.
+
+### 1 Una primera y única carga:
+
+```{r }
+CASEN_2015 <- read_sav("Casen 2015.sav")
+saveRDS(CASEN_2015, "CASEN_2015_fexpc.rds") 
+```
+
+### 2 Lectura de la data:
+
+```{r }
+CASEN_2015_ds <- readRDS("CASEN_2015_fexpc.rds")
+# CASEN_2015_ds
+```
+
+### 3 Determinación de las comunas que no tienen factor de expansión y sus frecuencias en la Casen 2015:
+
+```{r}
+new_DF <- subset(CASEN_2015_ds, is.na(CASEN_2015_ds$expc))
+newdata <- new_DF[c("comuna", "expc")]
+frecuencias_fexp <- table(newdata$comuna)
+newdata <- distinct(newdata, comuna, .keep_all = TRUE)
+nrow(newdata)
+unidos <- cbind(newdata, frecuencias_fexp)
+head(unidos, 4)
+```
+
+```{r}
+# para observar la relacion codigo-comuna.
+valor <-  newdata$comuna %>% attr('labels')
+# valor
+```
+
+### 4 Actualicemos los códigos de la base de datos:
+
+Vamos a hacerlo en forma global en la base de datos del 2015:
+
+Debemos modificar 21 comunas.
+
+
+
+
+```{r}
+
+
+
+CASEN_2015_ds$comuna[CASEN_2015_ds$comuna == 8401] <- 16101
+CASEN_2015_ds$comuna[CASEN_2015_ds$comuna == 8402] <- 16102
+CASEN_2015_ds$comuna[CASEN_2015_ds$comuna == 8403] <- 16202
+
+CASEN_2015_ds$comuna[CASEN_2015_ds$comuna == 8404] <- 16203
+CASEN_2015_ds$comuna[CASEN_2015_ds$comuna == 8405] <- 16302
+CASEN_2015_ds$comuna[CASEN_2015_ds$comuna == 8406] <- 16103
+
+CASEN_2015_ds$comuna[CASEN_2015_ds$comuna == 8407] <- 16104
+CASEN_2015_ds$comuna[CASEN_2015_ds$comuna == 8408] <- 16204
+CASEN_2015_ds$comuna[CASEN_2015_ds$comuna == 8409] <- 16303
+
+CASEN_2015_ds$comuna[CASEN_2015_ds$comuna == 8410] <- 16105
+CASEN_2015_ds$comuna[CASEN_2015_ds$comuna == 8411] <- 16106
+CASEN_2015_ds$comuna[CASEN_2015_ds$comuna == 8412] <- 16205
+
+CASEN_2015_ds$comuna[CASEN_2015_ds$comuna == 8413] <- 16107
+CASEN_2015_ds$comuna[CASEN_2015_ds$comuna == 8414] <- 16201
+CASEN_2015_ds$comuna[CASEN_2015_ds$comuna == 8415] <- 16206
+
+CASEN_2015_ds$comuna[CASEN_2015_ds$comuna == 8416] <- 16301
+CASEN_2015_ds$comuna[CASEN_2015_ds$comuna == 8417] <- 16304
+CASEN_2015_ds$comuna[CASEN_2015_ds$comuna == 8418] <- 16108
+
+CASEN_2015_ds$comuna[CASEN_2015_ds$comuna == 8419] <- 16305
+CASEN_2015_ds$comuna[CASEN_2015_ds$comuna == 8420] <- 16207
+CASEN_2015_ds$comuna[CASEN_2015_ds$comuna == 8421] <- 16109
+
+```
+
+
+### 5 Determinemos de las comunas que no tienen factor de expansión y sus frecuencias en la Casen 2015 con códigos actualizados:
+
+```{r}
+new_DF <- subset(CASEN_2015_ds, is.na(CASEN_2015_ds$expc))
+newdata <- new_DF[c("comuna", "expc")]
+frecuencias_fexp <- table(newdata$comuna)
+newdata <- distinct(newdata, comuna, .keep_all = TRUE)
+nrow(newdata)
+unidos <- cbind(newdata, frecuencias_fexp)
+head(unidos, 20)
+```
+
+
+
+##  II El método.
+
+i Hay que crear una tabla factores_propios con la población proyectada del 2015 al 2020 y los códigos las 185 comunas.
+
+ii hay que anadir una columna a factores_propios con un factor de expansión: para cada comuna hay un número muestral n. El fdeexp sera = poblacion comunal / n. 
+
+iii Hay que adjuntar el factor de expansión al dataset original:
+
+### 1 Obtenemos las poblaciones por comuna:
+
+```{r}
+pob_chilena  <- readRDS("poblacion_chilena.rds")
+pob_por_comuna_ine_2015 <- aggregate(pob_chilena$Poblacion.2015, by=list(Comuna=pob_chilena$Comuna), FUN=sum)
+head(pob_por_comuna_ine_2015, 5)
+```
+
+
+### 2 Hacemos un merge entre unidos y pob_por_comuna_ine_2015 por código de comuna:
+
+
+```{r}
+names(pob_por_comuna_ine_2015)[1] <- "comuna"
+df = merge( x = unidos, y = pob_por_comuna_ine_2015, by = "comuna", all.x = TRUE)
+head(df,5)
+
+names(df)[5] <- "pobla"
+nrow(df)
+head(df,5)
+```
+
+### 3 Obtenemos nuestra tabla final:
+
+```{r}
+
+df_final <- mutate(df, fexpc = trunc(pobla/Freq))
+head(df_final,5)
+
+```
+### 4 Extraigamos el fexpc para la comuna 2102, con la que haremos un contraste al final:
+
+```{r}
+gg <- df_final[df_final$comuna == 2102,] 
+gg
+```
+
+
+
+### 5 Reemplacemos los factores de expansión faltantes por los que hemos calculado.
+
+
+```{r}
+CASEN_2015_ds_final <- CASEN_2015_ds
+for(id in 1:nrow(df_final)){
+  CASEN_2015_ds_final$expc[CASEN_2015_ds_final$comuna %in% df_final$comuna[id]] <- df_final$fexpc[id]
+}
+# nrow(CASEN_2015_ds_final)
+# CASEN_2015_ds_final
+```
+<span style="color:red">**CASEN_2015_ds_final**</span> es nuestra base de datos Casen 2015 finalmente corregida.
+
+## III Pruebas.
+
+Prueba I: ¿Hay observaciones sin factor de expansión?
+
+
+```{r}
+new_DF <- subset(CASEN_2015_ds_final, is.na(CASEN_2015_ds_final$expc))
+CASEN_2015_ds_final_f <- new_DF[c("comuna", "expc")]
+# newdata <- distinct(CASEN_2015_ds_final_f, comuna, .keep_all = TRUE)
+# newdata
+nrow(CASEN_2015_ds_final_f)
+```
+
+
+Prueba II: ¿Están correctamente asignados los factores de expansión?
+
+```{r}
+g <- CASEN_2015_ds_final[CASEN_2015_ds_final$comuna == 2102, c(735:737)] 
+head(g,5)
+```
+Vemos que la comuna 2102 tiene como factor de expansión el número 36, que es justamente el que hemos calculado y asignado para ésta comuna en el punto: 4 Extraigamos el fexpc para la comuna 2102, con la que haremos un contraste al final.
+
+QED.
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+
+
+```{r}
+saveRDS(CASEN_2015_ds_final, file = "CASEN_2015_ds_final.rds")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

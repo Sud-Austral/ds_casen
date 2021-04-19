@@ -1,0 +1,61 @@
+---
+title: '¿Cómo mide la vivienda en Chile la Casen?'
+subtitle: '-en preparacion-'
+author:
+- name: Víctor Enamorado - Christian Castro
+  affiliation: DataIntelligence-Chile
+date: "04-01-2020"
+abstract: |
+
+      La situación de tenencia de los sitios y de las viviendas en las que habitan los hogares de la RMS. También se examinan los indicadores relacionados con la materialidad, estado de conservación, acceso a servicios básicos y calidad global de las viviendas, distinguiendo -en cada caso- por quintil de ingreso autónomo regional.
+      
+      
+      La segunda sección presenta las situaciones de hacinamiento y allegamiento –tanto externo como interno- que enfrentan los hogares, distinguiendo también por quintil de ingreso autónomo regional.
+      
+      En la tercera sección se define el déficit cuantitativo de viviendas (a través de sus componentes), se examinan su nivel y evolución durante los últimos años, así como la distribución de este déficit entre los distintos quintiles de ingreso. Es necesario señalar que la magnitud del déficit habitacional cuantitativo medido en base a la encuesta Casen presenta diferencias importantes con aquella realizada por el Ministerio de Vivienda y Urbanismo (MINVU) en base al Censo de Población y Vivienda. Si bien, la definición conceptual de déficit habitacional es similar en ambos casos, existen diferencias debidas a las características de los instrumentos de medición utilizados, así como al hecho que la identificación de hogares y núcleos es diferente entre la Casen y el Censo. En esta sección también se examina el concepto de déficit cualitativo de viviendas, estableciéndose su magnitud y desagregación por quintil de ingreso.
+      
+      La cuarta sección recoge algunos resultados relacionados con las nuevas preguntas sobre entorno de las viviendas que fueron incorporadas, por primera vez, en el cuestionario de la encuesta Casen 2015. Concretamente, se presenta información sobre disponibilidad de distintas alternativas de equipamiento: servicios de transporte, centros educacionales, centros de salud, supermercado y almacenes, equipamiento deportivo y otros. Además, se presentan los resultados respecto de la incidencia de distintas situaciones de contaminación: acústica, basura en calles, plagas de insectos o de animales, del aire y/o malos olores, contaminación visual, etc.
+
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(ggpubr)
+library(markdown)
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(plotly)
+library(xts)
+library(dygraphs)
+library(kableExtra)
+library(knitr)
+library("readxl")
+library(rsconnect)
+library(dplyr)
+library(summarytools)
+library(epiDisplay)
+#library(leaflet)
+library(haven)
+library(epiDisplay)
+library("readxl")
+library(hrbrthemes)
+library(viridis)
+library(viridisLite)
+library(writexl)
+library(plyr)
+library(kableExtra)
+library(knitr)
+library(DescTools)
+
+# https://www.datacamp.com/community/tutorials/contingency-tables-r
+
+oldw <- getOption("warn")
+options(warn = -1)
+```
+
+

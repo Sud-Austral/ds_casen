@@ -1,0 +1,10 @@
+Tablas de contingencia en R
+
+https://www.datacamp.com/community/tutorials/contingency-tables-r
+
+
+Salida bonitas con Kable
+
+https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html
+
+

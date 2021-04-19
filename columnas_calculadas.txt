@@ -1,0 +1,7 @@
+
+presenta un conjunto de indicadores y sus respectivas frecuencias que se calculan a partir de las variables de ingresos de las personas generadas por CEPAL, entre  ellos  los  deciles  y  quintiles  de ingreso  autónomo  per  cápita,  estimados  a  nivel nacional y regional.En términos de nomenclatura, todas las variables que finalicen en “h”, corresponden a la suma del ingreso correspondiente para todos los integrantes de un mismo hogar
+
+y0101ch
+columna 750
+hacinamiento
+columna 783

@@ -1,0 +1,8 @@
+La información contenida en la base de datos es de carácter muestral, vale decir, corresponde a un subconjunto de hogares seleccionados de modo probabilístico con el objetivo de representar al universo total definido por la encuesta (hogares residentes en viviendas particulares del país).
+Para el análisis y la elaboración de inferencia estadística sobre indicadores que busquen representar las características socioeconómicas de dicho universo, es requisito aplicar un factor de expansión o ponderación, que asigna un peso diferente a cada elemento según su probabilidad de ser seleccionado.
+Los resultados que se obtengan a partir del procesamiento de la información de la Encuesta Casen sin haber aplicado un factor de expansión, no pueden considerarse estadísticamente representativos de la población correspondiente y, en caso de incluirse en documentos de resultados, deben ser acompañados de una nota que señale explícitamente que se trata de resultados no ponderados o sin expansión.
+
+los/as investigadores/as deben seleccionar el factor de expansión pertinente al tipo de población que se busca analizar y adecuado para los objetivos de análisis que sean de interés. Para este fin, previo a iniciar el análisis deben incluirse las instrucciones pertinentes en el software estadístico que se use para fijar la variable de ponderación a usar.
+En el caso de SPSS se utiliza el comando weight, mientras que en Stata se usan diferentes instrucciones para especificar el factor de expansión (w, pw, aw).
+
+Corresponen a las columnas 9 y 11.

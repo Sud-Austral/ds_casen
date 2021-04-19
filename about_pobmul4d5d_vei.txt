@@ -1,0 +1,3 @@
+pobreza_multi_4d: Corresponde a un indicador relativo a la Situación de pobreza multidimensional excluyendo Entorno y Redes
+pobreza_multi_5d:Corresponde a un indicador relativo a la Situación de pobreza multidimensional incluyendo Entorno y Redes
+coresponden a las columnas 803 y 804 respectivamente.

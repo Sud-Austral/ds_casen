@@ -1,0 +1,825 @@
+---
+title: "exc_prec"
+author: "Victor"
+date: "26 de noviembre de 2020"
+output: html_document
+---
+```{r , message=FALSE, warning=FALSE}
+
+suppressWarnings(library(RODBC))
+
+library(ggplot2)
+library(ggpubr)
+library(markdown)
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(plotly)
+library(xts)
+library(dygraphs)
+library(kableExtra)
+library(knitr)
+library("readxl")
+library(rsconnect)
+library(dplyr)
+library(summarytools)
+library(epiDisplay)
+#library(leaflet)
+library(haven)
+library(epiDisplay)
+library("readxl")
+library(expss)
+library(hrbrthemes)
+library(viridis)
+library(viridisLite)
+library(DescTools)
+library(roperators)
+library(shinycssloaders)
+library(writexl)
+library(labelled)
+library(tidyverse)
+library(haven)
+library(readr)
+library(sjmisc)
+library(WriteXLS)
+
+
+library(readstata13)
+```
+
+```{r}
+
+dataset2006  <- readRDS("dataset2006.rds")
+    d <- dataset2006$comuna
+    e <- dataset2006$t4
+    f <- dataset2006$e1
+    g <- dataset2006$sexo
+    
+    ab <- dataset2006
+
+    
+    data_code <- ab[  , c("seg", "comuna")]
+    names(data_code)[2] <- "unlist.a."
+    data_code <- distinct(data_code , unlist.a., .keep_all = TRUE)
+    
+    # https://stackoverflow.com/questions/22337394/dplyr-mutate-with-conditional-values/22337459
+    
+    data_code  <-  data_code  %>% mutate(codigo = case_when(as.integer(seg / 10000000) == 0 ~ as.integer(seg / 1000)
+                                                            , as.integer(seg / 10000000) == 1 ~ as.integer(seg / 1000)    
+    ))
+    
+    data_code <- subset( data_code, select = -seg )
+    
+    data_code[270,2]<-11201
+    data_code[8,2]<-15101
+    data_code[178,2]<-16102
+    data_code[9,2]<-15102
+    data_code[2,2]<-1402
+    data_code[177,2]<-16101
+    data_code[182,2]<-16103
+    data_code[96,2]<-6303
+    data_code[179,2]<-16202
+    data_code[180,2]<-16203
+    data_code[181,2]<-16302
+    data_code[3,2]<-1403
+    data_code[287,2]<-13104
+    data_code[261,2]<-14102
+    data_code[183,2]<-16104
+    data_code[262,2]<-14202
+    data_code[11,2]<-15202
+    data_code[4,2]<-1404
+    data_code[292,2]<-13110
+    data_code[263,2]<-14201
+    data_code[264,2]<-14203
+    data_code[265,2]<-14103
+    data_code[66,2]<-5802
+    data_code[266,2]<-14104
+    data_code[267,2]<-14105
+    data_code[268,2]<-14106
+    data_code[89,2]<-6110
+    data_code[184,2]<-16204
+    data_code[185,2]<-16303
+    data_code[68,2]<-5803
+    data_code[271,2]<-14107
+    data_code[272,2]<-14108
+    data_code[186,2]<-16105
+    data_code[5,2]<-1405
+    data_code[187,2]<-16106
+    data_code[188,2]<-16205
+    data_code[6,2]<-1401
+    data_code[10,2]<-15201
+    data_code[246,2]<-16107
+    data_code[49,2]<-5801
+    data_code[92,2]<-6114
+    data_code[190,2]<-16201
+    data_code[191,2]<-16206
+    data_code[273,2]<-14204
+    data_code[192,2]<-16301
+    data_code[193,2]<-16304
+    data_code[194,2]<-16108
+    data_code[195,2]<-16305
+    data_code[286,2]<-13505
+    data_code[196,2]<-16207
+    data_code[260,2]<-14101
+    data_code[51,2]<-5804
+    data_code[197,2]<-16109
+    
+    
+    
+    a <- d
+    b <- e
+    c <- f
+    d <- g 
+    
+    
+    
+    cross_tab =  xtabs(ab$expc ~ unlist(a) + unlist(b)+unlist(c)+unlist(d),aggregate(ab$expc ~ unlist(a)+unlist(b)+unlist(c)+unlist(d),ab,mean))
+    
+    
+    tabla <- as.data.frame(cross_tab)
+    
+    d <-tabla[!(tabla$Freq == 0),]
+    
+    d$anio <- "2006"
+    
+    df = merge( x = d, y = data_code, by = "unlist.a.", all.x = TRUE)  
+    df
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+dataset2011  <- readRDS("dataset2011.rds")
+
+
+  ab  <- dataset2011
+    
+    data_code <- ab[ , c("segmento", "comuna")]
+    
+    names(data_code)[2] <- "a"
+    data_code <- distinct(data_code , a, .keep_all = TRUE)
+    data_code <- data_code %>% mutate(a = str_squish(a))
+    
+    
+    data_code <- data_code %>% mutate(codigo = case_when(as.integer(segmento / 10000000) == 0 ~ as.integer(segmento/ 10000)
+                                                         , as.integer(segmento / 10000000) <17 ~ as.integer(segmento / 10000)
+                                                         
+    ))
+    
+    data_code <- subset( data_code, select = -segmento )
+    data_code[171,2]<-16101
+    data_code[172,2]<-16102
+    data_code[173,2]<-16202
+    data_code[174,2]<-16203
+    data_code[175,2]<-16302
+    data_code[176,2]<-16103
+    data_code[177,2]<-16104
+    data_code[178,2]<-16204
+    data_code[179,2]<-16303
+    data_code[180,2]<-16105
+    data_code[181,2]<-16106
+    data_code[182,2]<-16205
+    data_code[183,2]<-16107
+    data_code[184,2]<-16201
+    data_code[185,2]<-16206
+    data_code[186,2]<-16301
+    data_code[187,2]<-16304
+    data_code[188,2]<-16108
+    data_code[189,2]<-16305
+    data_code[190,2]<-16207
+    data_code[191,2]<-16109
+    
+
+    
+    
+
+    
+    
+    data_code
+
+  repe <- data.frame(table(data_code$codigo))
+repe
+```
+
+
+
+
+
+
+
+
+
+
+```{r}
+dataset2011  <- readRDS("dataset2011.rds")
+ab  <- dataset2011
+    
+    data_code <- ab[ , c("segmento", "comuna")]
+    
+    names(data_code)[2] <- "a"
+    data_code <- distinct(data_code , a, .keep_all = TRUE)
+    data_code <- data_code %>% mutate(a = str_squish(a))
+    
+    
+    data_code <- data_code %>% mutate(codigo = case_when(as.integer(segmento / 10000000) == 0 ~ as.integer(segmento/ 10000)
+                                                         , as.integer(segmento / 10000000) <17 ~ as.integer(segmento / 10000)
+                                                         
+    ))
+    
+    data_code <- subset( data_code, select = -segmento )
+    data_code[171,2]<-16101
+    data_code[172,2]<-16102
+    data_code[173,2]<-16202
+    data_code[174,2]<-16203
+    data_code[175,2]<-16302
+    data_code[176,2]<-16103
+    data_code[177,2]<-16104
+    data_code[178,2]<-16204
+    data_code[179,2]<-16303
+    data_code[180,2]<-16105
+    data_code[181,2]<-16106
+    data_code[182,2]<-16205
+    data_code[183,2]<-16107
+    data_code[184,2]<-16201
+    data_code[185,2]<-16206
+    data_code[186,2]<-16301
+    data_code[187,2]<-16304
+    data_code[188,2]<-16108
+    data_code[189,2]<-16305
+    data_code[190,2]<-16207
+    data_code[191,2]<-16109
+    
+    a <- ab$comuna
+    b <- ab$ecivil
+    c <- ab$e1
+    d <- ab$sexo
+    
+    # a <- ab[,d]
+    # b <- ab[,e] 
+    # c <- ab[,f] 
+    # d <- ab[,g] 
+    # 
+    
+    cross_tab =  xtabs(ab$expc_full ~ unlist(a) + unlist(b)+unlist(c)+unlist(d),aggregate(ab$expc_full ~ unlist(a)+unlist(b)+unlist(c)+unlist(d),ab,mean))
+    
+    tabla <- as.data.frame(cross_tab)
+    
+    d <-tabla[!(tabla$Freq == 0),]
+    names(d)[1] <- "a"
+    d$anio <- "2011"
+    
+  df = merge( x = d, y = data_code, by = "a", all.x = TRUE)  
+    df
+```
+```{r}
+dataset2013 <- readRDS("dataset2013.rds")
+
+# a <- input$ptabla2013_primeravx
+#     b <- input$ptabla2013_segundavx
+#     c <- input$ptabla2013_terceravx
+#     d <- input$ptabla2013_cuartavx
+#     
+   ab <- dataset2013
+#     
+#     aa <- ab[,a]
+#     bb <- ab[,b]
+#     cc <- ab[,c]
+#     dd <- ab[,d]
+    
+    a <- ab$comuna
+    b <- ab$e1
+    c <- ab$sexo
+    d <- ab$ecivil
+    
+   # cross_tab = table(a, b, c, d)
+        cross_tab =  xtabs(ab$expc ~ unlist(a) + unlist(b)+unlist(c)+unlist(d),aggregate(ab$expc ~ unlist(a)+unlist(b)+unlist(c)+unlist(d),ab,mean))
+    
+    tabla <- as.data.frame(cross_tab)
+    d <-tabla[!(tabla$Freq == 0),]
+    d$anio <- "2013"
+    # return(d)
+
+
+    
+    data_code <- ab[  , c("folio", "comuna")]
+    #
+    names(data_code)[2] <- "a"
+    data_code <- distinct(data_code , a, .keep_all = TRUE)
+    #
+    data_code <- data_code %>% mutate(a = str_squish(a))
+    
+    #
+    # # https://stackoverflow.com/questions/22337394/dplyr-mutate-with-conditional-values/22337459
+    #
+    data_code <- data_code %>% mutate(codigo = case_when(as.integer(folio / 10000000000) == 0 ~ as.integer(folio/ 10000000)
+                                                         , as.integer(folio / 10000000000) <17 ~ as.integer(folio / 10000000)
+                                                            
+    ))
+    
+    data_cod <- subset( data_code, select = -folio )
+    data_cod[171,2]<-16101
+data_cod[172,2]<-16102
+data_cod[173,2]<-16202
+data_cod[174,2]<-16203
+data_cod[175,2]<-16302
+data_cod[176,2]<-16103
+data_cod[177,2]<-16104
+data_cod[178,2]<-16204
+data_cod[179,2]<-16303
+data_cod[180,2]<-16105
+data_cod[181,2]<-16106
+data_cod[182,2]<-16205
+data_cod[183,2]<-16107
+data_cod[184,2]<-16201
+data_cod[185,2]<-16206
+data_cod[186,2]<-16301
+data_cod[187,2]<-16304
+data_cod[188,2]<-16108
+data_cod[189,2]<-16305
+data_cod[190,2]<-16207
+data_cod[191,2]<-16109
+    names(d)[1] <- "a"
+    
+    df = merge( x = d, y = data_cod, by = "a", all.x = TRUE)
+    
+    
+df
+
+
+
+
+
+
+```
+##################
+##### 2015 #######
+##################
+
+```{r}
+dataset2017 <- readRDS("dataset2017.rds")
+
+        # a <- input$ptabla2013_primeravx
+        # b <- input$ptabla2013_segundavx
+        # c <- input$ptabla2013_terceravx
+        # d <- input$ptabla2013_cuartavx
+
+    ab <- dataset2017
+  
+        # a <- ab[,a]
+        # b <- ab[,b]
+        # c <- ab[,c]
+        # d <- ab[,d]
+    
+    a <- ab$comuna
+    b <- ab$e1
+    c <- ab$sexo
+    d <- ab$ecivil
+    
+   # cross_tab = table(a, b, c, d)
+    cross_tab =  xtabs(ab$expc ~ unlist(a) + unlist(b)+unlist(c)+unlist(d),aggregate(ab$expc ~ unlist(a)+unlist(b)+unlist(c)+unlist(d),ab,mean))
+    
+    tabla <- as.data.frame(cross_tab)
+    d <-tabla[!(tabla$Freq == 0),]
+    d$anio <- "2017"
+
+    data_code <- ab[  , c("folio", "comuna")]
+
+    names(data_code)[2] <- "a"
+    data_code <- distinct(data_code , a, .keep_all = TRUE)
+    #
+    data_code <- data_code %>% mutate(a = str_squish(a))
+
+    data_code <- data_code %>% mutate(codigo = case_when(as.integer(folio / 1000000000000) == 0 ~ as.integer(folio/ 100000000)
+                                                         , as.integer(folio / 1000000000000) <17 ~ as.integer(folio / 100000000)
+                                                         
+    ))
+    
+    data_cod <- subset( data_code, select = -folio )
+
+    data_cod[172,2]<-16102
+data_cod[171,2]<-16101
+data_cod[176,2]<-16103
+data_cod[173,2]<-16202
+data_cod[174,2]<-16203
+data_cod[175,2]<-16302
+data_cod[177,2]<-16104
+data_cod[178,2]<-16204
+data_cod[179,2]<-16303
+data_cod[180,2]<-16105
+data_cod[181,2]<-16106
+data_cod[182,2]<-16205
+data_cod[183,2]<-16107
+data_cod[184,2]<-16201
+data_cod[185,2]<-16206
+data_cod[186,2]<-16301
+data_cod[187,2]<-16304
+data_cod[188,2]<-16108
+data_cod[189,2]<-16305
+data_cod[190,2]<-16207
+data_cod[191,2]<-16109
+
+    names(d)[1] <- "a"
+    
+    df = merge( x = d, y = data_cod, by = "a", all.x = TRUE)
+    
+df
+```
+
+```{r}
+dataset2017 <- readRDS("dataset2017.rds")
+dim(dataset2017)
+```
+
+
+```{r}
+dataset2006  <- read.dta('casen2006.dta')
+# write.csv(dataset2006,"data2006.csv", row.names = FALSE)
+```
+```{r}
+saveRDS(dataset2006, "dataset2006.rds")
+```
+
+```{r}
+dataset2009  <- read.dta('casen2009stata.dta')
+saveRDS(dataset2009, "dataset2009.rds")
+```
+
+
+
+```{r}
+dataset2013  <- read.dta('casen_2013_mn_b_principal.dta')
+saveRDS(dataset2013, "dataset2013.rds")
+```
+
+
+
+```{r}
+dataset2017 <- read.dta('Casen 2017.dta')
+saveRDS(dataset2017, "dataset2017.rds")
+```
+
+```{r}
+dataset2017
+```
+
+```{r}
+      ab <- dataset2017
+      
+      a <- ab$comuna
+      b <- ab$ecivil
+      c <- ab$e1
+      d <- ab$sexo
+      
+      cross_tab = table(a, b, c, d)
+      
+      cross_tab = xtabs(ab[,10] ~ unlist(a) + unlist(b)+unlist(c)+unlist(d),aggregate(ab[,10] ~ unlist(a)+unlist(b)+unlist(c)+unlist(d),ab,mean))
+      cross_tab
+```
+
+
+
+```{r}
+dataset2011  <- read.dta('casen2011_octubre2011_enero2012_principal_08032013stata.dta')
+saveRDS(dataset2011, "dataset2011.rds")
+```
+
+```{r}
+dataset2015 <- readRDS("dataset2015.rds")
+ # a <- input$ptabla2013_primeravx
+ #    b <- input$ptabla2013_segundavx
+ #    c <- input$ptabla2013_terceravx
+ #    d <- input$ptabla2013_cuartavx
+    
+    ab <- dataset2015
+    
+          a <- ab$comuna
+      b <- ab$ecivil
+      c <- ab$e1
+      d <- ab$sexo
+    # a <- ab[,a]
+    # b <- ab[,b] 
+    # c <- ab[,c] 
+    # d <- ab[,d] 
+    
+    
+    cross_tab =  xtabs(ab$expc ~ unlist(a) + unlist(b)+unlist(c)+unlist(d),aggregate(ab$expc ~ unlist(a)+unlist(b)+unlist(c)+unlist(d),ab,mean))
+    
+    tabla <- as.data.frame(cross_tab)
+    d <-tabla[!(tabla$Freq == 0),]
+    d$anio <- "2015"
+    
+    data_code <- ab[  , c("folio", "comuna")]
+    
+    names(data_code)[2] <- "a"
+    data_code <- distinct(data_code , a, .keep_all = TRUE)
+    
+    data_code <- data_code %>% mutate(a = str_squish(a))
+    
+    data_code <- data_code %>% mutate(codigo = case_when(as.integer(folio / 10000000000) == 0 ~ as.integer(folio/ 10000000)
+                                                         , as.integer(folio / 10000000000) <17 ~ as.integer(folio / 10000000)
+                                                         
+    ))
+    
+    data_cod <- subset( data_code, select = -folio )
+data_cod[171,2]<-16101
+data_cod[172,2]<-16102
+data_cod[173,2]<-16202
+data_cod[174,2]<-16203
+data_cod[175,2]<-16302
+data_cod[176,2]<-16103
+data_cod[177,2]<-16104
+data_cod[178,2]<-16204
+data_cod[179,2]<-16303
+data_cod[180,2]<-16105
+data_cod[181,2]<-16106
+data_cod[182,2]<-16205
+data_cod[183,2]<-16107
+data_cod[184,2]<-16201
+data_cod[185,2]<-16206
+data_cod[186,2]<-16301
+data_cod[187,2]<-16304
+data_cod[188,2]<-16108
+data_cod[189,2]<-16305
+data_cod[190,2]<-16207
+data_cod[191,2]<-16109
+
+    names(d)[1] <- "a"
+    
+    df = merge( x = d, y = data_cod, by = "a", all.x = TRUE)
+    
+    
+    df
+
+
+```
+
+
+
+```{r}
+dataset2011  <- read.dta('casen2011_octubre2011_enero2012_principal_08032013stata.dta')
+dataset2011
+```
+
+```{r}
+dataset2011
+```
+
+
+
+
+```{r , echo=FALSE, cache=FALSE, results=FALSE, warning=FALSE, comment=FALSE, warning=FALSE}
+
+
+dataset06 <- read.dta('casen2006.dta')
+
+
+```
+
+```{r}
+nrow(dataset06)
+```
+
+
+```{r}
+#dataset2006_sub <- dataset06[1:100000,]
+dataset2006_sub <- dataset06
+#write.csv(dataset2006_sub,"mydata2006_sub.csv", row.names = FALSE)
+
+save(dataset2006_sub, file = "dataset2006_sub.rda")
+
+
+```
+```{r}
+da2006 <- readRDS('dataset2006_sub.rda')
+```
+
+```{r}
+dataset2006 <- read_sav('casen2006.sav')
+
+```
+
+
+```{r}
+w <- dataset2006[[6]] %>% attr('labels')
+# head(w,4)
+# #### Aqui se obtienen los nombres de las comunas
+# a <- names(w) 
+# head(a,4)
+# b<-w[[4]]
+# b
+# # head(a,5)
+#length(a)
+```
+```{r}
+#length(a)
+```
+```{r}
+
+dataset06 <- read.csv('mydata2006_sub.csv')
+colnames(dataset06)
+```
+
+```{r}
+#dataset06 <- read.csv('mydata2006_sub.csv')
+
+        a <- dataset06$comuna
+        b <- dataset06$t4
+        c <- dataset06$e1
+        d <- dataset06$sexo
+        cross_tab= table(a, b, c, d)
+       # cross_tab
+      tabla <- as.data.frame(cross_tab)
+      tabla
+      #write.csv(datallll,"muestra_m_Patricio_2006.csv", row.names = FALSE)
+      
+```
+
+```{r}
+# tabla <- as.data.frame(cross_tab)
+# #head(tabla,10)
+# head(tabla,10)
+```
+
+```{r}
+d <-tabla[!(tabla$Freq == 0),]
+
+datallll <- data.frame()
+
+ for(i in 1: nrow(d)){
+   llll_fila <- d[i,]
+    llll<-d[i,1]
+    sentenceString <- toString(llll)
+            searchString <- ' '
+            replacementString <- ''
+            sentenceString = sub(searchString,replacementString,sentenceString)
+            sentenceString
+
+             w <- dataset2006[[6]] %>% attr('labels')
+             for(j in 1: 336){
+
+
+               ww<-names(w[j])
+              vv<-tolower(ww)
+
+               if(sentenceString==vv){
+                 llll_fila <- cbind(llll_fila,w[[j]])
+                 llll_fila <- cbind(llll_fila,"2006")
+                 datallll <-rbind(datallll,llll_fila)
+               }
+              }
+  }
+
+```
+
+```{r}
+datallll
+write.csv(datallll,"muestra_Patricio_2006.csv", row.names = FALSE)
+```
+
+33 desde aqui para abajo todo se puede eliminar
+
+
+```{r}
+ppp <- data_frame()
+
+      
+      #vamos a recorrer todos los elementos de la tabla de frecuencia, si este valor es existente construimos un arreglo con la fila y lo arreglamos para que sea concistente en la comparacion del if
+  for( i in 1: nrow(tabla))
+  {
+    
+     if(tabla[i,5]!=0) 
+     {
+       lll<-tabla[i,]
+       lll
+       llll<-lll[,1]
+       llll
+       
+       sentenceString <- toString(llll)
+       searchString <- ' '
+       replacementString <- ''
+       sentenceString = sub(searchString,replacementString,sentenceString)
+       sentenceString
+       
+       
+        for(j in 1: 336){
+          w <- dataset2006[[6]] %>% attr('labels')
+           ww<-names(w[j])
+           vv<-tolower(ww)
+          if(sentenceString==vv){
+            lll <- cbind(lll,w[[j]])
+            lll <- cbind(lll,"2006")
+            
+          }
+        }
+       ppp <-rbind(ppp,lll)
+   }
+    
+  }
+   
+```
+```{r}
+ppp 
+
+```
+
+```{r}
+d <-tabla[!(tabla$Freq == 0),]
+d
+llll<-d[,1]
+llll
+
+nrow(d)
+```
+
+```{r}
+
+dataset2006 <- read_sav('casen2006.sav')
+
+
+```
+
+```{r}
+d <-tabla[!(tabla$Freq == 0),]
+# d
+# llll<-d[,1]
+# llll
+datallll <- data.frame()
+nrow(d)
+ for(i in 1: nrow(d)){
+   llll_fila <- d[i,]
+    llll<-d[i,1]
+    sentenceString <- toString(llll)
+            searchString <- ' '
+            replacementString <- ''
+            sentenceString = sub(searchString,replacementString,sentenceString)
+            sentenceString
+    #print(sentenceString)
+             w <- dataset2006[[6]] %>% attr('labels')
+             for(j in 1: 336){
+               
+               
+               ww<-names(w[j])
+              vv<-tolower(ww)
+              
+               if(sentenceString==vv){
+                llll_fila <- cbind(llll_fila,w[[j]])
+                llll_fila <- cbind(llll_fila,"2006")
+                
+              }
+            
+                
+                
+            
+             }
+             datallll <-rbind(datallll,llll_fila)
+             
+ }
+
+```
+
+```{r}
+ datallll
+```
+
+```{r}
+d <-tabla[!(tabla$Freq == 0),]
+        for(i in 1: nrow(d)){
+          llll<-d[i,1]
+            sentenceString <- toString(llll)
+            searchString <- ' '
+            replacementString <- ''
+            sentenceString = sub(searchString,replacementString,sentenceString)
+            sentenceString
+            
+            for(j in 1: 336){
+              #w <- dataset06[[6]] %>% attr('labels')
+              ww<-names(w[j])
+              vv<-tolower(ww)
+              if(sentenceString==vv){
+                llll <- cbind(llll,w[[j]])
+                llll <- cbind(llll,"2006")
+                
+              }
+            
+        }
+           ppp <-rbind(ppp,llll)
+        }
+            ppp 
+            
+         
+```
+

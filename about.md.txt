@@ -1,0 +1,235 @@
+POBREZA Y DISTRIBUCIÓN DEL INGRESO EN LA REGIÓN METROPOLITANA DE SANTIAGO: 
+RESULTADOS ENCUESTA CASEN 2015
+Seremi de Desarrollo Social Metropolitana
+      
+El gobierno ha planteado a la CASEN como la principal fuente de datos utilizada para la medición de la pobreza y desigualdad en Chile.
+
+Metodología de medición de pobreza por ingresos: valores de líneas de pobreza y pobreza extrema por tamaño del hogar (2015).
+
+Como ya es sabido, la nueva metodología de medición de pobreza por ingresos (uno de los cambios principales incorporados a partir de Casen2013), impuso estándares más exigentes, lo cual quedó  reflejado  en  los  nuevos  valores  definidos  para  las  líneas  de pobreza y de pobreza extrema por ingresos. En este sentido, los valores de las líneas de pobreza y de pobreza extrema considerados en Casen2015 son los que se muestran en el siguiente cuadro:
+
+      Tamaño del hogar  Línea de pobreza  Línea de pobreza extrema
+
+      1                 $ 151.669         $ 101.113
+      2                 $ 246.387         $ 164.258
+      3                 $ 327.251         $ 218.167
+      4                 $ 400.256         $ 266.838
+      5                 $ 467.924         $ 311.949
+      6                 $ 531.621         $ 354.414
+
+Fuente: encuesta Casen, Ministerio de Desarrollo Social
+
+Es dentro de este contexto que el concepto de pobreza es ampliado, considerándose ahora sus aspectos multidimensionales.
+
+2016, el Ministerio de Desarrollo Social difundió la metodología ampliada para la medición de pobreza multidimensional, que incluye cinco dimensiones: Educación; Salud; Trabajo y Seguridad Social; Vivienda y Entorno; y Redes y Cohesión Social.
+
+
+a.Dimensión Educación 
+
+a.1. Asistencia: Se  considera  que  un  hogar  es  carente  por  asistencia  escolar, si  al menos uno de sus integrantes entre los 4 y 18 años de edad no está asistiendo a un establecimiento  educacional  y  no  ha  egresado  de  cuarto  medio, o si al  menos  un integrante entre los 6 y 26 años tiene una condición permanente y/o de larga duración queno asiste a un establecimiento educacional.
+
+a.2. Rezago Escolar: Se considera que un hogar es carente por rezago escolar,si al menos uno de sus integrantes de 21 años o menos asiste a educación básica o media,en  alguna  de  sus  dos  modalidades, y  se  encuentra  retrasado  dos  años  o  más  con respecto al curso que le corresponde de acuerdo a su edad.
+
+a.3. Escolaridad: Se considera  que un hogar  es  carente  en  escolaridad,si al menos uno  de  sus  integrantes,mayor  de  18  años,tienemenos  años  de  escolaridad  que  los establecidos por ley de acuerdo a su edad.
+
+
+b. Dimensión Salud
+
+b.1. Malnutrición en niños(as): Se considera que un hogar es carente en malnutrición en niños (as), si al menos uno de sus integrantes entre los 0 y 6 años, está con sobrepeso u obesidad, sufre de desnutrición o se encuentra en riesgo de desnutrición.
+
+b.2. Adscripción al Sistema de Salud: Se considera que un hogar es carente en adscripción a un sistema de salud, si al menos uno de sus integrantes no está afiliado a un sistema previsional de salud y no tiene otro seguro de salud.
+
+b.3. Atención de salud: Se considera que un hogar es carente en acceso a atención de salud, si al menos uno de sus integrantes:
+
+Sufrió un problema de salud en los últimos tres meses y no tuvo consulta ni atención por alguna de las siguientes razones:
+
+Pensó en consultar pero no tuvo tiempo.
+
+Pensó en consultar pero no tuvo dinero.
+
+Pensó en consultar pero le cuesta mucho llegar al lugar de atención.
+
+Pidió hora pero no la obtuvo.
+
+Ha estado en tratamiento médico por enfermedad, cuya patología está cubierta por el sistema AUGE durante los últimos 12 meses y no ha sido cubierto por el Sistema de Garantías Explícitas de Salud, por alguna de las siguientes razones:
+
+Decidió no esperar para acceder a la consulta a través del AUGE o GES, para solucionar su problema con mayor rapidez.
+
+Pensó que la atención AUGE podría ser de baja calidad.
+
+Consideró el trámite para acceder al AUGE o GES muy difícil.
+
+El sistema AUGE o GES no cubría las necesidades de la enfermedad.
+
+No sabía que su enfermedad estaba cubierta por el AUGE.
+
+No pertenece al tramo de edad que está cubierto por al AUGE.
+
+Otra razón.
+
+c. Dimensión Trabajo y Seguridad Social
+
+c.1. Ocupación: Se considera que un hogar es carente en ocupación, si al menos uno de sus integrantes mayor de 18 (o menor de 19, si ha completado la enseñanza media), está desocupado, es decir, actualmente no tiene trabajo y busca trabajo durante el período de referencia.
+
+c.2. Seguridad Social: Se considera que un hogar es carente en seguridad social, si al menos uno de sus integrantes de 15 años o más, que se encuentra trabajando, no cotiza en el sistema previsional y no es trabajador independiente con educación superior completa.
+
+c.3. Jubilación: Se considera que un hogar es carente en jubilación, si al menos uno de sus integrantes no percibe una pensión contributiva (mujeres de 60 años o más y hombres de 65 años o más), o no contributiva (Pensión Básica Solidaria para personas de 65 años o más o pensiones de reparación), y no recibe otros ingresos por arriendos, retiro de utilidades, dividendos e intereses.
+
+d. Dimensión Vivienda y Entorno
+
+d.1. Habitabilidad: Se considera a un hogar carente en habitabilidad, si presenta carencia en algunos de estos indicadores:
+
+d.1.1. Hacinamiento: Se considera que un hogar es carente por hacinamiento, si el número de personas en el hogar por dormitorio de uso exclusivo, es mayor o igual a 2,5 personas.
+
+d.1.2. Estado de la vivienda: Se considera que un hogar es carente en estado de la vivienda que habita, si ésta:
+
+Presenta muros, techos o suelos en mal estado (estado de conservación "Malo")
+
+Es de tipo precario: mediaguas o mejoras
+
+Es precaria o hecha de materiales reutilizados (latas, plásticos, cartones, etc.).
+
+d.2. Servicios básicos: Se considera que un hogar es carente en servicios básicos si:
+
+Reside en una vivienda que no tiene acceso a agua potable procedente de red pública en el caso de áreas urbanas.
+
+No tiene acceso a agua procedente de red o sistema de distribución proveniente de fuentes subterráneas o superficiales (incluyendo entre éstas el acceso a agua proveniente de pozo o noria, río, vertiente, lago o estero, o camión aljibe) en áreas rurales.
+
+En área urbana o rural, tiene llave de agua fuera de la vivienda.
+
+No tiene servicio de eliminación de excretas adecuado (solución diferente a W.C. conectado a un alcantarillado o fosa séptica).
+
+d.3. Entorno (medio ambiente o accesibilidad): Se considera a un hogar carente en entorno si presenta carencia en algunos de estos indicadores:
+
+d.3.1. Contaminación medioambiental (todos los hogares): Son carentes aquellos hogares que presentan dos o más problemas de contaminación, ya sea que lo han vivido o presenciado en el área de residencia (distancia de no más de 15 minutos caminando), y siempre dentro de los últimos 12 meses:
+
+1. Contaminación del aire y/o malos olores.
+
+2. Contaminación en ríos, canales, esteros, lagos, tranques y embalses.
+
+3. Acumulación de basura en calles, caminos, veredas o espacios públicos.
+
+4. Contaminación del agua procedente de la red pública.
+
+d.3.2. Tiempo de Traslado y Distancia de Equipamiento Básico
+
+Hogares Con Integrantes Ocupados: Son carentes aquellos hogares que presentan tiempo de traslado de una hora o más al lugar principal de trabajo (en transporte público o no motorizado) y les falta al menos uno de los siguientes tipos de equipamiento básico en el área de residencia:
+
+1. A 1 km u ocho cuadras o más, de un servicio de transporte público, (paradero, estación).
+
+2. A 2,5 Km o 20 cuadras o más de un centro de salud, (atención primaria o superior).
+
+3. A 2,5 Km o 20 cuadras o más de un centro educacional, (colegio o jardín infantil).
+
+Hogares Sin Integrantes Ocupados: Son carentes aquellos hogares que presentan falta de al menos un equipamiento básico en el área de residencia:
+
+1. A 1 km u 8 cuadras o más de un servicio de transporte público, (paradero, estación).
+
+2. A 2,5 Km o 20 cuadras o más de un centro de salud, (atención primaria o superior).
+
+3. A 2,5 Km o 20 cuadras o más de un centro educacional, (colegio o jardín infantil).
+
+e. Dimensión Redes y Cohesión Social
+
+e.1. Apoyo y participación social: Son carentes aquellos hogares que presentan falta de redes de apoyo, contactos y vínculos sociales en estos tres niveles:
+
+Organizaciones Sociales: Ningún miembro de 14 ó más años ha participado en alguna organización social o grupo organizado durante el último año:
+
+Juntas de vecinos u org. territorial
+
+
+Club deportivo o recreativo
+
+Organización religiosa o de iglesia
+
+Agrupación artística o cultural
+
+Grupos de identidad cultural
+
+Agrupaciones juveniles o estudiantiles
+
+Agrupaciones de mujeres
+
+Agrupaciones de adultos mayores
+
+Voluntariado
+
+Autoayuda en salud
+
+Agrupación ideológica o partido político
+
+Agrupación corporativa
+
+Centro de padres y apoderados
+
+Organizaciones del Trabajo: Ningún miembro ocupado, de 18 años ó más, pertenece a alguna organización relacionada con su trabajo:
+
+Sindicato (de empresa, interempresa, trabajadores eventuales o independientes).
+
+Asociación de funcionarios/as
+
+Asociación gremial o sectorial
+
+Colegio profesional
+
+Redes de Apoyo del Hogar: No conoce alguna persona fuera del hogar (redes), que le puedan ayudar para:
+
+Cuidado en caso de enfermedad
+
+Facilitar un vehículo
+
+Prestar dinero
+
+Resolver consultas o realizar trámites legales o financieros
+
+Uso de tecnologías
+
+Reparaciones del hogar
+
+Conseguir un trabajo
+
+Aconsejar en caso de problemas personales o familiares
+
+e.2. Trato igualitario: Son carentes aquellos hogares en los que, durante los últimos 12 meses, algún integrante del hogar ha sido tratado injustamente o discriminado fuera de su hogar, por uno ó más de estos motivos:
+Nivel socioeconómico
+
+Ser mujer/ser hombre
+
+Su estado civil
+
+Su ropa
+
+Su color de piel
+
+Ser extranjero
+
+Su edad
+
+Su orientación sexual o identidad de género
+
+Tener tatuajes, piercing, perforaciones o expansiones
+
+Su apariencia física
+
+Sus creencias o religión
+
+Su ideología u opinión política
+
+Participar o no en sindicatos u organizaciones gremiales
+
+El lugar donde vive
+
+El establecimiento donde estudió
+
+Pertenecer a un pueblo indígena
+
+Su condición de salud o discapacidad
+
+e.3. Seguridad: Son carentes aquellos hogares en los que, durante el último mes, alguna de estas situaciones ha sido vivida o presenciada, “siempre”, por alguno de los miembros del hogar en el área de residencia (a una distancia de no más de 15 minutos caminando desde la vivienda):
+
+Personas traficando drogas en la vía pública
+
+Balaceras o disparos
+
+      Las columnas 784 a la 802 de la CASEN 2017 
+      

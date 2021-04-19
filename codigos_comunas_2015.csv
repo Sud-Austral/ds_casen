@@ -1,0 +1,325 @@
+"a","codigo"
+"iquique",1101
+"alto hospicio",1107
+"pozo almonte",1401
+"camiña",1402
+"huara",1404
+"pica",1405
+"antofagasta",2101
+"mejillones",2102
+"sierra gorda",2103
+"taltal",2104
+"calama",2201
+"san pedro de atacama",2203
+"tocopilla",2301
+"maría elena",2302
+"copiapó",3101
+"caldera",3102
+"tierra amarilla",3103
+"chañaral",3201
+"diego de almagro",3202
+"vallenar",3301
+"alto del carmen",3302
+"freirina",3303
+"huasco",3304
+"la serena",4101
+"coquimbo",4102
+"andacollo",4103
+"la higuera",4104
+"paiguano",4105
+"vicuña",4106
+"illapel",4201
+"canela",4202
+"los vilos",4203
+"salamanca",4204
+"ovalle",4301
+"combarbalá",4302
+"monte patria",4303
+"punitaqui",4304
+"río hurtado",4305
+"valparaíso",5101
+"casablanca",5102
+"concón",5103
+"puchuncaví",5105
+"quintero",5107
+"viña del mar",5109
+"los andes",5301
+"calle larga",5302
+"rinconada",5303
+"san esteban",5304
+"la ligua",5401
+"cabildo",5402
+"papudo",5403
+"petorca",5404
+"zapallar",5405
+"quillota",5501
+"calera",5502
+"hijuelas",5503
+"la cruz",5504
+"nogales",5506
+"san antonio",5601
+"algarrobo",5602
+"cartagena",5603
+"el quisco",5604
+"el tabo",5605
+"santo domingo",5606
+"san felipe",5701
+"catemu",5702
+"llaillay",5703
+"panquehue",5704
+"putaendo",5705
+"santa maría",5706
+"quilpué",5801
+"limache",5802
+"olmué",5803
+"villa alemana",5804
+"rancagua",6101
+"codegua",6102
+"coinco",6103
+"coltauco",6104
+"doñihue",6105
+"graneros",6106
+"las cabras",6107
+"machalí",6108
+"malloa",6109
+"mostazal",6110
+"olivar",6111
+"peumo",6112
+"pichidegua",6113
+"quinta de tilcoco",6114
+"rengo",6115
+"requínoa",6116
+"san vicente",6117
+"pichilemu",6201
+"la estrella",6202
+"litueche",6203
+"marchihue",6204
+"navidad",6205
+"paredones",6206
+"san fernando",6301
+"chépica",6302
+"chimbarongo",6303
+"lolol",6304
+"nancagua",6305
+"palmilla",6306
+"peralillo",6307
+"placilla",6308
+"pumanque",6309
+"santa cruz",6310
+"talca",7101
+"constitución",7102
+"curepto",7103
+"empedrado",7104
+"maule",7105
+"pelarco",7106
+"pencahue",7107
+"río claro",7108
+"san clemente",7109
+"san rafael",7110
+"cauquenes",7201
+"chanco",7202
+"pelluhue",7203
+"curicó",7301
+"hualañé",7302
+"licantén",7303
+"molina",7304
+"rauco",7305
+"romeral",7306
+"sagrada familia",7307
+"teno",7308
+"vichuquén",7309
+"linares",7401
+"colbún",7402
+"longaví",7403
+"parral",7404
+"retiro",7405
+"san javier",7406
+"villa alegre",7407
+"yerbas buenas",7408
+"concepción",8101
+"coronel",8102
+"chiguayante",8103
+"florida",8104
+"hualqui",8105
+"lota",8106
+"penco",8107
+"san pedro de la paz",8108
+"santa juana",8109
+"talcahuano",8110
+"tomé",8111
+"hualpén",8112
+"lebu",8201
+"arauco",8202
+"cañete",8203
+"contulmo",8204
+"curanilahue",8205
+"los Álamos",8206
+"tirúa",8207
+"los Ángeles",8301
+"antuco",8302
+"cabrero",8303
+"laja",8304
+"mulchén",8305
+"nacimiento",8306
+"negrete",8307
+"quilaco",8308
+"quilleco",8309
+"san rosendo",8310
+"santa bárbara",8311
+"tucapel",8312
+"yumbel",8313
+"alto biobío",8314
+"chillán",8401
+"bulnes",8402
+"cobquecura",8403
+"coelemu",8404
+"coihueco",8405
+"chillán viejo",8406
+"el carmen",8407
+"ninhue",8408
+"Ñiquén",8409
+"pemuco",8410
+"pinto",8411
+"portezuelo",8412
+"quillón",8413
+"quirihue",8414
+"ránquil",8415
+"san carlos",8416
+"san fabián",8417
+"san ignacio",8418
+"san nicolás",8419
+"treguaco",8420
+"yungay",8421
+"temuco",9101
+"carahue",9102
+"cunco",9103
+"curarrehue",9104
+"freire",9105
+"galvarino",9106
+"gorbea",9107
+"lautaro",9108
+"loncoche",9109
+"melipeuco",9110
+"nueva imperial",9111
+"padre las casas",9112
+"perquenco",9113
+"pitrufquén",9114
+"pucón",9115
+"saavedra",9116
+"teodoro schmidt",9117
+"toltén",9118
+"vilcún",9119
+"villarrica",9120
+"cholchol",9121
+"angol",9201
+"collipulli",9202
+"curacautín",9203
+"ercilla",9204
+"lonquimay",9205
+"los sauces",9206
+"lumaco",9207
+"purén",9208
+"renaico",9209
+"traiguén",9210
+"victoria",9211
+"puerto montt",10101
+"calbuco",10102
+"fresia",10104
+"frutillar",10105
+"los muermos",10106
+"llanquihue",10107
+"maullín",10108
+"puerto varas",10109
+"castro",10201
+"ancud",10202
+"chonchi",10203
+"curaco de vélez",10204
+"dalcahue",10205
+"puqueldón",10206
+"queilén",10207
+"quellón",10208
+"quemchi",10209
+"quinchao",10210
+"osorno",10301
+"puerto octay",10302
+"purranque",10303
+"puyehue",10304
+"río negro",10305
+"san juan de la costa",10306
+"san pablo",10307
+"coyhaique",11101
+"aysén",11201
+"cisnes",11202
+"cochrane",11301
+"chile chico",11401
+"río ibáñez",11402
+"punta arenas",12101
+"porvenir",12301
+"natales",12401
+"santiago",13101
+"cerrillos",13102
+"cerro navia",13103
+"conchalí",13104
+"el bosque",13105
+"estación central",13106
+"huechuraba",13107
+"independencia",13108
+"la cisterna",13109
+"la florida",13110
+"la granja",13111
+"la pintana",13112
+"la reina",13113
+"las condes",13114
+"lo barnechea",13115
+"lo espejo",13116
+"lo prado",13117
+"macul",13118
+"maipú",13119
+"Ñuñoa",13120
+"pedro aguirre cerda",13121
+"peñalolén",13122
+"providencia",13123
+"pudahuel",13124
+"quilicura",13125
+"quinta normal",13126
+"recoleta",13127
+"renca",13128
+"san joaquín",13129
+"san miguel",13130
+"san ramón",13131
+"vitacura",13132
+"puente alto",13201
+"pirque",13202
+"san josé de maipo",13203
+"colina",13301
+"lampa",13302
+"tiltil",13303
+"san bernardo",13401
+"buin",13402
+"calera de tango",13403
+"paine",13404
+"melipilla",13501
+"alhué",13502
+"curacaví",13503
+"maría pinto",13504
+"san pedro",13505
+"talagante",13601
+"el monte",13602
+"isla de maipo",13603
+"padre hurtado",13604
+"peñaflor",13605
+"valdivia",14101
+"corral",14102
+"lanco",14103
+"los lagos",14104
+"máfil",14105
+"mariquina",14106
+"paillaco",14107
+"panguipulli",14108
+"la unión",14201
+"futrono",14202
+"lago ranco",14203
+"río bueno",14204
+"arica",15101
+"camarones",15102
+"putre",15201

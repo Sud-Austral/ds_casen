@@ -1,0 +1,947 @@
+---
+title: |
+  <font size="16">Variables en las Casen</font>
+
+author:
+- name: VE-CC
+  affiliation: DataIntelligence-Chile
+date: "13-01-2021"
+abstract: |
+  En este documento tomaremos las preguntas más relevantes de las Casen del 2006 al 2017 (cuando existan) y especificaremos el nombre por el que figuran y las categorías de respuesta que contienen.
+  
+header-includes:
+  - \usepackage[]{babel}
+output:
+  html_document:
+    theme: flatly
+---
+
+<style type="text/css">
+
+.main-container {
+max-width: 1300px;
+margin-left: auto;
+margin-right: auto;
+}
+
+body, td {
+font-family: Helvetica;
+font-size: 22px;
+}
+code.r{
+font-size: 12px;
+}
+pre {
+font-size: 18px;
+}
+</style>
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(ggpubr)
+library(markdown)
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(plotly)
+library(xts)
+library(dygraphs)
+library(kableExtra)
+library(knitr)
+library("readxl")
+library(rsconnect)
+library(dplyr)
+library(summarytools)
+library(epiDisplay)
+#library(leaflet)
+library(haven)
+library(epiDisplay)
+library("readxl")
+library(hrbrthemes)
+library(viridis)
+library(viridisLite)
+library(writexl)
+library(plyr)
+library(kableExtra)
+library(knitr)
+library(DescTools)
+
+# https://www.datacamp.com/community/tutorials/contingency-tables-r
+
+oldw <- getOption("warn")
+
+options(warn = -1)
+```
+
+# Índice {#test13}
+
+[1. Pobreza.](#test1)
+
+[2. Desigualdad](#test2)
+
+[3. Educación.](#test3)
+
+[4. Vivienda.](#test4)
+
+[5. Salud.](#test5)
+
+[6. Discapacidad.](#test6)
+
+[7. Empleo.](#test7)
+
+[8. Seguridad Social.](#test8)
+
+[9. Demografía](#test9)
+
+[10. Ingresos](#test10)
+
+[11. Etnia](#test11)
+
+[12. Auto biografia](#test12)
+
+<hr/>
+<br>
+<br>
+
+## Pobreza {#test1}
+[Volver](#test13)
+
+
+## 1 Aspectos conceptuales.
+
+### La metodología de estimación de la Pobreza y la actualización del 2013.
+
+Desde la década de 1980 y hasta la actualidad, en Chile la medición de la situación de
+pobreza de los hogares se ha realizado utilizando una metodología basada en ingresos.
+Según ésta, un hogar se ha considerado en situación de pobreza extrema si sus ingresos
+totales per cápita mensuales no son suficientes para financiar el valor de la denominada
+canasta de necesidades básicas alimentarias (NBA). En esta metodología tradicional, el valor
+de la NBA es la línea de pobreza extrema o indigencia. En tanto, se entiende que el hogar
+está en situación de pobreza si sus ingresos totales per cápita mensuales no le permiten
+cubrir sus necesidades básicas alimentarias y no alimentarias (el valor de la canasta básica
+alimentaria y no alimentaria es la línea de pobreza).
+
+La composición de la canasta básica alimentaria de la Metodología Tradicional de medición
+de pobreza fue definida sobre la base de los patrones de consumo de los hogares,
+registrados en la Encuesta de Presupuestos Familiares 1986-1987 del Instituto Nacional de
+Estadísticas (INE).
+
+Los ingresos de los hogares han sido estimados utilizando los datos de la
+Encuesta de Caracterización Socioeconómica Nacional (Casen), de responsabilidad del
+Ministerio de Desarrollo Social (ex Ministerio de Planificación). 
+
+En el periodo 1987-2011 los datos de ingreso utilizados para la estimación de la tasa de pobreza han sido
+validados, corregidos por no respuesta y ajustados a Cuentas Nacionales por la Comisión
+Económica para América Latina y el Caribe (CEPAL). Adicionalmente, CEPAL
+tradicionalmente ha validado y editado los subsidios monetarios de monto fijo que no han
+sido declarados con exactitud por los encuestados.
+
+
+El año 2013 se preparó e implementó el levantamiento de la encuesta Casen 2013. Como
+parte de este proceso, se ha llevado a cabo una actualización y perfeccionamiento de la
+metodología de medición de la pobreza.
+
+
+### Pobreza absoluta versus pobreza relativa
+
+Los indicadores de pobreza y pobreza extrema estimados por Ministerio de Desarrollo Social a partir de la información de la Encuesta Casen utilizan el método de ingresos o indirecto. La utilización de esta misma metodología desde 1987 ha permitido la construcción de indicadores comparables a lo largo del tiempo, haciendo posible de esta manera evaluar su evolución. Además, su amplia aplicación a nivel internacional, permite la comparación de la situación nacional con la de otros países.
+
+Este método, al igual que el método directo o de necesidades básicas insatisfechas, NBI, mide pobreza y pobreza extrema en términos absolutos. Esto es, los límites entre quiénes son pobres o indigentes y quiénes no lo son se definen en relación a mínimos de satisfacción de necesidades básicas, en el caso de la pobreza, o alimentarias, en el caso de la pobreza extrema.
+
+A diferencia del método de NBI, este método utiliza el ingreso como indicador de la capacidad de satisfacción de las necesidades básicas, de modo que estos mínimos se establecen en términos de un cierto nivel de ingreso. Así, la línea de pobreza es el ingreso mínimo establecido por persona para satisfacer las necesidades básicas y la línea de pobreza extrema es el mínimo establecido por persona para satisfacer las necesidades alimentarias.
+
+De acuerdo con ello, se considera en situación de pobreza a aquellos hogares cuyos ingresos son inferiores al mínimo establecido para satisfacer las necesidades básicas de sus miembros, y en situación de pobreza extrema a aquellos hogares cuyos ingresos son inferiores al mínimo establecido para satisfacer las necesidades alimentarias de sus miembros.
+
+Para la clasificación de los hogares en estas categorías, el ingreso del hogar se define como la suma del ingreso autónomo del hogar, las transferencias monetarias que recibe el hogar del Estado y una imputación por concepto de arriendo de la vivienda, cuando ésta es habitada por sus propietarios. 
+
+En términos generales, es posible distinguir dos perspectivas de medición de la pobreza, los
+enfoques subjetivo y objetivo. En el enfoque subjetivo, la situación de pobreza se define a
+partir de la percepción que tienen los propios individuos, ya sea personas u hogares, de su
+situación; en tanto, en el enfoque objetivo, la situación de pobreza se define de acuerdo a
+criterios comunes establecidos externamente, que utilizan información recogida sobre los
+individuos.
+A su vez, dentro del enfoque objetivo, se puede distinguir entre las mediciones de pobreza
+absoluta y las mediciones de pobreza relativa. Mientras los métodos de medición de pobreza
+absoluta consideran que hay umbrales absolutos de satisfacción de las necesidades básicas
+de los individuos (y definen el límite de la situación de pobreza en relación a estos mínimos),
+los métodos de medición de pobreza relativa consideran que un individuo se encuentra en
+situación de pobreza cuando está en desventaja respecto a los individuos que conforman la
+sociedad de la que es parte (y definen el límite para la situación de pobreza en relación a
+indicadores del bienestar del conjunto de la sociedad).
+
+
+"Con el objetivo de analizar de manera simultánea y rigurosa un conjunto de dimensiones
+pertinentes al estudio de la pobreza, el desarrollo de una medida multidimensional de la
+pobreza requiere adoptar decisiones metodológicas fundamentadas tanto desde un punto de
+vista técnico como normativo. Reconociendo esta complejidad, la metodología propuesta por
+Alkire y Foster (2007) constituye uno de los principales esfuerzos desarrollados en las
+últimas décadas y es el referente de base para la construcción de una metodología aplicable
+al caso de Chile."
+
+[ir al documento: "Nueva Metodología de Medición de
+la Pobreza por Ingresos y
+Multidimensional"](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwi6m4S_8PDtAhVZHbkGHWSMC1sQFjAAegQIAxAC&url=http%3A%2F%2Fobservatorio.ministeriodesarrollosocial.gob.cl%2Fdocumentos%2FNueva_Metodologia_de_Medicion_de_Pobreza.pdf&usg=AOvVaw3FviZtL_nVKJi4xcLl3hxl)
+
+
+
+## 2 Aspectos Técnicos
+
+### Pobreza por ingresos
+
+Todas las Casen (años 2006, 2009, 2011, 2013, 2015 y 2017)  contienen una sola variable que discrimina la categoría de pobreza en la que cada observación es clasificada. Las categorías son tres, las que si bien se denominan de distinto modo a partir del año 2013, identifican lo mismo:
+
+Hasta el 2011:
+
+1. Indigente
+2. Pobre no indigente
+3. No pobre
+
+A partir del 2013, “MN” a nueva metodología que incluye nuevas líneas de pobreza y nueva
+metodología de datos de ingresos.
+
+[ir al documento: "La batalla en contra la desigualdad - Clapes UC"](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwjU6LegvPHtAhW6HrkGHSyTCrAQFjADegQIARAC&url=https%3A%2F%2Fclapesuc.cl%2Fassets%2Fuploads%2F2017%2F01%2F24-01-17-la-batalla-contra-la-desigualdad-su.pdf&usg=AOvVaw3c5M3oh8kary0hjLBlK2am)
+
+Desde el 2013:
+
+1. Pobres extremos
+2. Pobres no extremos
+3. No pobres      	
+
+|                  |   2006	            |   2009	         |   2011	       |   2013        	     |  2015              |   2017	           |
+|---	             |---	                  |---       	         |---            |---	                 |---                 |---     	           |
+|Variable          | **corte**                | **corte**              | **corte**         | **pobreza_mn**          | **pobreza**       	  | **pobreza**  	     |
+|---	             |---	                  |---       	         |---            |---	                 |---                 |---   	           |
+|Categorías        | Indigente       	| Indigente      	   | Indigente  	 | Pobres extremos     | Pobres extremos    | Pobres extremos    |
+|                  | Pobre no indigente  	| Pobre no indigente | Pobre  	 | Pobres no extremos  | Pobres no extremos | Pobres no extremos |
+|                  | No pobre       	| No pobre     	   | No pobre  	 | No pobres   	     | No pobres          | No pobres          |
+
+### Pobreza multidimensional
+
+|                            |   2013        	     |  2015              |   2017	           |
+|---	                       |---	                 |---                 |---     	           |
+|Variable                    | **pobreza_multi**        | **pobreza_multi_4d**   | **pobreza_multi_4d**   |
+|                            |                      | **pobreza_multi_5d**   | **pobreza_multi_5d**   |
+|---	                       |---	                 |---                 |---   	           |
+|Categorías                  | no pobre             | no pobre           | no pobre           |
+|                            | pobre                | pobre              | pobre              |
+
+La variable: pobreza_multi_5d,  "Situación de pobreza multidimensional" considera la dimensión: "Entorno y Redes".
+
+
+
+
+## Desigualdad {#test2}
+[Volver](#test13)
+Para caracterizar el valor de una observación se puede establecer una estructura divisional –ascendente o descendente- para situar la posición relativa de un caso en el marco de su población de referencia. Las “medidas de posición no central” permiten dividir la distribución en un variable número de segmentos –cuantiles- facilitando la ubicación de orden de un sujeto o caso sobre un conjunto de los datos. Estas medidas requieren que exista un orden en las categorías de la variable, por lo que sólo se pueden determinar a partir de la escala ordinal. Los cuantiles más comunes en el ámbito de la estadística aplicada a las Ciencias Sociales son: cuartiles, deciles y percentiles pero, con la misma lógica podrían generarse otras unidades divisionales como por ejemplo, quintiles, sextiles, etc. Los cuartiles (Qm) dividen el conjunto de las observaciones en cuatro partes iguales, son por tanto tres puntos y se denotan como Q1 Q2 y Q3. Los deciles (Dm) son las nueve marcas que fraccionan la distribución en diez partes iguales, conteniendo cada una de ellas la décima parte de las observaciones y se nombran como D1 D2 … D8 y D9. Los centiles o percentiles (Cm ó Pm) segmentan el conjunto de las observaciones en cien partes iguales y su notación se expresa como P1…P20…P99 ó C1…C20…C99.
+
+#### Clasificación de las observaciones por deciles o quintiles
+
+**qaut:** Quintil Autónomo Nacional (se excluye el s.d.p.a)\
+**qautr:** Quintil Autónomo Regional (antigua división administrativa) (se excluye el s.d.p.a)\
+**dau:** Decil Autónomo Nacional (se excluye el s.d.p.a)\
+**daur:** Decil Autónomo Regional (antigua división administrativa) (se excluye el s.d.p.a)\
+**qautr_15:** Quintil Autonomo Regional (nueva división administrativa) (se excluye el s.d.p.a)\
+**daur_15:** Decil Autónomo Regional (nueva división administrativa) (se excluye el s.d.p.a)\
+**daut:** Decil de ingreso autónomo\
+**qaur:** Quintiles regionales\
+**dautr_mn:** Decil autónomo regional Nueva Metodología\
+
+
+|            |2006         |2009      |2011     |2013         |2015      |2017      
+|---         |---          |---       |---      |---          |---       |---       
+|            | ****        | ****     | ****    | ****        | ****     | ****     
+|---         |---          |---       |---      |---          |---       |---       
+| Variables  |**dau**      |**dau**   |         |**dau_mn**   |**dau**   |**dau**   
+|            |**daur**     |**daur**  |**daur** |             |          |          
+|            |**qaut**     |**qaut**  |**qaut** |**qaut_mn**  |**qaut**  |**qaut**   
+|            |**daur_15**  |          |         |             |          |          
+|            |**qautr**    |**qautr** |         |**qautr_mn** |**qautr** |**qautr** 
+|            |**qaurt_15** |          |         |             |          |          
+|            |             |          |**daut** |             |          |          
+|            |             |          |**qaur** |             |          |          
+|            |             |          |         |**dautr_mn** |**dautr** |**dautr** 
+
+
+**hh_d_asis** Hogar carente en asistencia\
+**hh_d_rez** Hogar carente en rezago escolar\
+**hh_d_esc** Hogar carente en escolaridad\
+**hh_d_mal** Hogar carente en malnutrición en niños/as\
+**hh_d_prevs** Hogar carente en adscripción a sistema de salud\
+**hh_d_acc** Hogar carente en atención\
+**hh_d_act** Hogar carente en ocupación\
+**hh_d_cot** Hogar carente en seguridad social\
+**hh_d_jub** Hogar carente en jubilaciones\
+**hh_d_habitab** Hogar carente en habitabilidad\
+**hh_d_hacina** Hogar carente en hacinamiento\
+**hh_d_estado** Hogar carente en estado de la vivienda\
+**hh_d_servbas** Hogar carente en servicios básicos\
+**hh_d_entorno** Hogar carente en entorno\
+**hh_d_accesi** Hogar carente en accesibilidad\
+**hh_d_medio** Hogar carente en medio ambiente\
+**hh_d_appart** Hogar carente en apoyo y participación social\
+**hh_d_tsocial** Hogar carente en trato igualitario\
+**hh_d_seg Hogar** carente en seguridad\
+
+|            |2015               |2017             
+|---         |---                |---              
+|            | ****              | ****            
+|---         |---                |---              
+| Variables  |**hh_d_asis   **   |**hh_d_asis   ** 
+|            |**hh_d_rez    **   |**hh_d_rez    ** 
+|            |**hh_d_esc    **   |**hh_d_esc    ** 
+|            |**hh_d_mal    **   |**hh_d_mal    ** 
+|            |**hh_d_prevs  **   |**hh_d_prevs  ** 
+|            |**hh_d_acc    **   |**hh_d_acc    ** 
+|            |**hh_d_act    **   |**hh_d_act    ** 
+|            |**hh_d_cot    **   |**hh_d_cot    ** 
+|            |**hh_d_jub    **   |**hh_d_jub    ** 
+|            |**hh_d_habitab**   |**hh_d_habitab** 
+|            |**hh_d_hacina **   |**hh_d_hacina ** 
+|            |**hh_d_estado **   |**hh_d_estado ** 
+|            |**hh_d_servbas**   |**hh_d_servbas** 
+|            |**hh_d_entorno**   |**hh_d_entorno** 
+|            |**hh_d_accesi **   |**hh_d_accesi ** 
+|            |**hh_d_medio  **   |**hh_d_medio  ** 
+|            |**hh_d_appart **   |**hh_d_appart ** 
+|            |**hh_d_tsocial**   |**hh_d_tsocial** 
+|            |**hh_d_seg    **   |**hh_d_seg    ** 
+
+## Educación {#test3}
+[Volver](#test13)
+Desde el 2006:
+
+**E1 ¿Sabe leer y escribir?**
+
+
+|                  |   2006	            |   2009	           |   2011	           |   2013        	     |  2015              |   2017	           |
+|---	             |---	                |---       	         |---                |---	                 |---                 |---     	           |
+|Variable          | **E1**             | **E1**             | **e1**            | **e1**              | **e1**       	    | **e1**  	         |
+|---	             |---	                |---       	         |---                |---	                 |---                 |---   	             |
+|Categorías        | Sí       	        | Sí      	         | Sí, lee y escribe | Sí, lee y escribe   | Sí, lee y escribe  | Sí, lee y escribe  |
+|                  | No                 | No                 | No, sólo lee 	   | No, sólo lee        | No, sólo lee       | No, sólo lee       |
+|                  |                	  |             	     | No, sólo escribe  | No, sólo escribe	   | No, sólo escribe   | No, sólo escribe   |
+|                  |                    |                    | No, ninguno       | No, ninguno         | No, ninguno        | No, ninguno        |  
+
+
+**e5b ¿Cuándo fue la última vez que asistió a algún establecimiento educacional?**
+
+
+|                |   2015                              |   2017	                            |
+|---	           |-- |---                              |---     	                          |
+|Variable        | **e5b**                             | **e5b**       	                    | 
+|---	           |-- |---                              |---   	                            |
+|Categorías      | Año 2015                            | Año 2017                           |
+|                | El año pasado (2014)                | El año pasado (2016)               |
+|                | Hace dos años (2013)                | Hace tres años o más (2014 o antes)|
+|                | Hace tres años o más (2012 o antes) | Nunca ha asistido                  | 
+
+
+
+**e6a ¿Cuál fue el nivel educacional más alto alcanzado o el nivel educacional actual?**
+**e6a Tipo de nivel educacional actual**
+
+
+
+
+
+
+||   2011                                                         |   2013                                                         |	2015                                                          |	2017                             									            | 
+|--- |---                                                             |---                                                             |---                                                            |---                                  									        |
+|Variables|  **e6a**                                                        |   **e6a**                                                      |	**e6a**                                                       |	**e6a**                          									            | 
+|--- |---                                                             |---                                                             |---                                                            |---                                  									        |
+|Categorias|Nunca asistió                                                   |Nunca asistió                                                   |Nunca asistió                                                  |Nunca asistió                        									        | 
+||Jardín infantil/sala cuna                                       |Jardín infantil/Sala cuna                                       |Sala cuna                                                      |Sala cuna                            									        | 
+||Kinder/pre-kinder                                               |Kinder/Pre-kinder                                               |Jardín Infantil (Medio menor y Medio mayor)                    |Jardín Infantil (Medio menor y Medio mayor)                    | 
+||Educación especial (diferencial)                                |Educación especial (diferencial)                                |Prekinder / Kinder (Transición menor y Transición Mayor)       |Prekinder/Kinder (Transición menor y Transición Mayor)         | 
+||Primaria o preparatoria (sistema antiguo)                       |Primaria/Preparatoria (sistema antiguo)                         |Educación Especial (Diferencial)                               |Educación Especial (Diferencial)                               | 
+||Educación básica                                                |Educación Básica                                                |Primaria o Preparatoria (Sistema Antiguo)                      |Primaria o Preparatoria (Sistema antiguo)                      | 
+||Humanidades (sistema antiguo)                                   |Humanidades (sistema antiguo)                                   |Educación Básica                                               |Educación Básica                                               | 
+||Educación media científicohumanista                             |Educación Media Científico-Humanista                            |Humanidades (Sistema Antiguo)                                  |Humanidades (Sistema Antiguo)                                  | 
+||Técnica, comercial, industrial o normalista (sistema antiguo)   |Técnica, Comercial, Industrial o Normalista (sistema antiguo)   |Educación Media Científico-Humanista                           |Educación Media Científico- Humanista                          | 
+||Educación media técnica profesional                             |Educación Media Técnica Profesional                             |Técnica, Comercial, Industrial o Normalista (Sistema Antiguo)  |Técnica, Comercial, Industrial o Normalista (Sistema Antiguo)  | 
+||Técnico nivel superior                                          |Técnico Nivel Superior (carreras de 1. a 3. años)               |Educación Media Técnica Profesional                            |Educación Media Técnica Profesional                            | 
+||Profesional                                                     |Profesional (carreras de 4. o más años)                         |Técnico Nivel Superior Incompleto (Carreras 1. a 3. años)      |Técnico Nivel Superior Incompleto (Carreras 1. a 3. años)      | 
+||Postgrado                                                       |Postgrado                                                       |Técnico Nivel Superior Completo (Carreras 1. a 3. años)        |Técnico Nivel Superior Completo (Carreras 1. a 3. años)        | 
+||                                                                |                                                                |Profesional Incompleto (Carreras 4. o más años)                |Profesional Incompleto (Carreras 4. o más años) 
+||                                                                |                                                                |Profesional Completo (Carreras 4. o más años)                  |Profesional Completo (Carreras 4. o más años)     
+||                                                                |                                                                |Postgrado Incompleto                                           |Postgrado Incompleto                                            
+||                                                                |                                                                |Postgrado Completo                                             |Postgrado Completo                                             
+||                                                                |                                                                |No sabe/no responde                                            |No sabe/no responde
+
+
+
+**e8. ¿En qué tipo de institución realizó su educación superior?**
+
+
+|             |	2013                              | 2015                                 | 2017                                                                    | 
+|---          |---                                |---                                   |---                                                                      | 
+|  variable   | **e6d**                           | **e6d**                              | **e8**                                                                  | 
+|---          |---                                |---                                   |---                                                                      | 
+|  categoria  |Centro de Formación Técnica        |Centro de Formación Técnica           |Centro de Formación Técnica                                              | 
+|             |Instituto Profesional              |Instituto Profesional                 |Instituto Profesional                                                    | 
+|             |Universidad Privada                |Universidad Privada                   |Universidad privada no perteneciente al Consejo de Rectores (Cruch)      | 
+|             |Universidad Consejo de Rectores 9. |Universidad Consejo de Rectores 9.    |Universidad privada perteneciente al Consejo de Rectores (Cruch)         | 
+|             |                                   |                                      |Universidad Estatal                                                      | 
+|             |                                   |                                      |Establecimiento de educación superior de las Fuerzas Armadas y del Orden | 
+|             |                                   |                                      |Universidad Extranjera                                                   | 
+|             |                                   |                                      |No sabe/no responde                                                      | 
+
+**e9sup_g Establecimiento con gratuidad**
+**e7sup_ gratuid**
+
+|              | 2015                                 | 2017                         | 
+|---           |---                                   |---                           | 
+|**variable**  | **e7sup_ gratuid**                   | **e9sup_g**                  | 
+|---           |---                                   |---                           | 
+|**categoria** |Institución con gratuidad             |Sin dato                      | 
+|              |Institución sin gratuidad             |Instituciones con gratuidad   | 
+|              |                                      |Instituciones sin gratuidad   | 
+
+**e10 ¿Cuál es la dependencia administrativa del establecimiento?**
+**e8**
+**e8_depen**
+**e9**
+**DEPEN**
+
+
+
+
+
+
+
+
+|            | 2006                                |2009                                 | 2011                                                      | 2013                                      |2015                                                            | 2017     
+|---         |---                                  |---                                  |---                                                        |---                                        |---                                                             |---       
+| Variables  |  **DEPEN**                          | **DEPEN**                           | **e9**                                                    |  **e8_depen**                             | **e8**                                                         | **e10**    
+|---         |---                                  |---                                  |---                                                        |---                                        |---                                                             |---       
+| Categorias |No bien especificado                 |No bien especificado                 |Municipal                                                  |Coorporación Municipal                     |Municipal                                                       |Municipal                                                           |
+|            |Corporación Municipal                |Corporación Municipal                |Particular subvencionada                                   |Municipal                                  |Corporación de Administración Delegada                          |Particular Subvencionada                                            |
+|            |Municipal                            |Municipal                            |Corporación de administración delegada                     |Particular Subvencionado                   |Particular no Subvencionada                                     |Corporación de Administración Delegada                              |
+|            |Particular Subvencionado             |Particular Subvencionado             |Particular no subvencionada                                |Particular No Subvencionado                |JUNJI                                                           |Particular no Subvencionada                                         |
+|            |Particular no subvencionado          |Particular no subvencionado          |JUNJI                                                      |Corporación de Adminstración Delegada      |INTEGRA                                                         |JUNJI                                                               |
+|            |Corp. Privada de Adm. Delegada       |Corp. Privada de Adm. Delegada       |INTEGRA                                                    |JUNJI                                      |Jardín infantil o sala cuna del trabajo de la madre o del padre |INTEGRA                                                             |
+|            |JUNJI                                |JUNJI                                |J. infantil o s. cuna del trabajo de la madre o del padre  |INTEGRA                                    |Universidad del Consejo de Rectores                             |Jardín infantil o sala cuna del trabajo de la madre o del padre     |
+|            |INTEGRA                              |INTEGRA                              |Universidad del Consejo de Rectores                        |Educación Superior del Consejo de Rectores |Universidad Privada                                             |Centro de Formación Técnica                                         |
+|            |Educación Superior Subvencionada     |Educación Superior Subvencionada     |Universidad privada                                        |Educación Superior Privada                 |Instituto Profesional                                           |Instituto Profesional                                               |
+|            |Educación Superior No Subvencionada  |Educación Superior No Subvencionada  |Instituto profesional                                      |Instituto Profesional                      |Centro de Formación Técnica                                     |Universidad Privada no perteneciente al Consejo de Rectores (Cruch) |
+|            |Centro de formación técnica          |Centro de formación técnica          |                                                           |Centro de Formación Técnica                |No sabe                                                         |Universidad Privada perteneciente al Consejo de Rectores (Cruch)    |
+|            |No sabe                              |No sabe                              |                                                           |                                           |                                                                +|Universidad Estatal                                                     |
+|            |                                     |                                     |                                                           |                                           |                                                                |Establecimiento de Educación Superior de las Fuerzas Armadas y del Orden|
+|            |                                     |                                     |                                                           |                                           |                                                                |No sabe                                                                 |
+
+**e11. ¿A qué jornada asiste regularmente?**
+**e9**
+**e10**
+**e10**
+
+|           |2015                                           |2013                                           |2015                                           | 2017                                         | 
+|---        |---                                            |---                                            |---                                            |---                                           | 
+| Variables | **e10**                                       | **e10**                                       | **e9**                                        | **e11**                                      | 
+|---        |---                                            |---                                            |---                                            |---                                           | 
+| Categorias|Jornada mañana                                 |Jornada mañana                                 |Jornada mañana                                 |Jornada mañana                                |
+|           |Jornada tarde                                  |Jornada tarde                                  |Jornada tarde                                  |Jornada tarde                                 |
+|           |Jornada completa (mañana y tarde)              |Jornada completa (mañana y tarde)              |Jornada completa (mañana y tarde)              |Jornada completa (mañana y tarde)             |
+|           |Jornada completa con extensión de horario      |Jornada completa con extensión de horario      |Jornada completa con extensión de horario      |Jornada completa con extensión de horario     |
+|           |Vespertina                                     |Vespertina                                     |Vespertina                                     |Vespertina                                    |
+|           |Otra (horario variable, esporádico o flexible) |Otra (horario variable, esporádico o flexible) |Otra (horario variable, esporádico o flexible) |Otra (horario variable, esporádico o flexible)|
+|           |No sabe/no responde                            |No sabe/no responde                            |No sabe/no responde                            |No sabe/no responde                           |
+
+
+<!-- **e1.7. “ En el año escolar 2.01.7., ¿paga por la carrera que estudia?”** -->
+
+
+<!-- **e1.8.a ¿Cuánto paga mensualmente por la carrera que estudia?** -->
+<!-- ** -->
+<!-- **e19_1. ¿Recibe algún crédito universitario para pagar la carrera? (crédito 1.)** -->
+<!-- **e16.t1. En el año escolar 20.15., ¿recibe alguno de los siguientes créditos universitarios…? Tipo 1.** -->
+<!-- **e1.7.t1. Crédito universitario: Tipo 1.** -->
+<!-- **e17t1 ¿Recibe alguno de los siguientes créditos universitarios para pagar la carrera que estudia?** -->
+<!-- **E15C1 e15c1: Recibe alguno de los siguientes créditos universitarios? (1)** -->
+
+<br/>
+<br/>
+<br/>
+
+
+## Vivienda {#test4}
+[Volver](#test13)
+V1: ¿Su hogar bajo qué situación ocupa el sitio?
+
+ |           |2006                                                        |2009                                                      |2011                                                        |2013                                                        |2015                                                       |2017                                                       
+ |---        |---                                                         |---                                                       |---                                                         |---                                                         |---                                                        |---                                                        
+ | Variables | **V1**                                                     | **V1**                                                   | **v3**                                                     | **v9**                                                     | **v9**                                                    | **v9**                                                    
+ |---        |---                                                         |---                                                       |---                                                         |---                                                         |---                                                        |---                                                        
+ | Categorias|Propio pagado                                               |Propio pagado                                             |Propio pagado                                               |Propio pagado                                               |Propio pagado                                              |Propio pagado                                              
+ |           |Propio pagándose                                            |Propio pagándose                                          |Propio pagándose                                            |Propio pagándose                                            |Propio pagándose                                           |Propio pagándose                                           
+ |           |Propio compartido(pagada) con otras viviendas del sitio     |Propio compartido(pagada) con otras viviendas del sitio   |Propio compartido(pagada) con otras viviendas del sitio     |Propio compartido(pagada) con otras viviendas del sitio     |Propio compartido(pagada) con otras viviendas del sitio    |Propio compartido(pagada) con otras viviendas del sitio    
+ |           |Propio compartido(pagándose) con otras viviendas del sitio  |Propio compartido(pagándose) con otras viviendas del sitio|Propio compartido(pagándose) con otras viviendas del sitio  |Propio compartido(pagándose) con otras viviendas del sitio  |Propio compartido(pagándose) con otras viviendas del sitio |Propio compartido(pagándose) con otras viviendas del sitio 
+ |           |Arrendados con contrato                                     |Arrendados con contrato                                   |Arrendados con contrato                                     |Arrendados con contrato                                     |Arrendados con contrato                                    |Arrendados con contrato                                    
+ |           |Arrendados sin contrato                                     |Arrendados sin contrato                                   |Arrendados sin contrato                                     |Arrendados sin contrato                                     |Arrendados sin contrato                                    |Arrendados sin contrato                                    
+ |           |Cedido por servivios                                        |Cedido por servivios                                      |Cedido por servivio o trabajo                               |Cedido por servivio o trabajo                               |Cedido por servivio o trabajo                              |Cedido por servivio o trabajo                              
+ |           |Cedido por familiar u otro                                  |Cedido por familiar u otro                                |Cedido por familiar u otro                                  |Cedido por familiar u otro                                  |Cedido por familiar u otro                                 |Cedido por familiar u otro                                 
+ |           |Usufructo(Sólo uso y goce)                                  |Usufructo(Sólo uso y goce)                                |Usufructo(Sólo uso y goce)                                  |Usufructo(Sólo uso y goce)                                  |Usufructo(Sólo uso y goce)                                 |Usufructo(Sólo uso y goce)                                 
+ |           |Ocupacion irregular)de hecho                                |Ocupacion irregular)de hecho                              |Ocupacion irregular(de hecho)                               |Ocupacion irregular(de hecho)                               |Ocupacion irregular(de hecho)                              |Ocupacion irregular(de hecho)                              
+ |           |otro                                                        |otro                                                      |Poseedor irregular                                          |Poseedor irregular                                          |Poseedor irregular                                         |Poseedor irregular                                         
+ |           |sin dato                                                    |sin dato                                                  |Otra situacion                                              |Otra situacion                                              |Otra situacion                                             |Otra situacion                                             
+ |           |                                                            |                                                          |NS/NR                                                       |NS/NR                                                       |NS/NR                                                      |NS/NR                                                      
+
+
+
+** MAterial predominante en muros exteriores de la vivienda**
+
+
+|           |2006                                                        |2009                                                   |2011                                                         |2013                                                                 |2015                                                                 |2017                                                                
+|---        |---                                                         |---                                                    |---                                                          |---                                                                  |---                                                                  |---                                                                 
+| Variables | **V8A**                                                    | **V12A**                                             | **v32**                                                     | **v2**                                                              | **v2**                                                              | **v2**                                                             
+|---        |---                                                         |---                                                    |---                                                          |---                                                                  |---                                                                  |---                                                                 
+| Categorias|De acero u hormigon armado                                  |De acero u hormigon armado                             |Hormigon armado                                              |Hormigon armado                                                      |Hormigos                                                             |Hormigon armado                                                     
+|           |Albañileria de ladrillo, bloque de cemento o piedra         |Albañileria de ladrillo, bloque de cemento o piedra    |Albañileria (bloque cemento,piedra o ladrillo)               |Albañileria (bloque cemento,piedra o ladrillo)                       |Albañileria (bloque cemento,piedra o ladrillo)                       |Albañileria (bloque cemento,piedra o ladrillo)                      
+|           |Tabique forrado por ambas caras (madera u otro)             |Tabique forrado por ambas caras (madera u otro)        |Tabique forrado por ambas caras (madera, acero, lata u otro) |Tabique forrado por ambas caras (madera, acero, lata u otro)         |Tabique forrado por ambas caras (madera, acero, lata u otro)         |Tabique forrado por ambas caras (madera u otro)                     
+|           |Adobe                                                       |Adobe                                                  |                                                             |                                                                     |                                                                     |                                                                    
+|           |Tabique sin forro interior (madera u otro)                  |Tabique sin forro interior (madera u otro)             |Tabique sin forro interior (madera u otro)                   |Tabique sin forro interior (madera u otro)                           |Tabique sin forro interior (madera u otro)                           |Tabique sin forro interior (madera u otro)                          
+|           |Barro, quincha, pirca u otro artesanal tradicional          |Barro, quincha, pirca u otro artesanal tradicional     |Adobe, barro, quincha, pirca u otro artesanal tradicional    |Adobe, barro, quincha, pirca u otro artesanal tradicional            |Adobe, barro, quincha, pirca u otro artesanal tradicional            |Adobe, barro, quincha, pirca u otro artesanal tradicional           
+|           |Material de desecho y/o resiclaje (carton, lata, etc.)      |Material de desecho y/o resiclaje (carton, lata, etc.) |Materiales precarios o de desechos                           |Materiales precarios o de desechos(carton,latas,sacos,plastico,etc.) |Materiales precarios o de desechos(carton,latas,sacos,plastico,etc.) |Materiales precarios o de desechos(carton,latas,sacos,plastico,etc.)
+|           |Otro                                                        |Otro                                                   |NS/NR                                                        |NS/NR                                                                |NS/NR                                                                |NS/NR                                                               
+|           |sin dato                                                    |sin dato                                               |                                                             |                                                                     |                                                                     |                                                                    
+|           |                                                            |                                                       |                                                             |                                                                     |                                                                     |                                                                    
+
+
+## Salud. {#test5}
+[Volver](#test13)
+** A que sistema previsional de salud pertenece Ud **
+
+|           |2006                           |2009                          |2011                          |2013                          |2015                          |2017                         
+|---        |---                            |---                           |---                           |---                           |---                           |---                          
+| Variables | **S1**                        | **S1**                       | **S17**                      | **S14**                      | **S12**                      | **S1**                      
+|---        |---                            |---                           |---                           |---                           |---                           |---                          
+| Categorias|Sistema Público grupo A        |Sistema Público grupo A       |Sistema Público grupo A       |Sistema Público grupo A       |Sistema Público grupo A       |Sistema Público grupo A      
+|           |Sistema Público grupo B        |Sistema Público grupo B       |Sistema Público grupo B       |Sistema Público grupo B       |Sistema Público grupo B       |Sistema Público grupo B      
+|           |Sistema Público grupo C        |Sistema Público grupo C       |Sistema Público grupo C       |Sistema Público grupo C       |Sistema Público grupo C       |Sistema Público grupo C      
+|           |Sistema Público grupo D        |Sistema Público grupo D       |Sistema Público grupo D       |Sistema Público grupo D       |Sistema Público grupo D       |Sistema Público grupo D      
+|           |Sistema Público no sabe grupo  |Sistema Público no sabe grupo |Sistema Público no sabe grupo |Sistema Público no sabe grupo |Sistema Público no sabe grupo |Sistema Público no sabe grupo
+|           |F.F.A.A. y del orden           |F.F.A.A. y del orden          |F.F.A.A. y del orden          |F.F.A.A. y del orden          |F.F.A.A. y del orden          |F.F.A.A. y del orden         
+|           |ISAPRE                         |ISAPRE                        |ISAPRE                        |ISAPRE                        |ISAPRE                        |ISAPRE                       
+|           |Ninguna(particular)            |Ninguna(particular)           |Ninguna(particular)           |Ninguna(particular)           |Ninguna(particular)           |Ninguna(particular)          
+|           |Otro sistema                   |Otro sistema. Especifique     |Otro sistema                  |Otro sistema                  |Otro sistema                  |Otro sistema                 
+|           |No sabe                        |No sabe                       |No sabe                       |No sabe                       |No sabe                       |No sabe                      
+
+
+
+**Cual es el estado nutriconal del Menos?  **
+
+|            |2006                      |2009                      |2011                      |2013                                    |2015                                    |2017                                  
+|---         |---                       |---                       |---                       |---                                     |---                                     |---                                   
+| Variables  | **s2a**                  | **s2a**                  | **s1**                   | **s1**                                 | **s1**                                 | **s1**                               
+|---         |---                       |---                       |---                       |---                                     |---                                     |---                                   
+| Categorias |Desnutrido                |Desnutrido                |Desnutrido                |Desnutrido o en riesgo de desnutricion  |Desnutrido o en riesgo de desnutricion  |Desnutrido o en riesgo de desnutricion
+|            |En riesgo de desnutricion |En riesgo de desnutricion |En riesgo de desnutricion |                                        |                                        |                                      
+|            |Normal                    |Normal                    |Normal                    |Normal                                  |Normal                                  |Normal                                
+|            |Sobrepeso                 |Sobrepeso                 |Sobrepeso                 |Sobrepeso                               |Sobrepeso                               |Sobrepeso                             
+|            |Obeso                     |Obeso                     |Obeso                     |Obeso                                   |Obeso                                   |Obeso                                 
+|            |No sabe                   |No sabe                   |No sabe                   |No sabe                                 |No sabe                                 |No sabe                               
+
+**En los ultimos 30 dias. Ha tenido algun problema de salud? **
+
+|           |2006     |2009                                   |2011                                       |2013                                       |2015                                       |2017                                      
+|---        |---      |---                                    |---                                        |---                                        |---                                        |---                                       
+| Variables | **s5**  | **s9**                                | **s2a**                                   | **s2a**                                   | **s15**                                   | **s15**                                  
+|---        |---      |---                                    |---                                        |---                                        |---                                        |---                                       
+| Categorias|Sí       |Sí, por enfermedad                     |Sí, enfermedad probocada por el trabajo    |Sí, enfermedad probocada por el trabajo    |Sí, enfermedad probocada por el trabajo    |Sí, enfermedad probocada por el trabajo   
+|           |No       |Sí, por accidente laboral o escolar    |Si, enfermedad no probocada por el trabajo |Si, enfermedad no probocada por el trabajo |Si, enfermedad no probocada por el trabajo |Si, enfermedad no probocada por el trabajo
+|           |NS/NR    |Sí, por accidente no laboral o escolar |Sí, por accidente laboral o escolar        |Sí, por accidente laboral o escolar        |Sí, por accidente laboral o escolar        |Sí, por accidente laboral o escolar       
+|           |         |No                                     |Sí, por accidente no laboral o escolar     |Sí, por accidente no laboral o escolar     |Sí, por accidente no laboral o escolar     |Sí, por accidente no laboral o escolar    
+|           |         |NS/NR                                  |No tuvo ninguna enfermedad o accidente     |No tuvo ninguna enfermedad o accidente     |No tuvo ninguna enfermedad o accidente     |No tuvo ninguna enfermedad o accidente    
+|           |         |                                       |No sabe / No recuerda                      |No sabe / No recuerda                      |No sabe / No recuerda                      |No sabe / No recuerda                     
+
+## Discapacidad. {#test6}
+[Volver](#test13)
+**¿Tiene Ud. alguna de las siguientes condiciones? **
+
+
+|            |2006                                                    |2009                                                    |2009                                               |2013                                               |2015                                               |2017                                               
+|---         |---                                                     |---                                                     |---                                                |---                                                |---                                                |---                                                
+| Variables  | **T1A**                                                | **T1A**                                                | **7t1**                                           | **s34t1**                                         | **s31c1**                                         | **s31a1**                                         
+|---         |---                                                     |---                                                     |---                                                |---                                                |---                                                |---                                                
+|Categorias  |Ceguera o dificultad visual aún usando lentes           |Ceguera o dificultad visual aún usando lentes           |Dificultad física y/o de movilidad                 |Dificultad física y/o movilidad                    |Dificultad física y/o movilidad                    |Dificultad física y/o de movilidad                 
+|            |Sordera o dificultad auditiva aún usando audífonos      |Sordera o dificultad auditiva aún usando audífonos      |Mudez o dificultad en el habla                     |Mudez o dificultad del habla                       |Mudez o dificultad del habla                       |Mudez o dificultad en el habla                     
+|            |Mudez o dificultad en el habla                          |Mudez o dificultad en el habla                          |Dificultad psiquiátrica                            |Dificultad psiquiátrica                            |Dificultad psiquiátrica                            |Dificultad psiquiátrica                            
+|            |Dificultad física y/o movilidad                         |Dificultad física y/o movilidad                         |Dificultad mental o intelectual                    |Dificultad mental o intelectual                    |Dificultad mental o intelectual                    |Dificultad mental o intelectual                    
+|            |Dificultad mental o intelectual                         |Dificultad mental o intelectual                         |Sordera o dificultad para oír aún usando audífonos |Sordera o dificultad para oír aún usando audífonos |Sordera o dificultad para oír aún usando audífonos |Sordera o dificultad para oír aún usando audífonos 
+|            |Dificultad psíquica o psiquiátrica                      |Dificultad psíquica o psiquiátrica                      |Ceguera o dificultad para ver aún usando lentes    |Ceguera o dificultad para ver aún usando lentes    |Ceguera o dificultad para ver aún usando lentes    |Ceguera o dificultad para ver aún usando lentes    
+|            |No tiene ninguna de estas condiciones de larga duración |No tiene ninguna de estas condiciones de larga duración |                                                   |                                                   |No tiene ninguna condición de larga duración       |No tiene ninguna condición de larga duración       
+|            |Sin dato                                                |Sin dato                                                |                                                   |                                                   |Sin dato                                           |No sabe/no responde                                
+
+
+
+
+
+
+
+
+
+
+## Empleo. {#test7}
+[Volver](#test13)
+**O1 La semana pasada, ¿trabajó al menos una hora?**
+
+|            |2006    |2009    |2011    |2013    |2015    |2017 
+|---         |---     |---     |---     |---     |---     |---  
+| Variables  | **o1** | **o1** | **o1** | **o1** | **o1** | **o1**
+|---         |---     |---     |---     |---     |---     |---  
+| Categorias |Sí      |Sí      |Sí      |Sí      |Sí      |Sí   
+|            |No      |No      |No      |No      |No      |No   
+
+**O2. ¿Aunque no trabajó la semana pasada, ¿realizó alguna actividad?**
+
+|            |2006    |2009    |2011    |2013    |2015    |2017 
+|---         |---     |---     |---     |---     |---     |---  
+| Variables  | **o2** | **o2** | **o2** | **o2** | **o2** | **o2**
+|---         |---     |---     |---     |---     |---     |---  
+| Categorias |Sí      |Sí      |Sí      |Sí      |Sí      |Sí   
+|            |No      |No      |No      |No      |No      |No   
+
+**O3. ¿Aunque no trabajó la semana pasada, ¿tenía algún empleo del cual estuvo ausente temporalmente por licencia, huelga, enfermedad, vacaciones u otra razón?**
+
+
+|            |2006    |2009    |2011    |2013    |2015    |2017 
+|---         |---     |---     |---     |---     |---     |---  
+| Variables  | **o3** | **o3** | **o3** | **o3** | **o3** | **o3**
+|---         |---     |---     |---     |---     |---     |---  
+| Categorias |Sí      |Sí      |Sí      |Sí      |Sí      |Sí   
+|            |No      |No      |No      |No      |No      |No   
+
+
+**¿Ha trabajado alguna vez?**
+
+|            |2011    |2013    |2015    |2017   
+|---         |---     |---     |---     |---    
+| Variables  | **o4** | **o4** | **o4** | **o4**
+|---         |---     |---     |---     |---    
+| Categorias |Sí      |Sí      |Sí      |Sí     
+|            |No      |No      |No      |No     
+
+
+**O4 ¿Buscó trabajo remunerado en las últimas cuatro semanas?**
+
+|            |2006    |2009    |2011    |2013    |2015    |2017 
+|---         |---     |---     |---     |---     |---     |---  
+| Variables  | **o4** | **o4** | **o6** | **o6** | **o6** | **o6**
+|---         |---     |---     |---     |---     |---     |---  
+| Categorias |Sí      |Sí      |Sí      |Sí      |Sí      |Sí   
+|            |No      |No      |No      |No      |No      |No   
+
+
+**o5. Si le ofrecieran un trabajo, ¿estaría disponible para comenzar a trabajar?**
+
+|            |2006                      |2009                      |2011                      |2013                      |2017                      |2017                     
+|---         |---                       |---                       |---                       |---                       |---                       |---                      
+| Variables  | **o5**                   | **o5**                   | **o5**                   | **o5**                   | **o5**                   | **o5**                  
+|---         |---                       |---                       |---                       |---                       |---                       |---                      
+| Categorias |Si, ahora mismo           |Si, ahora mismo           |Si, ahora mismo           |Si, ahora mismo           |Si, ahora mismo           |Si, ahora mismo          
+|            |Sí, en otra época del año |Sí, en otra época del año |Sí, en otra época del año |Sí, en otra época del año |Sí, en otra época del año |Sí, en otra época del año
+|            |No                        |No                        |No                        |No                        |No                        |No                       
+|            |                          |                          |                          |                          |                          |No sabe/no responde
+
+**o7r1. ¿cuál es la razón o razones…?**
+
+|           |2006                                                     | 2009                                                           |2011                                                                                                              | 2013                                                                                                | 2015                                                                                                  | 2017                                                                                               
+|---        |---                                                      |---                                                             |---                                                                                                               |---                                                                                                  |---                                                                                                    |---                                                                                                 
+|Variables  |**o6**                                                   | **o6**                                                         |**o7**                                                                                                            | **o7r1**                                                                                            | **o7r1**                                                                                              | **o7r1**                                                                                           
+|---        |---                                                      |---                                                             |---                                                                                                               |---                                                                                                  |---                                                                                                    |---                                                                                                 
+|Categorias |Consiguió trabajo, empezará en los próximos 30 días      |Consiguió trabajo, empezará en los próximos 3.0 días            |Consiguió trabajo que empezará pronto o iniciará pronto una actividad por cuenta propia                           |Consiguió trabajo que empezará pronto o iniciará pronto una actividad por cuenta propia              |Consiguió trabajo que empezará pronto o iniciará pronto una actividad por cuenta propia                |Consiguió trabajo que empezará pronto o iniciará pronto una actividad por cuenta propia             
+|           |Está esperando resultado de gestiones ya emprendidas     |Está esperando resultado de gestiones ya emprendidas            |Está esperando resultado de gestiones ya emprendidas                                                              |Está esperando resultado de gestiones ya emprendidas                                                 |Está esperando resultado de gestiones ya emprendidas                                                   |Está esperando resultado de gestiones ya emprendidas                                                
+|           |No tiene con quien dejar los niños                       |No tiene con quien dejar los niños                              |No tiene con quien dejar los niños                                                                                |No tiene con quien dejar a los niños                                                                 |No tiene con quien dejar a los niños                                                                   |No tiene con quien dejar a los niños                                                                
+|           |No tiene con quien dejar a adultos mayores de la casa    |No tiene con quien dejar a adultos mayores de la casa           |No tiene con quien dejar a los adultos mayores                                                                    |No tiene con quien dejar a adultos mayores                                                           |No tiene con quien dejar a adultos mayores                                                             |No tiene con quien dejar a adultos mayores                                                          
+|           |Un familiar se opone                                     |No tiene con quien dejar a un postrado, discapacitado o enfermo |No tiene con quien dejar a otro familiar                                                                          |No tiene con quien dejar a otro familiar                                                             |No tiene con quien dejar a otro familiar                                                               |No tiene con quien dejar a otro familiar                                                            
+|           |Quehaceres del hogar                                     |Un familiar se opone                                            |Está enfermo o tiene una discapacidad                                                                             |Está enfermo o tiene una discapacidad                                                                |Está enfermo o tiene una discapacidad                                                                  |Está enfermo o tiene una discapacidad                                                               
+|           |Busca cuando realmente lo necesita o cuando ha sido      |Quehaceres del hogar                                            |Piensa que nadie le dará trabajo (porque no cuenta con la capacitación o educación requerida, por su edad, etc.)  |Piensa que nadie le dará trabajo (porque no cuenta con la capacitación requerida, por su edad, etc.) |Piensa que nadie le dará trabajo (porque no cuenta con la capacitación requerida, por su edad, etc.)   |Piensa que nadie le dará trabajo (porque no cuenta con la capacitación requerida, por su edad, etc.)
+|           |No tiene dinero para cubrir los costos de buscar trabajo |Busca cuando realmente lo necesita o cuando ha sido …           |las reglas, horarios y distancia de los trabajos no le acomodan                                                   |Las reglas, horarios y distancias de los trabajos no le acomodan                                     |Las reglas, horarios y distancias de los trabajos no le acomodan                                       |Las reglas, horarios y distancias de los trabajos no le acomodan                                    
+|           |Piensa que nadie le dará trabajo                         |No tiene dinero para cubrir los costos de buscar trabajo        |Ofrecen sueldos muy bajos                                                                                         |Ofrecen sueldos muy bajos                                                                            |Ofrecen sueldos muy bajos                                                                              |Ofrecen sueldos muy bajos                                                                           
+|           |No cuenta con la capacitación requerida para trabajar    |Piensa que nadie le dará trabajo                                |Quehaceres del hogar                                                                                              |Quehaceres del hogar                                                                                 |Quehaceres del hogar                                                                                   |Quehaceres del hogar                                                                                
+|           |Las reglas y horarios de los trabajos no le gustan       |No cuenta con la capacitación requerida para trabajar           |estudiante                                                                                                        |Estudiante                                                                                           |Estudiante                                                                                             |Estudiante                                                                                          
+|           |Ofrecen sueldos muy bajos                                |Las reglas y horarios de los trabajos no le gustan              |Jubilado(a), pensionado(a) o montepiada                                                                           |Jubilado(a), pensionado(a) o montepiada                                                              |Jubilado(a), pensionado(a) o montepiada                                                                |Jubilado(a), pensionado(a) o montepiada                                                             
+|           |Tiene trabajo esporádico                                 |Ofrecen sueldos muy bajos                                       |Tiene otra fuente de ingreso (seguro de cesantía, herencias, mesadas, rentas, transferencias del Estado, etc.)    |Tiene otra fuente de ingreso (seguro cesantía, mesadas, rentas, transferencias del Estado, etc.)     |Tiene otra fuente de ingreso (seguro cesantía, mesadas, rentas, transferencias del Estado, etc.)       |Tiene otra fuente de ingreso (seguro cesantía, mesadas, rentas, transferencias del Estado, etc.)    
+|           |Se aburrió de buscar                                     |Tiene trabajo esporádico                                        |se cansó de buscar o cree que no hay trabajo disponible                                                           |Se cansó de buscar o cree que no hay trabajo disponible                                              |Se cansó de buscar o cree que no hay trabajo disponible                                                |Se cansó de buscar o cree que no hay trabajo disponible                                             
+|           |Enfermedad crónica o invalidez                           |Se aburrió de buscar                                            |Busca cuando realmente lo necesita o tiene trabajo esporádico                                                     |Busca cuando lo necesita o tiene trabajo esporádico                                                  |Busca cuando lo necesita o tiene trabajo esporádico                                                    |Busca cuando lo necesita o tiene trabajo esporádico                                                 
+|           |Estudiante                                               |Enfermedad crónica o invalidez 1.7. Estudiante                  |No tiene interés en trabajar                                                                                      |No tiene interés de trabajar                                                                         |No tiene interés de trabajar                                                                           |No tiene interés de trabajar                                                                        
+|           |Jubilado(a), montepiada o pensionada                     |Jubilado(a), montepiada o pensionada                            |otra razón                                                                                                        |Otra razón                                                                                           |Otra razón                                                                                             |Otra razón                                                                                          
+|           |Rentista                                                 |Rentista 20 No tiene interés en trabajar                        |                                                                                                                  |NS/NR                                                                                                |NS/NR                                                                                                  |NS/NR                                                                                               
+|           |No tiene interés en trabajar                             |Otra razón                                                      |                                                                                                                  |                                                                                                     |                                                                                                       |                                                                                                    
+|           |Otra razón                                               |                                                                |                                                                                                                  |                                                                                                     |                                                                                                       |                                                                                                    
+|           |Sin dato                                                 |                                                                |                                                                                                                  |                                                                                                     |                                                                                                       |                                                                                                    
+|           |                                                         |                                                             |                                                                                                     |                                                                                        |                            |Sin dato                                                 |
+
+
+
+
+## Seguridad Social. {#test8}
+[Volver](#test13)
+
+**¿Cotizó durante el mes pasado en algún sistema previsional..?d**
+
+|            |2006                                                     |2009                                                                                                                                       |2011                                                        |2013                                                            |2017                                                                                                                   
+|---         |---                                                      |---                                                                                                                                        |---                                                         |---                                                             |---                                                                                                                    
+| Variables  | **O29**                                                 | **o31**                                                                                                                                   | **o29**                                                    | **o30**                                                        | **o30**                                                                                                               
+|---         |---                                                      |---                                                                                                                                        |---                                                         |---                                                             |---                                                                                                                    
+| Categorias |Sí, AFP (Administradora de Fondos de Pensiones)          |Sí                                                                                                                                         |Sí, AFP. Cotización obligatoria del trabajador dependiente  |Sí, AFP. Cotización obligatoria del trabajador dependiente      |Sí, AFP (Administradora de Fondos de Pensiones) Cotización obligatoria del trabajador dependiente                      
+|            |Sí, INP (CANAEMPU, EMPART, SSS)                          |No                                                                                                                                         |Sí, AFP. Cotización voluntaria del trabajador independiente |Sí, AFP. Cotización voluntaria del trabajador independiente     |Sí, AFP (Administradora de Fondos de Pensiones) Cotización voluntaria del trabajador independiente                     
+|            |Sí, Caja de Previsión de la Defensa Nacional (CAPREDENA) |No sabe O3.2. ¿Se encuentra cotizando en algún sistema previsional (sistema de pensiones)?                                                 |Si, IPS ex INP. Caja de EE. Públicos, Particulares, SSS     |Si, IPS ex INP. Caja de EE. Públicos, Particulares, SSS u otras |Sí, IPS ex INP [Caja Nacional de Empleados Públicos (CANAEMPU), Caja de Empleados Particulares (EMPART), Servicio de S 
+|            |Sí, Dirección de Previsión de Carabineros (DIPRECA)      |Si, AFP (Administradora de Fondos de Pensiones) Cotización obligatoria                                                                     |Sí, Caja de Previsión de la Defensa Nacional                |Sí, Caja de Previsión de la Defensa Nacional                    |Sí, Caja de Previsión de la Defensa Nacional (CAPREDENA)                                                               
+|            |Sí, otra                                                 |Si, IPS ex INP, [Caja Nacional de Empleados Públicos (CANAEMPU), Caja de Empleados Particulares (EMPART), Servicio de Seguro Social (SSS)] |Sí, Dirección de Previsión de Carabineros                   |Sí, Dirección de Previsión de Carabineros                       |Sí, Dirección de Previsión de Carabineros (DIPRECA)                                                                    
+|            |Está afiliado pero No está cotizando                     |Si, Caja de Prensión de la Defensa Nacional (CAPREDENA)                                                                                    |Sí, otra                                                    |Sí, otra. Especifique                                           |Sí, otra Especifique                                                                                                   
+|            |No está afiliado                                         |Si, Dirección de Previsión de Carabineros (DIPRECA)                                                                                        |No está cotizando                                           |No está cotizando                                               |No está cotizando                                                                                                      
+|            |No sabe / Sin dato                                       |Si, otra. Especifique                                                                                                                      |No sabe                                                     |No sabe                                                         |No sabe                                                                                                                
+|            |O30 ¿Por qué no cotiza?                                  |Sí, AFP (Administradora de Fondos de Pensiones) Cotización voluntaria                                                                      |                                                            |                                                                |                                                                                                                       
+|            |                                                         |No está cotizando                                                                                                                          |                                                            |                                                                |                                                                                                                       
+|            |                                                         |No sabe                                                                                                                                    |                                                            | 
+
+
+## Demografía {#test9}
+[Volver](#test13)
+
+## Ingresos {#test10}
+[Volver](#test13)
+
+**Subsidio Monetario**
+
+**YMONAJ** Ingreso por montepío o pensión de viudez (pesos por mes)\             
+**YMONHAJ** Ingreso por montepío o pensión de viudez, en el hogar (pesos por mes)\
+**YORFAJ** Ingreso por pensión de orfandad (pesos por mes)\                      
+**YORFHAJ** Ingreso por pensión de orfandad, en hogar (pesos por mes)\            
+**ymonh** Montepío o pensión de viudez\                                           
+**yorfh** Pensión de orfandad\
+**y26_1g** Mes pasado Montepío o Pensión de Viudez\
+**y26_1h** Mes pasado Pensión de Orfandad\
+
+|            |2006        |2009        |2011        |2013      |2015      |2017 
+|---         |---         |---         |---         |---       |---       |---  
+|            | ****       | ****       | ****       | ****     | ****     | ****
+|---         |---         |---         |---         |---       |---       |---  
+| Variables  |**YMONAJ**  |**YMONAJ**  |**ymonaj**  |          |          |     
+|            |**YMONHAJ** |**YMONHAJ** |**ymonhaj** |          |          |     
+|            |**YORFAJ**  |**YORFAJ**  |**yorfaj**  |          |          |     
+|            |**YORFHAJ** |**YORFHAJ** |**yorfhaj** |          |          |     
+|            |            |            |            |**ymonh** |**ymonh** |
+|            |            |            |            |**yorfh** |**yorfh** |
+|            |            |            |            |          |          |**y26_1g**      
+|            |            |            |            |          |          |**y26_1h**     
+|            |            |            |            |          |          |     
+|            |            |            |            |          |          |     
+|            |            |            |            |          |          |     
+|            |            |            |            |          |          |     
+
+
+## Etnia {#test11}
+[Volver](#test13)
+
+:
+**T4:** Etnia
+
+|           |   2006                               |   2009                               |   2011                               |   2013                               |   2015                               |   2017                              
+|---	      |---                                   |---                                   |---                                   |---                                   |---                                   |---                                  
+|Variable   | **T4**                               | **T5**                               | **r6**                               | **r6**                               | **r3**                               | **r3**                              
+|---        |---                                   |---                                   |---                                   |---                                   |---                                   |---                                  
+|Categorías |Aymará                                |Aymará                                |Aymara                                |Aymara                                |Aymara                                |Aymara                               
+|           |Rapa Nui                              |Rapa Nui                              |Rapa Nui (Pascuense)                  |Rapa Nui (Pascuense)                  |Rapa Nui (Pascuense)                  |Rapa Nui (Pascuense)                 
+|           |Quechua                               |Quechua                               |Quechua                               |Quechua                               |Quechua                               |Quechua                              
+|           |Mapuche                               |Mapuche                               |Mapuche                               |Mapuche                               |Mapuche                               |Mapuche                              
+|           |Atacameño                             |Atacameño                             |Atacameño (Likán Antai)               |Atacameño (Likán Antai)               |Atacameño (Likán Antai)               |Atacameño (Likán Antai)              
+|           |Coya                                  |Coya                                  |Coya                                  |Coya                                  |Coya                                  |Coya                                 
+|           |Kawaskar                              |Kawaskar                              |Kawésqar (Alacalufes)                 |Kawésqar (Alacalufes)                 |Kawésqar (Alacalufes)                 |Kawésqar (Alacalufes)                
+|           |Yagan                                 |Yagan                                 |Yagán (Yámana)                        |Yagán (Yámana)                        |Yagán (Yámana)                        |Yagán (Yámana)                       
+|           |Diaguita                              |Diaguita                              |Diaguita                              |Diaguita                              |Diaguita                              |Diaguita                             
+|           |No pertenece a ningún pueblo indígena |No pertenece a ningún pueblo indígena |No pertenece a ningún pueblo indígena |No pertenece a ningún pueblo indígena |No pertenece a ningún pueblo indígena |No pertenece a ningún pueblo indígena
+|           |Sin dato                              |                                      |NS/NR                                 |NS/NR                                 |NS/NR                                 |NS/NR                                
+
+
+**¿Habla o entiende algunas de las siguientes lenguas: Aimara, Rapa- Nui, Quechua, Mapudungun, Kawashkar o Yagán?**
+
+|           |   2006                      |   2009                      |   2011                      |   2013                      |   2015                      |   2017                      
+|---	      |---                          |---                          |---                          |---                          |---                          |---                          
+|Variable   | **T5**                      | **T6**                      | **r7**                      | **r7**                      | **r4**                      | **r4**                      
+|---        |---                          |---                          |---                          |---                          |---                          |---                          
+|Categorías |Habla y entiende             |Habla y entiende             |Habla y entiende             |Habla y entiende             |Habla y entiende             |Habla y entiende             
+|           |Solo entiende                |Solo entiende                |Solo entiende                |Solo entiende                |Solo entiende                |Solo entiende                
+|           |No habla ni entiende ninguna |No habla ni entiende ninguna |No habla ni entiende ninguna |No habla ni entiende ninguna |No habla ni entiende ninguna |No habla ni entiende ninguna 
+|           |Sin dato                     |Sin dato                     |Sin dato                     |Sin dato                     |Sin dato                     |Sin dato                     
+
+**¿Cuál lengua habla o entiende?**
+
+|           |   2006    |   2006    |   2011    |   2013    |   2015    |   2017   
+|---        |---        |---        |---        |---        |---        |---       
+|Variable   | **T6**    | **T7**    | **r8**    | **r8**    | **r5**    | **r5**   
+|---        |---        |---        |---        |---        |---        |---       
+|Categorías |Aymará     |Aymará     |Aymará     |Aymará     |Aymará     |Aymará    
+|           |Rapa-nui   |Rapa-nui   |Rapa-nui   |Rapa-nui   |Rapa-nui   |Rapa-nui  
+|           |Quechua    |Quechua    |Quechua    |Quechua    |Quechua    |Quechua   
+|           |Mapudungún |Mapudungún |Mapudungún |Mapudungún |Mapudungún |Mapudungún
+|           |Kawaskar   |Kawaskar   |Kawaskar   |Kawaskar   |Kawaskar   |Kawaskar  
+|           |Yagán      |Yagán      |Yagán      |Yagán      |Yagán      |Yagán     
+|           |           |           |NS/NR      |NS/NR      |NS/NR      |NS/NR     
+
+**T7: Cuando nació, ¿en qué comuna o lugar vivía su madre?**
+
+|           |   2006        
+|---        |---            
+|Variable   | **T7**        
+|---        |---            
+|Categorías |En esta comuna 
+|           |En otra comuna 
+|           |En otro país   
+|           |Sin dato       
+
+
+## Auto biografia {#test12}
+[Volver](#test13)
+
+
+**r12b.Nivel de educación más alto alcanzado por su padre (o fig.paterna)**
+
+|           |   2006                                               |   2009                                      |   2011                                                  |   2013                                                 |   2015                                                       |   2017                                                  
+|---        |---                                                   |---                                          |---                                                      |---                                                     |---                                                           |---                                                      
+|Variable   | **T14B**                                             | **T16MT**                                   | **r5mn**                                                | **r4pn**                                               | **r10b**                                                     | **r12b**                                                
+|---        |---                                                   |---                                          |---                                                      |---                                                     |---                                                           |---                                                      
+|Categorías |Educación básica (preparatoria)                       |Educación Parvularia                         |Nunca asistió                                            |Nunca asistió                                           |Nunca asistió                                                 |Nunca asistió                                            
+|           |Educación media CH-TP (humanidades)                   |Preparatoria                                 |Primaria o preparatoria (s. Antiguo)                     |Primaria o Preparatoria (S. Antiguo)                    |Primaria o Preparatoria (sistema antiguo)                     |Primaria o Preparatoria (S. Antiguo)                     
+|           |Educación técnica de nivel superior                   |Educación Básica                             |Educación básica 7.. Humanidades (s. antiguo)            |Educación Básica                                        |Educación Básica                                              |Educación Básica                                         
+|           |Educación universitaria                               |Humanidades (Sist. antiguo)                  |Educación media científico- humanista                    |Humanidades (S. Antiguo)                                |Humanidades (sistema antiguo)                                 |Humanidades (S. Antiguo)                                 
+|           |No estudió (incluye preparatoria o básica incompleta) |Educación media científico humanista         |Técnica, comercial, industrial, normalista (s. antiguo)  |Educación Media Científico-Humanista                    |Educación Media Científico- Humanista                         |Educación Media Científico- Humanista                    
+|           |No sabe no recuerda                                   |Técnica, comercial, industrial o normalista  |Educación media técnica profesional                      |Técnica, Comercial, Industrial, Normalista (S. Antiguo) |Técnica, Comercial, Industrial o Normalista (sistema antiguo) |Técnica, Comercial, Industrial o Normalista (S. Antiguo) 
+|           |                                                      |Educación media técnica profesional          |Técnico nivel superior                                   |Educación Media Técnica Profesional                     |Educación Media Técnica Profesional                           |Educación Media Técnica Profesional                      
+|           |                                                      |Centro de formación técnica (CFT)            |Profesional                                              |Técnico Nivel Superior (carrera año) de 1 a 3 año)      |Técnico Nivel Superior (carrera de 1 a 3 año)                 |Técnico Nivel Superior (carrera de 1 a 3 años)           
+|           |                                                      |Instituto Profesional                        |Postgrado                                                |Profesional (carrera de 4 ó más años)                   |Profesional (carrera de 4 ó más años)                         |Profesional (carrera de 4 ó más años)                    
+|           |                                                      |Universitario                                |No sabe                                                  |Postgrado                                               |Postgrado                                                     |Postgrado                                                
+|           |                                                      |Ninguno                                      |                                                         |No sabe                                                 |No aplica                                                     |No aplica                                                
+|           |                                                      |No sabe / No recuerda                        |                                                         |                                                        |No sabe                                                       |No sabe                                                  
+
+
+**r12b.Nivel de educación más alto alcanzado por su madre (o fig.materna)**
+
+|           |   2006                                               |   2009                                      |   2011                                                  |   2013                                                 |   2015                                                       |   2017                                                  
+|---        |---                                                   |---                                          |---                                                      |---                                                     |---                                                           |---                                                      
+|Variable   | **T14A**                                             | **T16PT**                                   | **r5pn**                                                | **r4mn**                                               | **r10a**                                                     | **r12a**                                                
+|---        |---                                                   |---                                          |---                                                      |---                                                     |---                                                           |---                                                      
+|Categorías |Educación básica (preparatoria)                       |Educación Parvularia                         |Nunca asistió                                            |Nunca asistió                                           |Nunca asistió                                                 |Nunca asistió                                            
+|           |Educación media CH-TP (humanidades)                   |Preparatoria                                 |Primaria o preparatoria (s. Antiguo)                     |Primaria o Preparatoria (S. Antiguo)                    |Primaria o Preparatoria (sistema antiguo)                     |Primaria o Preparatoria (S. Antiguo)                     
+|           |Educación técnica de nivel superior                   |Educación Básica                             |Educación básica 7.. Humanidades (s. antiguo)            |Educación Básica                                        |Educación Básica                                              |Educación Básica                                         
+|           |Educación universitaria                               |Humanidades (Sist. antiguo)                  |Educación media científico- humanista                    |Humanidades (S. Antiguo)                                |Humanidades (sistema antiguo)                                 |Humanidades (S. Antiguo)                                 
+|           |No estudió (incluye preparatoria o básica incompleta) |Educación media científico humanista         |Técnica, comercial, industrial, normalista (s. antiguo)  |Educación Media Científico-Humanista                    |Educación Media Científico- Humanista                         |Educación Media Científico- Humanista                    
+|           |No sabe no recuerda                                   |Técnica, comercial, industrial o normalista  |Educación media técnica profesional                      |Técnica, Comercial, Industrial, Normalista (S. Antiguo) |Técnica, Comercial, Industrial o Normalista (sistema antiguo) |Técnica, Comercial, Industrial o Normalista (S. Antiguo) 
+|           |                                                      |Educación media técnica profesional          |Técnico nivel superior                                   |Educación Media Técnica Profesional                     |Educación Media Técnica Profesional                           |Educación Media Técnica Profesional                      
+|           |                                                      |Centro de formación técnica (CFT)            |Profesional                                              |Técnico Nivel Superior (carrera año) de 1 a 3 año)      |Técnico Nivel Superior (carrera de 1 a 3 año)                 |Técnico Nivel Superior (carrera de 1 a 3 años)           
+|           |                                                      |Instituto Profesional                        |Postgrado                                                |Profesional (carrera de 4 ó más años)                   |Profesional (carrera de 4 ó más años)                         |Profesional (carrera de 4 ó más años)                    
+|           |                                                      |Universitario                                |No sabe                                                  |Postgrado                                               |Postgrado                                                     |Postgrado                                                
+|           |                                                      |Ninguno                                      |                                                         |No sabe             ,                                   |No aplica                                                     |No aplica                                                
+|           |                                                      |No sabe / No recuerda                        |                                                         |                                                        |No sabe                                                       |No sabe                                                  
+
+**Antes trabajó su padre la mayor parte del tiempo como:**
+
+|           |   2006                                  |   2009                   
+|---        |---                                      |---                       
+|Variable   | **T15A**                                | **T14A**                 
+|---        |---                                      |---                       
+|Categorías |Patrón o empleador con 1 a 4 empleados   |Patrón o empleador        
+|           |Patrón o empleador con 5 o más empleados |Trabajador por cuent      
+|           |Trabajador por cuenta propia             |Fuerzas Armadas y de Orden
+|           |Empleado u obrero                        |Servicio doméstico        
+|           |Fuerzas Armadas y de Orden               |No trabajaba              
+|           |Servicio doméstico                       |No sabe / No recuerda     
+|           |No trabajaba                             |                          
+|           |No sabe no recuerda                      |                          
+
+
+**Antes trabajó su madre la mayor parte del tiempo como:**
+
+|           |   2006                                  |   2009                   
+|---        |---                                      |---                       
+|Variable   | **T15B**                                | **T14B**                 
+|---        |---                                      |---                       
+|Categorías |Patrón o empleador con 1 a 4 empleados   |Patrón o empleador        
+|           |Patrón o empleador con 5 o más empleados |Trabajador por cuent      
+|           |Trabajador por cuenta propia             |Fuerzas Armadas y de Orden
+|           |Empleado u obrero                        |Servicio doméstico        
+|           |Fuerzas Armadas y de Orden               |No trabajaba              
+|           |Servicio doméstico                       |No sabe / No recuerda     
+|           |No trabajaba                             |                          
+|           |No sabe no recuerda                      |                          
+
+
+**En ese nivel educacional, ¿cual fue el último curso que aprobó su madre?**
+
+|           |   2009               |   2011               |   2013               |   2015               |   2017               
+|---        |---                   |---                   |---                   |---                   |---                   
+|Variable   | **T16PC**            | **r5pc**             | **r5p**              | **r11b**             | **r13b**             
+|---        |---                   |---                   |---                   |---                   |---                   
+|Categorías |1° (primero)          |1° (primero)          |1° (primero)          |1° (primero)          |1° (primero)          
+|           |2° (segundo)          |2° (segundo)          |2° (segundo)          |2° (segundo)          |2° (segundo)          
+|           |3° (tercero)          |3° (tercero)          |3° (tercero)          |3° (tercero)          |3° (tercero)          
+|           |4° (cuarto            |4° (cuarto            |4° (cuarto            |4° (cuarto            |4° (cuarto            
+|           |5° (quinto)           |5° (quinto)           |5° (quinto)           |5° (quinto)           |5° (quinto)           
+|           |6° (sexto)            |6° (sexto)            |6° (sexto)            |6° (sexto)            |6° (sexto)            
+|           |7° (séptimo)          |7° (séptimo)          |7° (séptimo)          |7° (séptimo)          |7° (séptimo)          
+|           |8° (octavo)           |8° (octavo)           |8° (octavo)           |8° (octavo)           |8° (octavo)           
+|           |No sabe / No recuerda |No sabe / No recuerda |No sabe / No recuerda |No sabe / No recuerda |No sabe / No recuerda 
+
+**En ese nivel educacional, ¿cual fue el último curso que aprobó su madre?**
+
+|           |   2009               |   2011               |   2013               |   2015               |   2017               
+|---        |---                   |---                   |---                   |---                   |---                   
+|Variable   | **T16MC**            | **r4mc**             | **r5mc**              | **r11a**             | **r13a**             
+|---        |---                   |---                   |---                   |---                   |---                   
+|Categorías |1° (primero)          |1° (primero)          |1° (primero)          |1° (primero)          |1° (primero)          
+|           |2° (segundo)          |2° (segundo)          |2° (segundo)          |2° (segundo)          |2° (segundo)          
+|           |3° (tercero)          |3° (tercero)          |3° (tercero)          |3° (tercero)          |3° (tercero)          
+|           |4° (cuarto            |4° (cuarto            |4° (cuarto            |4° (cuarto            |4° (cuarto            
+|           |5° (quinto)           |5° (quinto)           |5° (quinto)           |5° (quinto)           |5° (quinto)           
+|           |6° (sexto)            |6° (sexto)            |6° (sexto)            |6° (sexto)            |6° (sexto)            
+|           |7° (séptimo)          |7° (séptimo)          |7° (séptimo)          |7° (séptimo)          |7° (séptimo)          
+|           |8° (octavo)           |8° (octavo)           |8° (octavo)           |8° (octavo)           |8° (octavo)           
+|           |No sabe / No recuerda |No sabe / No recuerda |No sabe / No recuerda |No sabe / No recuerda |No sabe / No recuerda 
+
+
+## Migra
+[Volver](#test13)
+
+**T8 Cuando Ud. nació, ¿en qué comuna o lugar vivía su madre?**
+
+|           |   2009        |   2011        |   2013        |   2015       
+|---        |---            |---            |---            |---           
+|Variable   | **T8**        | **r1a**       | **r1b**       | **r1b**      
+|---        |---            |---            |---            |---           
+|Categorías |En esta comun  |En esta comun  |En esta comun  |En esta comun 
+|           |En otra comuna |En otra comuna |En otra comuna |En otra comuna
+|           |En otro país   |En otro país   |En otro país   |En otro país  
+|           |No sabe        |No sabe        |No sabe        |No sabe       
+|           |               |               |               |              
+|           |               |               |               |              
+|           |               |               |               |              
+|           |               |               |               |              
+|           |               |               |               |              
+
+
+**¿En qué comuna o país vivía hace 5 años?**
+
+|           |   2009        |   2011                                     |   2013        |   2015                                   |   2017                                    
+|---        |---            |---                                         |---            |---                                       |---                                      
+|Variable   | **T9**        | **r2**                                     | **T9**        | **r2**                                   | **r2**                                  
+|---        |---            |---                                         |---            |---                                       |---                                      
+|Categorías |En esta comuna |En esta comuna                              |En esta comuna |En esta comuna                            |Aún no nacía                               
+|           |En otra comuna |“En otra comuna. Especifique ¿cuál comuna?” |En otra comuna |En otra comuna. Especifique ¿cuál comuna? |En esta comuna                             
+|           |En otro país   |“En otro país. Especifique ¿cuál país?”     |En otro país   |En otro país. Especifique ¿cuál país?     |En otra comuna de Chile. Especifique comuna
+|           |No sabe        |No sabe                                     |No sabe        |No sabe                                   |En otro país. Especifique país             
+|           |               |                                            |               |                                          |No sabe                                    
+
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+
+
+
+

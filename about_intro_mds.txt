@@ -1,0 +1,7 @@
+En la encuesta Casen 2017 existen una serie de columnas que elabora el ministerio de desarrollo social y que corresponden a indicadores calculados que en base a otras columnas dentro
+de la misma Casen. El ministerio de desarrollo social de Chile construye indicadores ah-doc segun lo soliciten diferentes organisaciones gubernamentales, por ejemplo el indicador de 
+conocimiento de la lengua indigena solicitado por la CONADI el indicador de Distribución de participación en organizaciones sociales o Distribución porcentual  del acceso a internet 
+por lugar de acceso, solicitado SUBTEL. Doce indicadores son construidos de esta manera en cuyo calculo se utiliza codigo spss o stata. Estos codigos los adjuntamos como ejemplo en algunas
+variables.
+
+Estos indicadores corresponden a las columnas de la 772 a la 783

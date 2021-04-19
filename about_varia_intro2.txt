@@ -1,0 +1,14 @@
+
+Descripción de las variables.
+
+1 Folio. Corresponde a un identificador único por hogar.
+
+región-comuna-zona-segmento-vivienda-hogar
+
+Tomemos como ejemplo el primer registro de la Casen 2017: 510910650901
+
+región	comuna	zona	segmento	vivienda 	hogar
+
+5	109		1	065		09		01 
+
+Viña del Mar

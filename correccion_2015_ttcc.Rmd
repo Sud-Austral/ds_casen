@@ -1,0 +1,211 @@
+---
+title: "Correccion 2015 ttcc"
+author: ""
+date: "26 de noviembre de 2020"
+output: html_document
+---
+```{r , message=FALSE, warning=FALSE}
+
+suppressWarnings(library(RODBC))
+
+library(ggplot2)
+library(ggpubr)
+library(markdown)
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(plotly)
+library(xts)
+library(dygraphs)
+library(kableExtra)
+library(knitr)
+library("readxl")
+library(rsconnect)
+library(dplyr)
+library(summarytools)
+library(epiDisplay)
+#library(leaflet)
+library(haven)
+library(epiDisplay)
+library("readxl")
+library(expss)
+library(hrbrthemes)
+library(viridis)
+library(viridisLite)
+library(DescTools)
+library(roperators)
+library(shinycssloaders)
+library(writexl)
+library(labelled)
+library(tidyverse)
+library(haven)
+library(readr)
+library(sjmisc)
+library(WriteXLS)
+
+
+library(readstata13)
+```
+
+#########################################################
+#########################################################
+#########################################################
+Con este codigo construimos las tablas de contingencia para corregir las que teniamos del 2015
+
+
+
+```{r}
+dataset2015_original  <- readRDS("CASEN_2015_ds_final.rds")
+dataset2015 <- as_factor(dataset2015_original, only_labelled = TRUE)
+```
+
+
+```{r}
+
+ab <- dataset2015
+
+    a <- ab$comuna
+    b <- ab$y27d
+    c <- ab$r1aesp_cod
+    d <- ab$sexo
+    
+    # r3 <-etnia 
+    # migra <- r1aesp_cod
+    
+    # df <-aggregate(dataset2015$yautcor, by=list(dataset2015$comuna,dataset2015$r3,dataset2015$sexo), FUN = mean , na.rm = TRUE)
+
+    cross_tab =  xtabs(ab$expc ~ unlist(a) + unlist(b)+unlist(c)+unlist(d),aggregate(ab$expc ~ unlist(a)+unlist(b)+unlist(c)+unlist(d),ab,mean))
+    
+    tabla <- as.data.frame(cross_tab)
+    df <-tabla[!(tabla$Freq == 0),]
+    df$anio <- "2015"
+    # names(df)[1] <- "Comuna"
+    head(df,3)
+    
+    
+# write_xlsx(df,"tabla_2015_yautcorh.xlsx")
+```
+el problema es que en la primera columna de la salida d, en la columna donde debe estar el nombre de las comunas aparece el codigo 16101 al 16305
+
+```{r}
+newdata <- which(is.na(df$comuna))
+newdata
+```
+
+```{r}
+
+df_comunas <- stack(attr(dataset2015_original$comuna, 'labels'))
+names(df_comunas)[2] <- "Comuna"
+head(df_comunas,10)
+nrow(df_comunas)
+```
+
+
+```{r}
+names(df)[1] <- "Comuna"
+head(df,3)
+nrow(df)
+
+```
+
+Ahora debemos asignarle nombres a los codigos comunales en la primera columna del dataframe df
+
+```{r}
+df$Comuna[df$Comuna == 16101] <- "Chillán"
+df$Comuna[df$Comuna == 16102] <- "Bulnes"
+df$Comuna[df$Comuna == 16103] <- "Chillán Viejo"
+
+df$Comuna[df$Comuna == 16104] <- "El Carmen"
+df$Comuna[df$Comuna == 16105] <- "Pemuco"
+df$Comuna[df$Comuna == 16106] <- "Pinto"
+
+df$Comuna[df$Comuna == 16107] <- "Quillón"
+df$Comuna[df$Comuna == 16108] <- "San Ignacio"
+df$Comuna[df$Comuna == 16109] <- "Yungay"
+
+
+df$Comuna[df$Comuna == 16201] <- "Quirihue"
+df$Comuna[df$Comuna == 16202] <- "Cobquecura"
+df$Comuna[df$Comuna == 16203] <- "Coelemu"
+
+df$Comuna[df$Comuna == 16204] <- "Ninhue"
+df$Comuna[df$Comuna == 16205] <- "Portezuelo"
+df$Comuna[df$Comuna == 16206] <- "Ránquil"
+
+df$Comuna[df$Comuna == 16207] <- "Treguaco"
+df$Comuna[df$Comuna == 16301] <- "San Carlos"
+df$Comuna[df$Comuna == 16302] <- "Coihueco"
+
+df$Comuna[df$Comuna == 16303] <- "Ñiquén"
+df$Comuna[df$Comuna == 16304] <- "San Fabián"
+df$Comuna[df$Comuna == 16305] <- "San Nicolás"
+```
+
+```{r}
+newdata <- which(is.na(df$Comuna))
+newdata
+```
+
+llegamos a la union entre las tablas
+```{r}
+df = merge( x = df, y = df_comunas, by = "Comuna", all.x = TRUE)
+
+df$"values"[df$Comuna == "Chillán"] <-        16101
+df$"values"[df$Comuna == "Bulnes"] <-         16102
+df$"values"[df$Comuna == "Chillán Viejo"] <-  16103
+df$"values"[df$Comuna == "El Carmen"] <-      16104
+df$"values"[df$Comuna == "Pemuco"] <-         16105
+df$"values"[df$Comuna == "Pinto"] <-          16106
+df$"values"[df$Comuna == "Quillón"] <-        16107
+df$"values"[df$Comuna == "San Ignacio"] <-    16108
+df$"values"[df$Comuna == "Yungay"] <-         16109
+df$"values"[df$Comuna == "Quirihue"] <-       16201
+df$"values"[df$Comuna == "Cobquecura"] <-     16202
+df$"values"[df$Comuna == "Coelemu"] <-        16203
+df$"values"[df$Comuna == "Ninhue"] <-         16204
+df$"values"[df$Comuna == "Portezuelo"] <-     16205
+df$"values"[df$Comuna == "Ránquil"] <-        16206
+df$"values"[df$Comuna == "Treguaco"] <-       16207
+df$"values"[df$Comuna == "San Carlos"] <-     16301
+df$"values"[df$Comuna == "Coihueco"] <-       16302
+df$"values"[df$Comuna == "Ñiquén"] <-         16303
+df$"values"[df$Comuna == "San Fabián"] <-     16304
+df$"values"[df$Comuna == "San Nicolás"] <-    16305
+
+
+```
+
+```{r}
+write_xlsx(df,"tabla_019_2015_corregida_migra.xlsx")
+```
+
+############################--- FIN --############################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

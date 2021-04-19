@@ -1,0 +1,198 @@
+---
+title: "Como programar una red neuronal en R"
+author: "DI"
+date: "27-11-2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# https://anderfernandez.com/blog/programar-red-neuronal-en-r-desde-cero/
+
+# https://www.iartificial.net/clasificacion-o-regresion/
+```
+
+### 
+
+## ¿Clasificación o Regresión?
+
+Cuando usamos aprendizaje automático, podemos realizar tareas de clasificación o de regresión. La diferencia está en el tipo de resultado que queremos que la técnica de machine learning produzca. Veamos la diferencia.
+
+### Clasificación
+
+Cuando usamos clasificación, el resultado es una clase, entre un número limitado de clases. Con clases nos referimos a categorías arbitrarias según el tipo de problema.
+
+Por ejemplo, si queremos detectar si un correo es spam o no, sólo hay 2 clases. Y el algoritmo de machine learning de clasificación, tras darle un correo electrónico, tiene que elegir a qué clase pertenece: spam o no-spam. Hay muchos más ejemplos, por supuesto:
+
+    ¿comprará el cliente este producto? [sí, no]
+    ¿tipo de tumor? [maligno, benigno]
+    ¿subirá el índice bursátil? IBEX mañana [sí, no]
+    ¿es este comportamiento una anomalía? [sí, no]
+    ¿nos devolverá este cliente un crédito? [sí, no]
+    ¿qué deporte estás haciendo? tal y como lo detectan los relojes inteligentes [caminar, correr, bicicleta, nadar]
+    ¿obtendrá una historia un número alto de visitas en un agregador de noticias? [sí, no]
+    
+<span style="color:red"> *¿la comuna de Hualqui tendrá mañana un incendio forestal? *</span>
+
+#### Clasificación con probabilidades
+
+Muchos algoritmos de machine learning dan los resultados de clasificación con probabilidades. Es decir, nos pueden decir que un correo es spam con una probabilidad del 89%. O que una imagen tiene un 67% de probabilidades ser un perro, un 18% de ser un gato, un 9% de ser una oveja, etc.
+
+Normalmente, en el caso que usemos probabilidades, se tiende a elegir la clase con probabilidad más alta como resultado del proceso de clasificación. Otra posibilidad que está a nuestro alcance es fijar un mínimo de probabilidad antes de estar dispuestos a dar un resultado. Por ejemplo, si no estamos seguros con una probabilidad 80% o mayor, diremos que no estamos seguros, en vez de decir que es un perro. Esta estrategia puede ser útil cuando el coste de equivocarnos es alto, comparado con el beneficio de obtener la respuesta correcta.
+
+#### Técnicas de Machine Learning para Clasificación
+
+Hay varias técnicas de machine learning que podemos usar en problemas de clasificación. Podemos destacar:
+
+    regresión logística (logistic regression)
+    máquinas de vectores de soporte (support vector machines)
+    árboles de decisión (decision trees)
+    bosques aleatorios (random forests)
+    redes neuronales y aprendizaje profundo (deep learning)
+
+
+## Programar una Red Neuronal
+
+Necesitamos es un problema a resolver. En nuestro caso,  crearemos un problema de clasificación construyendo una función que genere datos circulares según un radio R. Con esto, podremos dibujar dos círculos concéntricos que se solapen un poco, para ver qué tal se le da a nuestra red neuronal.
+
+
+```{r }
+circulo <- function(x, R, centroX=0, centroY=0)
+{
+      r = R * sqrt(runif(x))
+      theta = runif(x) * 2 * pi
+      x = centroX + r * cos(theta)
+      y = centroY + r * sin(theta)
+      z = data.frame(x = x, y = y)
+      return(z)
+}
+```
+```{r}
+datos1 <- circulo(150,0.5)
+datos2 <- circulo(150,1.5)
+
+datos1$Y <- 1
+datos2$Y <- 0
+datos <- rbind(datos1,datos2)
+
+rm(datos1,datos2, circulo)
+```
+```{r}
+library(ggplot2)
+ggplot(datos,aes(x,y, col = as.factor(Y))) + geom_point()
+```
+```{r}
+X <- as.matrix(datos[,1:2])
+Y <- as.matrix(datos[,3])
+
+rm(datos)
+```
+Creamos las matrices X e Y y con esto ya tenemos nuestro problema de clasificación listo para ser resuelto con nuestra red neuronal programada desde cero en R. ¡Vamos a ello!
+
+### 1 Partes de una red neuronal
+
+La idea es sencilla: programar cada parte de la red por separado, para así ir explicando en qué consisten las redes neuronales. Una vez tengamos todo programado, probaremos la red neuronal en nuestro problema para ver que funciona correctamente.
+
+Así pues, podríamos decir que una red neuronal se programa en 3 partes:
+
+1 La estructura de la red neuronal: simplemente defines el número de capas, neuronas por cada capa, funciones de activación, la capa de salida… en definitiva, el esqueleto. Además, damos unos valores iniciales a dichos parámetros.
+
+2 Forward Propagation: “arrancamos” la red neuronal y hacemos que nos devuelva un resultado.
+
+3 Back Propagation: en base al error de la estimación, ajustamos los parámetros de la última capa a las capas anteriores. Además, usamos el descenso del gradiente (Gradient Descent) para reajustar los parámetros e ir entrenando a la red neuronal.
+
+Por último tendríamos que entrenar a la red en un problema real y ver cómo funciona. 
+
+### 2 la estructura de la red neuronal
+
+Las redes neuronales son neuronas conectadas entre ellas de manera secuencial. A cada una de esas secuencias las llamamos capas. Las capas siempre tienen las misma estructura: neuronas de la capa, número de conexiones, parámetros b (bias) y w… Por eso, como siempre es la misma estruco código más simple.
+
+La forma en la que lo he hecho ha sido mediante objetos S4. 
+
+Esta clase tendrá los siguientes parámetros:
+
+1 Número de neuronas en la capa.
+2 Número de neuronas en la capa anterior.
+
+3    Bias(b): el número que se suma a la neurona antes de a pasarla por la función de activación.
+4    El número de conexiones que entran a la capa (W): indica el número de conexiones que entran en la capa. Como cada neurona está conectada con todas las neuronas de la capa siguiente, el número de conexiones de una capa dependerá del número de neuronas en la capa anterior y el número de neuronas en la capa actual.
+5    Función de activación dentro de la capa: indicando la “transformación” que se aplicará a en las neuronas de esa capa. En este caso, todas las neuronas dentro de la misma capa aplicarán la misma función de activación, aunque se podrán aplicar una función diferente en cada capa.
+
+Así pues, creamos una clase S4 que contenga estos elementos. Además, aprovecharemos esta clase para inicializar los valores W y b de forma aleatoria, usando la función runif.
+
+```{r}
+neurona <- setRefClass(
+  "neurona",
+  fields = list(
+    fun_act = "list",
+    numero_conexiones = "numeric",
+    numero_neuronas = "numeric",
+    W = "matrix",
+    b = "numeric"
+  ),
+  methods = list(
+    initialize = function(fun_act, numero_conexiones, numero_neuronas)
+    {
+      fun_act <<- fun_act
+      numero_conexiones <<- numero_conexiones
+      numero_neuronas <<- numero_neuronas
+      W <<- matrix(runif(numero_conexiones*numero_neuronas),
+                   nrow = numero_conexiones)
+      b <<- runif(numero_neuronas)
+    }
+  )
+)
+```
+
+Asimismo, deberemos programar las funciones de activación para poder usarlas en la red neuronal. En este caso, usaremos dos tipos de funciones de activación: función sigmoide y función relu.
+
+Además, aprovecharemos estas funciones, no solo para que nos devuelvan el valor de la función en sí, sino también su derivada. ¿Por qué? Pues porque las derivadas son necesarias para calcular el descenso del gradiente.
+
+Además, incluir los dos valores en la misma función es más sencillo a la hora de programar. ¿Que quieres el resultado de la función de activación? Eliges el primer valor de la lista que devuelve. ¿Que quieres la derivada? Eliges el segundo valor.
+
+Así pues, empezamos programac con la función sigmoide, que es así:
+
+```{r}
+sigmoid = function(x) {
+  y = list() 
+  y[[1]] <- 1 / (1 + exp(-x))
+  y[[2]] <- x * (1 - x)
+  return(y)
+}
+
+x <- seq(-5, 5, 0.01)
+plot(x, sigmoid(x)[[1]], col='blue')
+```
+
+programar la función relu, junto con su derivada
+
+```{r}
+relu <- function(x){
+  y <- list()
+  y[[1]] <- ifelse(x<0,0,x)
+  y[[2]] <- ifelse(x<0,0,1)
+  return(y)
+}
+
+plot(x, relu(x)[[1]], col='blue')
+```
+
+Por último, nos queda poner todo de forma conjunta para crear la estructura de la red neuronal, es decir, las capas que conforman la red.
+
+En nuestro caso, al haber creado la clase neurona, crearemos las capas de manera iterativa. Así, esta misma forma de programar las neuronas nos servirá también para otras redes neurionales con otra estructura.
+
+```{r}
+n = ncol(X) #Núm de neuronas en la primera capa
+capas = c(n, 4, 8, 1) # Número de neuronas en cada capa.
+funciones = list(sigmoid, relu, sigmoid) # Función de activación en cada capa
+
+red <- list()
+
+for (i in 1:(length(capas)-1)){
+    red[[i]] <- neurona$new(funciones[i],capas[i], capas[i+1])
+}
+
+red
+```
+

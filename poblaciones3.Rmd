@@ -1,0 +1,435 @@
+---
+title: "Un patrón para descubrir el factor de expansión para las comunas en la Casen 2015"
+author: "Víctor Enamorado-Christian Castro. DI"
+date: "15-12-2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+library(ggpubr)
+library(markdown)
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(plotly)
+library(xts)
+library(dygraphs)
+library(kableExtra)
+library(knitr)
+library("readxl")
+library(rsconnect)
+library(dplyr)
+library(summarytools)
+library(epiDisplay)
+#library(leaflet)
+library(haven)
+library(epiDisplay)
+library(expss)
+library(hrbrthemes)
+library(viridis)
+library(viridisLite)
+library(DescTools)
+library(roperators)
+library(shinycssloaders)
+library(writexl)
+library(vroom)
+library(shinyWidgets)
+library(stringr)
+library(dplyr)
+library(gapminder)
+library(tidyverse)
+library(moderndive)
+library(skimr)
+library(stringr)
+
+oldw <- getOption("warn")
+options(warn = -1)
+
+```
+
+### Queremos a partir de la columna de folio o vivienda descubrir un patrón para el factor de expansión comunal faltante en algunas comunas de la Casen del 2015.
+
+## 2017
+
+1 Leemos la Casen 2017
+
+```{r}
+dataset2017  <- readRDS("dataset2017.rds")
+```
+
+### Huara
+
+2 Seleccionamos las primeras 10 columnas de la comuna de Huara (no tiene factor de expansión comunal para el 2015):
+
+```{r}
+huara <- dataset2017[dataset2017$comuna == "Huara", ] 
+huara <- huara[,1:10]
+head(huara,10)
+```
+3 Extraemos los dígitos del 5 al 8 de folio:
+
+```{r}
+huara_sub <- str_sub(huara$folio, 5,8)
+head(huara_sub, 10)
+```
+
+4 Extraemos los valores del factor de expansión para Huara:
+
+```{r}
+huara_fdee <- huara$expc
+head(huara_fdee, 10)
+```
+
+5 Las unimos:
+
+```{r}
+huara_unida <- cbind(huara_sub, huara_fdee)
+head(huara_unida,10)
+```
+
+6 Extraemos todos los valores repetidos:
+
+```{r}
+colnames(huara_unida)[1] <- "Código ad-hoc"
+colnames(huara_unida)[2] <- "Factor de expansión comunal"
+
+unique(huara_unida)
+```
+Ese valor repetido para el código 3005 es sólo coincidencia.
+
+### Santiago
+
+```{r}
+santiago <- dataset2017[dataset2017$comuna == "Santiago", ] 
+santiago <- santiago[,1:10]
+head(santiago, 10)
+```
+
+```{r}
+library(stringr)
+
+#para Concepción:
+# sub_folio <- str_sub(mejillones$folio, 5,8)
+
+# para Santiago:
+santiago_sub <- str_sub(santiago$folio, 6,9)
+head(santiago_sub,10)
+
+```
+
+```{r}
+santiago_fdee <- santiago$expc
+head(santiago_fdee, 10)
+```
+
+```{r}
+
+santiago_unido <- cbind(santiago_sub, santiago_fdee)
+head(santiago_unido, 10)
+```
+
+```{r}
+colnames(santiago_unido)[1] <- "Código ad-hoc"
+colnames(santiago_unido)[2] <- "Factor de expansión comunal"
+unique(santiago_unido)
+
+```
+
+### Concepción
+
+
+```{r}
+concepcion <- dataset2017[dataset2017$comuna == "Concepción", ] 
+concepcion <- concepcion[,1:10]
+head(concepcion,10)
+```
+
+
+```{r}
+concepcion_sub <- str_sub(concepcion$folio, 5,8)
+head(concepcion_sub, 10)
+```
+
+
+```{r}
+concepcion_fdee <- concepcion$expc
+head(concepcion_fdee, 10)
+```
+
+
+```{r}
+concepcion_unido <- cbind(concepcion_sub, concepcion_fdee)
+head(concepcion_unido,10)
+```
+
+
+```{r}
+colnames(concepcion_unido)[1] <- "Código ad-hoc"
+colnames(concepcion_unido)[2] <- "Factor de expansión comunal"
+
+unique(concepcion_unido)
+```
+
+## 2015
+
+1 Leemos la Casen 2015
+
+```{r}
+dataset2015  <- readRDS("dataset2015.rds")
+# dataset2015
+```
+
+### Santiago
+
+
+```{r}
+#deshabilitamos la notacion cientifica
+options(scipen=999)
+
+santiago <- dataset2015[dataset2015$comuna == "santiago", ] 
+# santiago <- santiago[,1:10]
+head(santiago$folio, 10)
+```
+
+el código para Santiago es 13101
+
+la descomposicion del folio es:
+
+13101   1001   011
+
+lo que necesitamos extraer es el codigo de la zona y el segmento.
+
+
+
+```{r}
+library(stringr)
+
+#para Concepción:
+# sub_folio <- str_sub(mejillones$folio, 5,8)
+
+# para Santiago:
+santiago_sub <- str_sub(santiago$folio, 6,9)
+head(santiago_sub,10)
+
+```
+
+```{r}
+santiago_fdee <- santiago$expc
+head(santiago_fdee, 10)
+```
+
+```{r}
+
+santiago_unido <- cbind(santiago_sub, santiago_fdee)
+head(santiago_unido, 10)
+```
+
+```{r}
+colnames(santiago_unido)[1] <- "Código ad-hoc"
+colnames(santiago_unido)[2] <- "Factor de expansión comunal"
+unique(santiago_unido)
+
+```
+### Conclusión
+
+Si bien hemos logrado asociar un código al factor de expansión comunal extrayendo cierta secuencia del campo **folio**, no encontramos todavía asociación alguna entre los factores de expansión entre años para las comunas.
+
+<br>
+<br>
+<br>
+
+##################################################################
+Parte II
+##################################################################
+
+Marco Muestral. El INE mantiene vigente al año 2015 un marco muestral conformado por dos marcos independientes, el marco de manzanas para la parte urbana y el marco de secciones para la parte rural. Las unidades que lo componen se denominan conglomerados, que corresponden a conjuntos de viviendas agrupadas y contenidas en áreas geográficas definidas por límites de calles, pasajes, alturas de calles o aglomeraciones de viviendas particulares conformadas a partir de una o más entidades pobladas. A través del tiempo, estos conglomerados han sido denominados segmentos (secciones y manzanas) y corresponden a las unidades primarias de muestreo o UPM, obedeciendo a distintos criterios de agrupación, tanto en límites como en tamaño. A través de estos conglomerados se accede a la vivienda y al hogar, cuyos integrantes son las personas, generalmente el objeto final de estudio. A petición del Ministerio de Desarrollo Social, para la encuesta Casen 2015 el INE realizó una actualización parcial menor y focalizado no superior al 2% de viviendas del marco de manzanas, la que se detalla más adelante en el presente documento.
+
+
+Tenemos que el factor de expansión comunal esta asociado al codigo de la zona y el segmento, por lo que si determinamos que éstos códigos son los mismos en el 2015 que en el 2017, podemos reemplazar los factores de expansión de este ultimo en el primero en las comunas que faltan.
+
+Haremos la comparación para una comuna que no posee fdee en el 2015: Huara.
+
+El código de la comuna de Huara es: 01404
+
+la descomposicion del folio es:
+
+Region
+Comuna
+
+Zona
+Segmento
+
+Vivienda
+Hogar
+
+1404   30-020   10-1
+
+lo que necesitamos extraer es el codigo de la zona y el segmento.
+
+### 2015
+
+```{r}
+options(scipen=999)
+huara_2015 <- dataset2015[dataset2015$comuna == "huara", ] 
+head(huara_2015$folio, 10)
+```
+
+```{r}
+huara_2015_sub <- str_sub(huara_2015$folio, 5,9)
+head(huara_2015_sub, 10)
+```
+
+```{r}
+huara_2017_fdee <- huara_2017$expc
+head(huara_2017_fdee, 10)
+```
+
+
+```{r}
+#colnames(huara_2015_sub) <- "Código zona-segmento"
+unique(huara_2015_sub)
+
+```
+
+
+
+### 2017
+
+```{r}
+
+options(scipen=999)
+huara_2017 <- dataset2017[dataset2017$comuna == "Huara", ] 
+head(huara_2017$folio, 10)
+```
+
+```{r}
+huara_2017_sub <- str_sub(huara_2017$folio, 5,9)
+head(huara_2017_sub, 10)
+```
+
+
+```{r}
+huara_2017_fdee <- huara_2017$expc
+head(huara_2017_fdee, 10)
+```
+
+```{r}
+
+huara_2017_unido <- cbind(huara_2017_sub, huara_2017_fdee)
+head(huara_2017_unido, 10)
+```
+
+```{r}
+colnames(huara_2017_unido)[1] <- "Código zona-segmento"
+colnames(huara_2017_unido)[2] <- "Factor de expansión comunal 2017"
+unique(huara_2017_unido)
+
+```
+
+La pregunta que necesitamos contestar es si existe el mismo el par zona-segmento para Huara el año 2015:
+
+```{r}
+huara_2015_sub <- str_sub(huara_2015$folio, 5,9)
+unique(huara_2015_sub)
+```
+
+Faltan.
+
+Veamos si estan los conglomerados completos para el 2013:
+
+### 2013 Huara
+
+```{r}
+options(scipen=999)
+huara_2013 <- dataset2013[dataset2013$comuna == "huara", ] 
+head(huara_2013$folio, 10)
+```
+
+```{r}
+huara_2013_sub <- str_sub(huara_2013$folio, 5,9)
+head(huara_2013_sub, 10)
+```
+
+
+```{r}
+huara_2013_fdee <- huara_2013$expc
+head(huara_2013_fdee, 10)
+```
+
+```{r}
+
+huara_2013_unido <- cbind(huara_2013_sub, huara_2013_fdee)
+head(huara_2013_unido, 10)
+```
+
+```{r}
+colnames(huara_2013_unido)[1] <- "Código zona-segmento"
+colnames(huara_2013_unido)[2] <- "Factor de expansión comunal 2013"
+unique(huara_2013_unido)
+
+```
+
+comparemos:
+
+```{r}
+huara_2015_sub <- str_sub(huara_2015$folio, 5,9)
+unique(huara_2015_sub)
+```
+
+
+Corresponden!
+
+
+```{r}
+dataset2006 <- readRDS("dataset2006.rds")
+dataset2006
+```
+
+```{r}
+data2006_sub <- dataset2006[dataset2006$comuna=="iquique ",]
+data2006_sub
+```
+
+
+{r}
+dataset2006 <- readRDS("dataset2006.rds")
+
+
+{r}
+
+
+# dataset2006$comuna
+data2016 <- dataset2006[dataset2006$comuna =="iquique",]
+
+
+data2016 <- data2016[,1:10]
+head(data2016,10)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

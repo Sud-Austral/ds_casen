@@ -1,0 +1,16 @@
+La Casen incorpora variables de ingresos mensuales o mensualizadas,
+editadas y corregidas por no respuesta por CEPAL, así como
+los indicadores y sus respectivas frecuencias que se calculan
+con las preguntas incluidas en este módulo, entre ellos los deciles
+y quintiles de ingreso autónomo per cápita, estimados a nivel
+nacional y regional.
+En términos de nomenclatura, todas las variables que finalicen en “h”,
+corresponden a la suma del ingreso correspondiente para todos los
+integrantes de un mismo hogar.
+
+Existe cierta cantidad de variables de ingresos generadas por el ministerio de desarrollo social A continuación se presenta un conjunto de indicadores y sus respectivas frecuencias que se calculan a partir de las variables de ingresos de las personas generadas por CEPAL, entre ellos los deciles y quintiles de ingreso autónomo per cápita, estimados a nivel nacional y regional. En términos de nomenclatura, todas las variables que finalicen en “h”, corresponden a la suma del ingreso correspondiente para todos los integrantes de un mismo hogar.
+
+https://studylib.es/doc/7947500/libro-de-c%C3%B3digos-base-de-datos---observatorio-social
+pp 90.
+
+Corresponden a las columnas 574 a la 771.

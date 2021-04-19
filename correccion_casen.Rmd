@@ -1,0 +1,485 @@
+---
+title: 'Corrección de las Casen'
+subtitle: ''
+author:
+- name: VE - CC
+  affiliation: DataIntelligence-Chile
+date: "04-01-2020"
+abstract: |
+  Las Casen publicadas oficialmente poseen anomalías en sus factores de expansión comunal, [ir al link de descarga](http://observatorio.ministeriodesarrollosocial.gob.cl) los cuales son ausencias (Casen 2015) o errores (comuna de Primavera en el 2006). Asimismo, los codigos comunales no están homologados a los actuales. Éste documento presenta los códigos para la generación de bases de datos Casen corregidas, para la posterior construcción de tablas de contingencia que se presentan en el Rpubs: generador_ttcc-casen.
+output: html_document
+---
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE, echo = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+suppressWarnings(library(RODBC))
+
+library(ggplot2)
+library(ggpubr)
+library(markdown)
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(plotly)
+library(xts)
+library(dygraphs)
+library(kableExtra)
+library(knitr)
+library("readxl")
+library(rsconnect)
+library(dplyr)
+library(summarytools)
+library(epiDisplay)
+#library(leaflet)
+library(haven)
+library(epiDisplay)
+library("readxl")
+library(expss)
+library(hrbrthemes)
+library(viridis)
+library(viridisLite)
+library(DescTools)
+library(roperators)
+library(shinycssloaders)
+library(writexl)
+library(labelled)
+library(tidyverse)
+library(haven)
+library(readr)
+library(sjmisc)
+library(WriteXLS)
+
+
+library(readstata13)
+```
+
+## Reparación 2006
+
+### Acá debemos reparar Primavera y homologar los códigos al 2020.
+[ir al documento de códigos actualizados](http://www.subdere.gov.cl/documentacion/c%C3%B3digos-%C3%BAnicos-territoriales-actualizados-al-06-de-septiembre-2018)
+
+1 Leemos la base de datos original:
+
+```{r}
+casen_2006 <- read_sav("casen2006.sav")
+```
+
+2 Visibilizamos sus etiquetas:
+
+```{r}
+casen_2006_labeled  <- as_factor(casen_2006, only_labelled = TRUE)
+```
+
+3 Corroboramos el error para Primavera:
+
+```{r}
+Primavera <- subset(casen_2006_labeled, COMUNA == "Primavera")
+head(Primavera$EXPC,5)
+```
+por definición los factores de expansión no pueden ser fracciones.
+
+4 Comparamos con la población proyectada del INE para Provincia el 2006.	
+
+```{r}
+pob_chilena  <- readRDS("poblacion_chilena.rds")
+pob_por_comuna_ine_2006 <- aggregate(pob_chilena$Poblacion.2006, by=list(Comuna=pob_chilena$Nombre.Comuna), FUN=sum)
+Primavera <- subset(pob_por_comuna_ine_2006, Comuna == "Primavera")
+Primavera
+```
+
+5 Obtenemos el FEXC provisional para Primavera:
+
+```{r}
+fexc_primavera <- round(909/272)
+fexc_primavera
+```
+6 Obtengamos el diccionario comunal para la casen_2006, renombramos e invertimos el orden. Éste diccionario lo extraemos de la base de datos original:
+
+```{r}
+data_code <- stack(attr(casen_2006$COMUNA, 'labels'))
+data_code <- data_code[c(2,1)]
+names(data_code)[1] <- "COMUNA"
+names(data_code)[2] <- "codigo"
+head(data_code,10)
+```
+
+7 Lo corregimos:
+
+```{r}
+    data_code[270,2]<-11201
+    data_code[8,2]<-15101
+    data_code[178,2]<-16102
+    data_code[9,2]<-15102
+    data_code[2,2]<-1402
+    data_code[177,2]<-16101
+    data_code[182,2]<-16103
+    data_code[96,2]<-6303
+    data_code[179,2]<-16202
+    data_code[180,2]<-16203
+    data_code[181,2]<-16302
+    data_code[3,2]<-1403
+    data_code[287,2]<-13104
+    data_code[261,2]<-14102
+    data_code[183,2]<-16104
+    data_code[262,2]<-14202
+    data_code[11,2]<-15202
+    data_code[4,2]<-1404
+    data_code[292,2]<-13110
+    data_code[263,2]<-14201
+    data_code[264,2]<-14203
+    data_code[265,2]<-14103
+    data_code[66,2]<-5802
+    data_code[266,2]<-14104
+    data_code[267,2]<-14105
+    data_code[268,2]<-14106
+    data_code[89,2]<-6110
+    data_code[184,2]<-16204
+    data_code[185,2]<-16303
+    data_code[68,2]<-5803
+    data_code[271,2]<-14107
+    data_code[272,2]<-14108
+    data_code[186,2]<-16105
+    data_code[5,2]<-1405
+    data_code[187,2]<-16106
+    data_code[188,2]<-16205
+    data_code[6,2]<-1401
+    data_code[10,2]<-15201
+    data_code[246,2]<-16107
+    data_code[49,2]<-5801
+    data_code[92,2]<-6114
+    data_code[190,2]<-16201
+    data_code[191,2]<-16206
+    data_code[273,2]<-14204
+    data_code[192,2]<-16301
+    data_code[193,2]<-16304
+    data_code[194,2]<-16108
+    data_code[195,2]<-16305
+    data_code[286,2]<-13505
+    data_code[196,2]<-16207
+    data_code[260,2]<-14101
+    data_code[51,2]<-5804
+    data_code[197,2]<-16109
+```
+
+8 Hacemos un left-join para integrar correctamente los códigos:
+
+```{r}
+df_final = merge( x = casen_2006_labeled, y = data_code, by = "COMUNA", all.x = TRUE)
+```
+
+9 Corregimos los factores de expansión para Primavera:
+
+```{r}
+df_final$EXPC[(df_final$COMUNA == "Primavera")] <- 3
+```
+
+10 Guardamos el rds:
+
+```{r}
+#saveRDS(df_final, file = "casen_2006_c.rds")
+```
+
+
+## Reparación 2009
+
+```{r}
+casen_2009 <- read_sav("Casen2009.sav")
+
+```
+
+```{r}
+casen_2009_labeled  <- as_factor(casen_2009, only_labelled = TRUE)
+```
+
+```{r}
+data_code <- stack(attr(casen_2009$COMUNA, 'labels'))
+data_code <- data_code[c(2,1)]
+names(data_code)[2] <- "codigo"
+names(data_code)[1] <- "COMUNA"
+head(data_code,10)
+```
+
+```{r}
+    data_code[253,2]<-16102
+    data_code[149,2]<-16101
+    data_code[150,2]<-16103
+    data_code[305,2]<-16202
+    data_code[306,2]<-16203
+    data_code[44,2]<-16302
+    data_code[45,2]<-16104
+    data_code[106,2]<-5802
+    data_code[332,2]<-16204
+    data_code[46,2]<-16303
+    data_code[107,2]<-5803
+    data_code[47,2]<-16105
+    data_code[48,2]<-16106
+    data_code[307,2]<-16205
+    data_code[254,2]<-16107
+    data_code[98,2]<-5801
+    data_code[308,2]<-16201
+    data_code[309,2]<-16206
+    data_code[49,2]<-16301
+    data_code[310,2]<-16304
+    data_code[311,2]<-16108
+    data_code[255,2]<-16305
+    data_code[256,2]<-16207
+    data_code[99,2]<-5804
+    data_code[312,2]<-16109
+```
+
+
+```{r}
+df_final = merge( x = casen_2009_labeled, y = data_code, by = "COMUNA", all.x = TRUE)
+```
+```{r}
+#saveRDS(df_final, file = "casen_2009_c.rds")
+```
+
+
+## Reparación 2011
+
+```{r}
+casen_2011 <- read_sav("Casen2011.sav")
+
+```
+
+```{r}
+casen_2011_labeled  <- as_factor(casen_2011, only_labelled = TRUE)
+```
+
+```{r}
+data_code <- stack(attr(casen_2011$comuna, 'labels'))
+data_code <- data_code[c(2,1)]
+names(data_code)[1] <- "comuna"
+names(data_code)[2] <- "codigo"
+head(data_code,10)
+```
+
+```{r}
+    data_code[171,2]<-16101
+    data_code[172,2]<-16102
+    data_code[173,2]<-16202
+    data_code[174,2]<-16203
+    data_code[175,2]<-16302
+    data_code[176,2]<-16103
+    data_code[177,2]<-16104
+    data_code[178,2]<-16204
+    data_code[179,2]<-16303
+    data_code[180,2]<-16105
+    data_code[181,2]<-16106
+    data_code[182,2]<-16205
+    data_code[183,2]<-16107
+    data_code[184,2]<-16201
+    data_code[185,2]<-16206
+    data_code[186,2]<-16301
+    data_code[187,2]<-16304
+    data_code[188,2]<-16108
+    data_code[189,2]<-16305
+    data_code[190,2]<-16207
+    data_code[191,2]<-16109
+```
+
+```{r}
+df_final = merge( x = casen_2011_labeled, y = data_code, by = "comuna", all.x = TRUE)
+```
+```{r}
+#saveRDS(df_final, file = "casen_2011_c.rds")
+```
+
+<!-- ## Reparación 2013 -->
+
+<!-- ```{r} -->
+<!-- casen_2013 <- read_sav("Casen2013.sav") -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- casen_2013_labeled  <- as_factor(casen_2013, only_labelled = TRUE) -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- data_code <- stack(attr(casen_2013$comuna, 'labels')) -->
+
+
+<!-- data_code <- data_code[c(2,1)] -->
+<!-- names(data_code)[1] <- "comuna" -->
+<!-- names(data_code)[2] <- "codigo" -->
+<!-- #data_code -->
+<!-- ``` -->
+
+
+<!-- ```{r} -->
+<!--     data_code[171,2]<-16101 -->
+<!--     data_code[172,2]<-16102 -->
+<!--     data_code[173,2]<-16202 -->
+<!--     data_code[174,2]<-16203 -->
+<!--     data_code[175,2]<-16302 -->
+<!--     data_code[176,2]<-16103 -->
+<!--     data_code[177,2]<-16104 -->
+<!--     data_code[178,2]<-16204 -->
+<!--     data_code[179,2]<-16303 -->
+<!--     data_code[180,2]<-16105 -->
+<!--     data_code[181,2]<-16106 -->
+<!--     data_code[182,2]<-16205 -->
+<!--     data_code[183,2]<-16107 -->
+<!--     data_code[184,2]<-16201 -->
+<!--     data_code[185,2]<-16206 -->
+<!--     data_code[186,2]<-16301 -->
+<!--     data_code[187,2]<-16304 -->
+<!--     data_code[188,2]<-16108 -->
+<!--     data_code[189,2]<-16305 -->
+<!--     data_code[190,2]<-16207 -->
+<!--     data_code[191,2]<-16109 -->
+<!-- ``` -->
+
+
+<!-- ```{r} -->
+<!-- df_final = merge( x = casen_2013_labeled, y = data_code, by = "comuna", all.x = TRUE) -->
+<!-- ``` -->
+<!-- ```{r} -->
+<!-- #saveRDS(df_final, file = "casen_2013_c.rds") -->
+<!-- ``` -->
+
+
+<!-- ## Reparación 2015 -->
+
+<!-- ```{r} -->
+<!-- dataset2015  <- read_sav("casen2015.sav") -->
+<!-- dataset2015_fexc = read_sav("Casen 2015_FE todasComunas.sav") -->
+<!-- ``` -->
+
+
+
+
+
+<!-- Acá hay que tener cuidado porque las observaciones quedan individualizadas por la unión de dos columnas, folio y o, por lo que hay que construir nuevas columnas en ambos datasets para poder hacer el join adecuado. -->
+
+<!-- ```{r} -->
+<!-- dataset2015$identificador <- paste(dataset2015$folio,dataset2015$o) -->
+<!-- dataset2015_fexc$identificador <- paste(dataset2015_fexc$folio,dataset2015_fexc$o) -->
+<!-- ``` -->
+
+<!-- Hacemos la unión con los factores de expansión correctos: -->
+
+<!-- ```{r} -->
+<!-- df_2015_final = merge( x = dataset2015, y = dataset2015_fexc, by = "identificador", all.x = TRUE) -->
+<!-- ``` -->
+
+
+
+
+
+<!-- ```{r} -->
+<!-- casen_2015_labeled  <- as_factor(df_2015_final, only_labelled = TRUE) -->
+<!-- ``` -->
+
+
+
+
+
+<!-- ```{r} -->
+<!-- data_code <- stack(attr(df_2015_final$comuna, 'labels')) -->
+<!-- names(data_code)[2] <- "comuna" -->
+
+<!-- data_code <- data_code[c(2,1)] -->
+<!-- names(data_code)[1] <- "comuna" -->
+<!-- names(data_code)[2] <- "codigo" -->
+<!-- #data_code -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!--     data_code[171,2]<-16101 -->
+<!--     data_code[172,2]<-16102 -->
+<!--     data_code[173,2]<-16202 -->
+<!--     data_code[174,2]<-16203 -->
+<!--     data_code[175,2]<-16302 -->
+<!--     data_code[176,2]<-16103 -->
+<!--     data_code[177,2]<-16104 -->
+<!--     data_code[178,2]<-16204 -->
+<!--     data_code[179,2]<-16303 -->
+<!--     data_code[180,2]<-16105 -->
+<!--     data_code[181,2]<-16106 -->
+<!--     data_code[182,2]<-16205 -->
+<!--     data_code[183,2]<-16107 -->
+<!--     data_code[184,2]<-16201 -->
+<!--     data_code[185,2]<-16206 -->
+<!--     data_code[186,2]<-16301 -->
+<!--     data_code[187,2]<-16304 -->
+<!--     data_code[188,2]<-16108 -->
+<!--     data_code[189,2]<-16305 -->
+<!--     data_code[190,2]<-16207 -->
+<!--     data_code[191,2]<-16109 -->
+<!-- ``` -->
+
+
+<!-- ```{r} -->
+<!-- df_final = merge( x = casen_2015_labeled, y = data_code, by = "comuna", all.x = TRUE) -->
+<!-- ``` -->
+
+
+
+
+
+<!-- ```{r} -->
+<!-- #saveRDS(df_final, file = "casen_2015_c.rds") -->
+<!-- ``` -->
+
+
+
+<!-- ## Reparación 2017 -->
+
+<!-- ```{r} -->
+<!-- dataset2017  <- read_sav("casen2017.sav") -->
+
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- casen_2017_labeled  <- as_factor(dataset2017, only_labelled = TRUE) -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- data_code <- stack(attr(dataset2017$comuna, 'labels')) -->
+<!-- data_code <- data_code[c(2,1)] -->
+<!-- names(data_code)[1] <- "comuna" -->
+<!-- names(data_code)[2] <- "codigo" -->
+<!-- #data_code -->
+<!-- ``` -->
+
+
+
+<!-- ```{r} -->
+<!--     data_code[172,2]<-16102 -->
+<!--     data_code[171,2]<-16101 -->
+<!--     data_code[176,2]<-16103 -->
+<!--     data_code[173,2]<-16202 -->
+<!--     data_code[174,2]<-16203 -->
+<!--     data_code[175,2]<-16302 -->
+<!--     data_code[177,2]<-16104 -->
+<!--     data_code[178,2]<-16204 -->
+<!--     data_code[179,2]<-16303 -->
+<!--     data_code[180,2]<-16105 -->
+<!--     data_code[181,2]<-16106 -->
+<!--     data_code[182,2]<-16205 -->
+<!--     data_code[183,2]<-16107 -->
+<!--     data_code[184,2]<-16201 -->
+<!--     data_code[185,2]<-16206 -->
+<!--     data_code[186,2]<-16301 -->
+<!--     data_code[187,2]<-16304 -->
+<!--     data_code[188,2]<-16108 -->
+<!--     data_code[189,2]<-16305 -->
+<!--     data_code[190,2]<-16207 -->
+<!--     data_code[191,2]<-16109 -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- df_final = merge( x = casen_2017_labeled, y = data_code, by = "comuna", all.x = TRUE) -->
+<!-- ``` -->
+<!-- ```{r} -->
+<!-- #saveRDS(df_final, file = "casen_2017_c.rds") -->
+<!-- ``` -->
+
+
+
+

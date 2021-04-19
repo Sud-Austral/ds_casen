@@ -1,0 +1,35 @@
+numper
+Número de personas en el hogar (excluye SDPA)
+
+asiste
+Asiste
+
+esc
+Escolaridad
+
+educ
+Nivel Educacional
+
+depen
+Dependencia
+
+activ
+Condición de actividad
+
+indmat
+Indicador de Materialidad
+
+indsan
+Indicador Saneamiento
+
+calglobviv
+Calidad Global De La Vivienda
+
+iae
+Allegamiento Externo
+
+iai
+Allegamiento Interno
+
+hacinamiento
+Hacinamiento

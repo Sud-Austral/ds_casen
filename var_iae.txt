@@ -1,0 +1,28 @@
+Allegamiento Externo
+
+El allegamiento es la estrategia utilizada por los hogares y núcleos familiares para solucionar la falta de vivienda, compartiendo una vivienda con otro hogar o núcleo. La Encuesta Casen identifica los diferentes hogares al interior de una vivienda y los diferentes núcleos al interior de un hogar, así como si son receptores o allegados, y el tipo de allegamiento: allegamiento externo y allegamiento interno. Se dice que hay presencia de allegamiento externo cuando hay presencia de hogares adicionales al hogar principal.
+
+𝐻𝑜𝑔𝑎𝑟𝑒𝑠 𝑎𝑙𝑙𝑒𝑔𝑎𝑑𝑜𝑠 = 𝐶𝑎𝑛𝑡𝑖𝑑𝑎𝑑 𝑑𝑒 ℎ𝑜𝑔𝑎𝑟𝑒𝑠 −1
+
+SPSS:
+IF (hog_prin=1) AND (nhog_viv=1) AND (nhog_viv<99) n_hog_allega=0.
+IF (hog_prin=1) AND (nhog_viv>1) AND (nhog_viv<99) n_hog_allega= nhog_viv-1.
+IF (hog_prin>=2) AND (nhog_viv>1) AND (nhog_viv<99) n_hog_allega=0.
+RECODE n_hog_allega
+(0=1)
+(99=9)
+(1 thru 10=2) INTO iae.
+VARIABLE LABELS iae 'Allegamiento Externo'.
+value labels iae
+1 'Sin allegamiento externo'
+2 'Con allegamiento externo'
+9 'Sin Dato'.
+EXECUTE.
+
+
+
+
+
+
+
+

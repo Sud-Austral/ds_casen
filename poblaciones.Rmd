@@ -1,0 +1,843 @@
+---
+title: "Variable Corte -Situación de pobreza por ingresos- para medir la pobreza en la Casen y la verificación de su expansión a la población general"
+author: "DI"
+date: "14-12-2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+library(ggpubr)
+library(markdown)
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(plotly)
+library(xts)
+library(dygraphs)
+library(kableExtra)
+library(knitr)
+library("readxl")
+library(rsconnect)
+library(dplyr)
+library(summarytools)
+library(epiDisplay)
+#library(leaflet)
+library(haven)
+library(epiDisplay)
+library("readxl")
+library(expss)
+library(hrbrthemes)
+library(viridis)
+library(viridisLite)
+library(DescTools)
+library(roperators)
+library(shinycssloaders)
+library(writexl)
+library(vroom)
+library(shinyWidgets)
+library(stringr)
+library(dplyr)
+library(gapminder)
+library(tidyverse)
+library(moderndive)
+library(skimr)
+
+oldw <- getOption("warn")
+options(warn = -1)
+
+
+# Códigos Únicos Territoriales:
+# http://www.subdere.gov.cl/documentacion/c%C3%B3digos-%C3%BAnicos-territoriales-actualizados-al-06-de-septiembre-2018
+
+```
+
+#### Tomaremos la proyección de la población establecida por el INE con base en el 2017 para los años 2006, 2009, 2011, 2013, 2015 y 2017 y la compararemos con la suma total de las frecuencias expandidas de las tablas de contingencia generadas en torno a las variables de sexo y pobreza (Corte) a nivel comunal.
+
+Para el 2015 se detecta una anomalía.
+
+Fuentes de datos:
+
+Proyección base 2017
+Estimaciones y proyecciones 2002-2035, comunas: \
+https://www.ine.cl/estadisticas/sociales/demografia-y-vitales/proyecciones-de-poblacion
+
+#### Leemos la base de datos referida a población del INE desde un csv, la transformamos a rds y la cargamos:
+
+```{r}
+poblacion_chilena <- read.csv2('poblacion_chilena.csv', stringsAsFactors=FALSE)
+saveRDS(poblacion_chilena, file = "poblacion_chilena.rds")
+pob_chilena  <- readRDS("poblacion_chilena.rds")
+```
+Visualicemos sus cuatro primeras líneas:
+
+```{r}
+
+head(pob_chilena,4)
+
+```
+
+Ésta información la tenemos desglosada por sexo y edad, pero la queremos simplemente agregada a nivel de comuna y año. 
+```{r}
+pob_por_comuna_ine_2006 <- aggregate(pob_chilena$Poblacion.2006, by=list(Comuna=pob_chilena$Nombre.Comuna), FUN=sum)
+pob_por_comuna_ine_2009 <- aggregate(pob_chilena$Poblacion.2009, by=list(Comuna=pob_chilena$Nombre.Comuna), FUN=sum)
+pob_por_comuna_ine_2011 <- aggregate(pob_chilena$Poblacion.2011, by=list(Comuna=pob_chilena$Nombre.Comuna), FUN=sum)
+pob_por_comuna_ine_2013 <- aggregate(pob_chilena$Poblacion.2013, by=list(Comuna=pob_chilena$Nombre.Comuna), FUN=sum)
+pob_por_comuna_ine_2015 <- aggregate(pob_chilena$Poblacion.2015, by=list(Comuna=pob_chilena$Nombre.Comuna), FUN=sum)
+pob_por_comuna_ine_2017 <- aggregate(pob_chilena$Poblacion.2017, by=list(Comuna=pob_chilena$Nombre.Comuna), FUN=sum)
+
+
+```
+Despleguemos la población para las primeras 4 comunas del dataset para el 2017:
+
+
+```{r}
+head(pob_por_comuna_ine_2017,4)
+```
+
+Una vez listos estos datasets, vamos a construir tablas de contingencia relativas a la clasificación de las personas según su situación de pobreza y sexo y a comparar las sumas totales de estos resultados (que ya están expandidos) con el de la población total comunal. Deben aproximarse.
+
+#### Digresión
+
+Actualmente la poblacion esta disminuyendo?
+
+```{r}
+
+sum(pob_por_comuna_ine_2006[,2])
+sum(pob_por_comuna_ine_2009[,2])
+sum(pob_por_comuna_ine_2011[,2])
+sum(pob_por_comuna_ine_2013[,2])
+sum(pob_por_comuna_ine_2015[,2])
+sum(pob_por_comuna_ine_2017[,2])
+
+```
+
+En general no, pero Canela y Carahue si, no es absurdo pensar que disminuye en algunas actualmente.
+
+## Análisis para el año 2006
+
+Tablas de contingencia para el 2006
+
+Leemos nuestra base de datos Casen 2006
+
+
+```{r}
+
+dataset2006  <- readRDS("dataset2006.rds")
+
+```
+
+Debemos corregir los códigos para que podamos hacer la homologación con los actuales.
+Primero extraemos los códigos asociados a las comunas de la Casen del 2006:
+
+
+```{r}
+
+    data_code <-dataset2006[  , c("seg", "comuna")]
+    names(data_code)[2] <- "unlist.dataset2006.comuna."
+    data_code <- distinct(data_code , unlist.dataset2006.comuna., .keep_all = TRUE)
+    data_code  <-  data_code  %>% mutate(codigo = case_when(as.integer(seg / 10000000) == 0 ~ as.integer(seg / 1000)
+                                                            , as.integer(seg / 10000000) == 1 ~ as.integer(seg / 1000)    
+    ))
+    
+data_code <- subset( data_code, select = -seg )
+
+```
+Veamos sus primeras 4 filas:
+
+```{r}
+head(data_code, 4)
+```
+
+
+Reasignamos los códigos correspondientes al año 2017 que ameriten serlos:
+
+
+```{r}
+
+    # camiña
+    data_code[2,2]<-1402
+
+    # nos equivocamos en Coihaique:
+    data_code[269,2]<-11101
+    
+    data_code[270,2]<-11201
+    data_code[8,2]<-15101
+    data_code[178,2]<-16102
+    data_code[9,2]<-15102
+    data_code[177,2]<-16101
+    data_code[182,2]<-16103
+    data_code[96,2]<-6303
+    data_code[179,2]<-16202
+    data_code[180,2]<-16203
+    data_code[181,2]<-16302
+    data_code[3,2]<-1403
+    data_code[287,2]<-13104
+    data_code[261,2]<-14102
+    data_code[183,2]<-16104
+    data_code[262,2]<-14202
+    data_code[11,2]<-15202
+    data_code[4,2]<-1404
+    data_code[292,2]<-13110
+    data_code[263,2]<-14201
+    data_code[264,2]<-14203
+    data_code[265,2]<-14103
+    data_code[66,2]<-5802
+    data_code[266,2]<-14104
+    data_code[267,2]<-14105
+    data_code[268,2]<-14106
+    data_code[89,2]<-6110
+    data_code[184,2]<-16204
+    data_code[185,2]<-16303
+    data_code[68,2]<-5803
+    data_code[271,2]<-14107
+    data_code[272,2]<-14108
+    data_code[186,2]<-16105
+    data_code[5,2]<-1405
+    data_code[187,2]<-16106
+    data_code[188,2]<-16205
+    data_code[6,2]<-1401
+    data_code[10,2]<-15201
+    data_code[246,2]<-16107
+    data_code[49,2]<-5801
+    data_code[92,2]<-6114
+    data_code[190,2]<-16201
+    data_code[191,2]<-16206
+    data_code[273,2]<-14204
+    data_code[192,2]<-16301
+    data_code[193,2]<-16304
+    data_code[194,2]<-16108
+    data_code[195,2]<-16305
+    data_code[286,2]<-13505
+    data_code[196,2]<-16207
+    data_code[260,2]<-14101
+    data_code[51,2]<-5804
+    data_code[197,2]<-16109
+
+    
+```
+
+Despleguemos las primeras 4 filas:
+
+```{r}
+head(data_code,4)
+```
+
+
+Obtenemos las categorias y la cantidad de personas que caen dentro de la columna llamada "Corte - pobreza-" de la Casen 2006:
+
+
+```{r}
+table(dataset2006$corte)
+```
+
+> 10450+31092+226966 \
+[1] 268508
+
+La cantidad de encuestados en la Casen 2006 fue: 268873
+
+<span style="color:red"> *La disparidad proviene de datos NA.*</span>
+
+```{r}
+sum(is.na(dataset2006$corte)) 
+```
+
+268508 + 365 = 268873
+
+
+Lanzamos la tabla de frecuencias por sexo, corte y comuna para el 2006:
+
+```{r}
+    
+cross_tab =  xtabs(dataset2006$expc ~ unlist(dataset2006$comuna) + unlist(dataset2006$corte) + unlist(dataset2006$sexo), aggregate(dataset2006$expc ~ unlist(dataset2006$comuna) + unlist(dataset2006$corte) + unlist(dataset2006$sexo), dataset2006, mean))
+
+    tabla <- as.data.frame(cross_tab)
+    
+    d <-tabla[!(tabla$Freq == 0),]
+    
+    d$anio <- "2006"
+    
+    
+    
+```
+
+Despleguemos los primeros 12 elementos:
+
+```{r}
+head(d,12)
+```
+
+
+
+Hacemos el merge con la data de la misma tabla, Casen del 2006, con lo que el error asociado es cero. Asociamos los códigos actualizados a la tabla de contingencia de forma perfecta:
+
+
+```{r}
+    df = merge( x = d, y = data_code, by = "unlist.dataset2006.comuna.", all.x = TRUE)  
+    head(df,4)
+```
+
+
+
+
+Sumemos las frecuencias de todas las categorias por comuna para tener la poblacion agrupada de las frecuencias:
+
+```{r}
+pobttcc_por_comuna_s_p_2006 <- aggregate(df$Freq, by=list(Comuna=df$unlist.dataset2006.comuna.), FUN=sum)
+pobttcc_por_comuna_s_p_2006<- pobttcc_por_comuna_s_p_2006 %>% mutate(Comuna = str_squish(Comuna))
+head(pobttcc_por_comuna_s_p_2006,4)
+```
+
+<span style="color:red">*Observe la cantidad de comunas desplegadas:*</span>
+
+```{r}
+nrow(pobttcc_por_comuna_s_p_2006)
+```
+
+
+
+### Caso de ejemplo: Putre
+
+Queremos verificar que la población total de Putre coincida con la suma de la población dividida por categorías en la tabla de contingencia:
+
+```{r}
+
+# obtenemos la data desagregada
+d <- df[df$unlist.dataset2006.comuna. == "putre ", ] 
+d
+# Obtenemos la data agrupada por categoria de pobreza
+d_2006 <- aggregate(d$Freq, by=list(Comuna=d$unlist.dataset2006.corte.), FUN=sum)
+d_2006
+```
+
+<span style="color:red">*Nuestra estimacion de pobreza para Putre para el 2006 es del 10,27 %, el que nos entrega el reporte estadistico de la biblioteca nacional es de 10,3*</span>
+
+
+
+Fuente:\
+Reporte Estadístico Comunal PUTRE Abril 2008 Sistema Integrado de Información Territorial Biblioteca del Congreso Nacional
+
+
+Suma de las frecuencias de clasificacion por pobreza para Putre el 2006.
+
+
+```{r}
+d <- pobttcc_por_comuna_s_p_2006[pobttcc_por_comuna_s_p_2006$Comuna == "putre", ] 
+d
+```
+
+
+Este resultado por comuna debe coincidir con la poblacion total comunal pues fueron introducidos los factores de expansion correspondientes:
+
+Cual fue la poblacion de Putre el 2006?
+
+```{r}
+
+d <- pob_por_comuna_ine_2006[pob_por_comuna_ine_2006$Comuna == "Putre", ] 
+
+d
+```
+
+Y en total para el 2006?
+
+
+```{r}
+
+sum(pobttcc_por_comuna_s_p_2006[,2])
+sum(pob_por_comuna_ine_2006[,2])
+```
+
+
+
+
+
+
+
+<br>
+
+
+## Análisis para el año 2009
+
+```{r}
+
+dataset2009  <- readRDS("dataset2009.rds")
+
+```
+
+Debemos corregir los codigos para que podamos hacer la homologacion a los actuales
+Primero extraemos los códigos asociados a las comunas de la Casen del 2006:
+
+```{r}
+ data_code <- dataset2009[ , c("segmento", "comuna")]
+    
+    names(data_code)[2] <- "unlist.dataset2009.comuna."
+    data_code <- distinct(data_code ,unlist.dataset2009.comuna., .keep_all = TRUE)
+    
+    data_code <- data_code %>% mutate(unlist.a. = str_squish(unlist.dataset2009.comuna.))
+    
+    data_code  <-  data_code  %>% mutate(codigo = case_when(as.integer(segmento / 10000000) == 0 ~ as.integer(segmento  / 1000)
+                                                            , as.integer(segmento  / 10000000) == 1 ~ as.integer(segmento / 1000)                                    
+                                                            
+    ))
+    
+    data_code <- subset( data_code, select = -segmento )
+    
+    
+    # nos equivocamos en Coihaique:
+
+    data_code[269,2]<-11101
+    
+    data_code[253,2]<-16102
+    data_code[149,2]<-16101
+    data_code[150,2]<-16103
+    data_code[305,2]<-16202
+    data_code[306,2]<-16203
+    data_code[44,2]<-16302
+    data_code[45,2]<-16104
+    data_code[106,2]<-5802
+    data_code[332,2]<-16204
+    data_code[46,2]<-16303
+    data_code[107,2]<-5803
+    data_code[47,2]<-16105
+    data_code[48,2]<-16106
+    data_code[307,2]<-16205
+    data_code[254,2]<-16107
+    data_code[98,2]<-5801
+    data_code[308,2]<-16201
+    data_code[309,2]<-16206
+    data_code[49,2]<-16301
+    data_code[310,2]<-16304
+    data_code[311,2]<-16108
+    data_code[255,2]<-16305
+    data_code[256,2]<-16207
+    data_code[99,2]<-5804
+    data_code[312,2]<-16109
+    
+    head(data_code, 4)
+```
+
+
+Obtenemos las categorias y la cantidad de personas que caen dentro de cada categoria de pobreza:
+
+
+```{r}
+table(dataset2009$corte)
+```
+
+> 10893 + 30362 + 205527
+[1] 246782
+
+La cantidad de encuestados en la Casen 2009 fue: 246924
+
+<span style="color:red"> *La disparidad proviene de datos NA.*</span>
+
+```{r}
+sum(is.na(dataset2009$corte)) 
+```
+
+Lanzamos la tabla de frecuencias por sexo, corte y comuna para el 2009:
+
+
+
+```{r}
+    
+    cross_tab =  xtabs(dataset2009$expc ~ unlist(dataset2009$comuna) + unlist(dataset2009$corte) + unlist(dataset2009$sexo), aggregate(dataset2009$expc ~ unlist(dataset2009$comuna) + unlist(dataset2009$corte) + unlist(dataset2009$sexo), dataset2009, mean))
+
+    tabla <- as.data.frame(cross_tab)
+    
+    d <-tabla[!(tabla$Freq == 0),]
+    
+    d$anio <- "2009"
+    
+   head( d,4)
+    
+```
+
+Hacemos el merge con la data de la misma tabla, Casen del 2009, con lo que minimizamos el error. Asociamos los codigos actualizados correctamente:
+
+
+```{r}
+    df = merge( x = d, y = data_code, by = "unlist.dataset2009.comuna.", all.x = TRUE)  
+    head(df,10)
+```
+Sumemos las frecuencias de todas las categorias por comuna para tener la poblacion agrupada de las frecuencias:
+
+```{r}
+pob_por_comuna <- aggregate(df$Freq, by=list(Comuna=df$unlist.dataset2009.comuna.), FUN=sum)
+pob_por_comuna <- pob_por_comuna %>% mutate(Comuna = str_squish(Comuna))
+head(pob_por_comuna,4)
+```
+
+
+<span style="color:red">*Observe la cantidad de comunas desplegadas:*</span>
+
+```{r}
+nrow(pob_por_comuna)
+```
+
+
+Este resultado por comuna debe coincidir con la poblacion total comunal pues fueron introducidos los factores de expansion correspondientes:
+
+1 Coincide para Putre?
+
+
+```{r}
+d <- pob_por_comuna[pob_por_comuna$Comuna == "putre", ] 
+d
+```
+
+Cual fue la poblacion de Putre el 2006?
+
+```{r}
+
+d <- pob_por_comuna_ine_2009[pob_por_comuna_ine_2006$Comuna == "Putre", ] 
+
+d
+```
+
+Y en total para el 2009?
+
+
+```{r}
+
+sum(pob_por_comuna[,2])
+sum(pob_por_comuna_ine_2009[,2])
+```
+
+
+<br>
+
+###########################################################
+## Análisis para el año 2015
+###########################################################
+
+Existen comunas que no posean factor de expansión en la Casen 2015?
+
+```{r}
+dataset2015  <- readRDS("dataset2015.rds")
+sum(is.na(dataset2015$expc))
+```
+
+Así es: 52770. ¿Cuáles son?
+
+```{r}
+new_DF <- subset(dataset2015, is.na(dataset2015$expc))
+
+newdata <- new_DF[c("comuna", "expc")]
+
+newdata <- distinct(newdata, comuna, .keep_all = TRUE)
+
+newdata
+
+```
+
+<span style="color:red">*El problema es que los factores de expansion estan  asociados a cada una de las observaciones, por lo que no se puede obtener un factor de expansion comunal que sea extrapolable a otra base de datos.*</span>
+
+Es entonces que las promediaremos por region para el 2013 y el 2017 y las promediaremos
+
+Vamos a obtener sus f de e para el 2013 y el 2017 y si difieren los promediaremos aproximandolos el entero superior mas cercano.
+
+#### 2013
+
+
+```{r}
+
+dataset2013  <- readRDS("dataset2013.rds")
+
+    dataset2013_sub <- dataset2013[  , c("folio", "comuna", "expc")]
+    
+    
+    dataset2013_sub_expc_prom <- aggregate(dataset2013_sub$expc, by=list(Comuna=dataset2013_sub$comuna), FUN=mean)
+
+dataset2013_sub_expc_prom$`mean.dataset2013_sub$expc`<-round(dataset2013_sub_expc_prom$`mean.dataset2013_sub$expc`)
+dataset2013_sub_expc_prom
+```
+
+Les asociamos el codigo de comuna correcto:
+
+```{r}
+dataset2013  <- readRDS("dataset2013.rds")
+    data_cod <- dataset2013[  , c("folio", "comuna")]
+    
+    names(data_cod)[2] <- "Comuna"
+    
+    data_cod <- distinct(data_cod ,Comuna, .keep_all = TRUE)
+    
+    data_cod <- data_cod %>% mutate(Comuna = str_squish(Comuna))
+    
+    data_cod <- data_cod %>% mutate(codigo = case_when(as.integer(folio / 10000000000) == 0 ~ as.integer(folio/ 10000000)
+                                                         , as.integer(folio / 10000000000) <17 ~ as.integer(folio / 10000000)
+                                                         
+    ))
+    
+    data_cod <- subset( data_cod, select = -folio )
+    data_cod[171,2]<-16101
+    data_cod[172,2]<-16102
+    data_cod[173,2]<-16202
+    data_cod[174,2]<-16203
+    data_cod[175,2]<-16302
+    data_cod[176,2]<-16103
+    data_cod[177,2]<-16104
+    data_cod[178,2]<-16204
+    data_cod[179,2]<-16303
+    data_cod[180,2]<-16105
+    data_cod[181,2]<-16106
+    data_cod[182,2]<-16205
+    data_cod[183,2]<-16107
+    data_cod[184,2]<-16201
+    data_cod[185,2]<-16206
+    data_cod[186,2]<-16301
+    data_cod[187,2]<-16304
+    data_cod[188,2]<-16108
+    data_cod[189,2]<-16305
+    data_cod[190,2]<-16207
+    data_cod[191,2]<-16109
+    
+  #  names(d)[1] <- "a"
+   # data_cod
+    df_2013 = merge( x = dataset2013_sub_expc_prom, y = data_cod, by = "Comuna", all.x = TRUE)
+   df_2013
+```
+
+#### Hacemos lo mismo para el 2017
+
+
+```{r}
+
+dataset2017  <- readRDS("dataset2017.rds")
+
+    dataset2017_sub <- dataset2017[  , c("folio", "comuna", "expc")]
+    
+    dataset2017_sub_expc_prom <- aggregate(dataset2017_sub$expc, by=list(Comuna=dataset2017_sub$comuna), FUN=mean)
+
+dataset2017_sub_expc_prom$`mean.dataset2017_sub$expc`<-round(dataset2017_sub_expc_prom$`mean.dataset2017_sub$expc`)
+dataset2017_sub_expc_prom
+```
+
+Les asociamos el codigo de comuna correcto:
+
+```{r}
+
+      
+      data_code <- dataset2017[  , c("folio", "comuna")]
+      
+      names(data_code)[2] <- "Comuna"
+      data_code <- distinct(data_code , Comuna, .keep_all = TRUE)
+      #
+      data_code <- data_code %>% mutate(Comuna = str_squish(Comuna))
+      
+      data_code <- data_code %>% mutate(codigo = case_when(as.integer(folio / 1000000000000) == 0 ~ as.integer(folio/ 100000000)
+                                                           , as.integer(folio / 1000000000000) <17 ~ as.integer(folio / 100000000)
+                                                           
+      ))
+      
+      data_cod <- subset( data_code, select = -folio )
+      
+      data_cod[172,2]<-16102
+      data_cod[171,2]<-16101
+      data_cod[176,2]<-16103
+      data_cod[173,2]<-16202
+      data_cod[174,2]<-16203
+      data_cod[175,2]<-16302
+      data_cod[177,2]<-16104
+      data_cod[178,2]<-16204
+      data_cod[179,2]<-16303
+      data_cod[180,2]<-16105
+      data_cod[181,2]<-16106
+      data_cod[182,2]<-16205
+      data_cod[183,2]<-16107
+      data_cod[184,2]<-16201
+      data_cod[185,2]<-16206
+      data_cod[186,2]<-16301
+      data_cod[187,2]<-16304
+      data_cod[188,2]<-16108
+      data_cod[189,2]<-16305
+      data_cod[190,2]<-16207
+      data_cod[191,2]<-16109
+      
+
+      
+      df_2017 = merge( x = dataset2017_sub_expc_prom, y = data_cod, by = "Comuna", all.x = TRUE)
+
+      
+      
+    df_2017
+```
+
+Que maravilla
+
+ahora unimos los datasets y calculamos un promedio para el f de e:
+
+```{r}
+factores_de_exp_mean <- merge( x = df_2013, y = df_2017, by = "codigo", all.x = TRUE)
+factores_de_exp_mean
+```
+Calculamos una columna con el promedio de los factores de expansion
+
+```{r}
+
+factores_de_exp_mean$mean <- rowMeans(factores_de_exp_mean[,c('mean.dataset2013_sub$expc', 'mean.dataset2017_sub$expc')], na.rm=TRUE)
+factores_de_exp_mean$mean <- round(factores_de_exp_mean$mean)
+factores_de_exp_mean
+
+```
+
+
+
+
+
+
+
+########################  FIN OK Ahora aplicacion al 2015 ###########################################
+
+Ahora debemos asignarle el mismo factor de expansion de acuerdo a las comunas a las que pertenecen cada uno de los registros que en la Casen 2015 no lo tienen.
+
+PASO FINAL
+
+Debemos asignarle a todos los expc inexistentes el expc correspondiente que acabamos de calcular.
+
+La estrategia es construir una subset de la data que no contiene el factor de expansion, para luego agregarla a la data que si los tiene y asi construir un dataset completo.
+
+tomamos factores_de_exp_mean y hacemos un merge por codigo con la Casen2015 original
+
+```{r}
+dataset2015  <- readRDS("dataset2015.rds")
+
+      data_code <- dataset2015[  , c("folio", "comuna")]
+      
+  #    names(data_code)[2] <- "comuna"
+      
+      data_code <- distinct(data_code , comuna, .keep_all = TRUE)
+      
+      data_code <- data_code %>% mutate(comuna = str_squish(comuna))
+      
+      data_code <- data_code %>% mutate(codigo = case_when(as.integer(folio / 10000000000) == 0 ~ as.integer(folio/ 10000000)
+                                                           , as.integer(folio / 10000000000) <17 ~ as.integer(folio / 10000000)
+                                                           
+      ))
+      
+      data_cod <- subset( data_code, select = -folio )
+      data_cod[171,2]<-16101
+      data_cod[172,2]<-16102
+      data_cod[173,2]<-16202
+      data_cod[174,2]<-16203
+      data_cod[175,2]<-16302
+      data_cod[176,2]<-16103
+      data_cod[177,2]<-16104
+      data_cod[178,2]<-16204
+      data_cod[179,2]<-16303
+      data_cod[180,2]<-16105
+      data_cod[181,2]<-16106
+      data_cod[182,2]<-16205
+      data_cod[183,2]<-16107
+      data_cod[184,2]<-16201
+      data_cod[185,2]<-16206
+      data_cod[186,2]<-16301
+      data_cod[187,2]<-16304
+      data_cod[188,2]<-16108
+      data_cod[189,2]<-16305
+      data_cod[190,2]<-16207
+      data_cod[191,2]<-16109
+      
+
+      
+      df_2015 = merge( x = dataset2015, y = data_cod, by = "comuna", all.x = TRUE)
+      
+
+
+df_2015
+
+
+```
+
+
+El problema es que tenemos todas las comunas. Debemos hacer un subset solo con las de interes!
+
+```{r}
+newdata <- subset(df_2015, is.na(df_2015$expc))
+
+# newdata <- new_DF[c("codigo","comuna", "expc")]
+
+#newdata <- distinct(new_DF, comuna, .keep_all = TRUE)
+
+newdata
+
+
+#       df_interes <- merge( x = newdata, y = factores_de_exp_mean, by = "codigo", all.x = TRUE)
+# 
+# df_interes
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+dfinal = merge( x = newdata, y = factores_de_exp_mean, by = "codigo", all.x = TRUE)
+# h <- head(dfinal, 10)
+# write.csv(h,"h.csv", row.names = T)
+
+nrow(dfinal)
+
+```
+
+
+prueba de fuego:
+
+```{r}
+sum(is.na(dfinal$mean))
+```
+
+Ahora solo hay que ordenar la cantidad y nombres de las columnas, eliminar los na expc del dataset2015 y a;adirlos al final!
+
+FIN
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

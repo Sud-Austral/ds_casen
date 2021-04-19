@@ -1,0 +1,51 @@
+Hacinamiento
+
+Razón entre el número de personas residentes en la vivienda y el número de dormitorios de la misma, considerando piezas de uso exclusivo o uso múltiple. Contempla las categorías: sin hacinamiento (menos de 2,5 personas por dormitorio), medio (2,5 a 3,4), alto (3,5 a 4,9) y crítico (5 o más).
+
+Índice de Hacinamiento = N° de personas/ N° de dormitorios
+
+SPSS:
+
+IF (tot_hog=1) AND (v27a>0) AND (v27a<99) HACINA=NUMPER/v27a.
+
+IF (tot_hog=1) AND (v27a=0) HACINA=8888.
+
+IF (tot_hog=1) AND (v27a=99) HACINA=9999.
+
+IF (tot_hog>1) AND (v30a>0) AND (v30a<99) HACINA=NUMPER/v30a.
+
+IF (tot_hog>1) AND (v30a=99) HACINA=9999.
+
+IF (tot_hog>1) AND (v30a=0) HACINA=8888.
+
+VARIABLE LABELS HACINA "Cálculo hacinamiento".
+
+EXECUTE.
+
+RECODE HACINA
+
+(0 thru 2.49=1)
+
+(2.5 thru 3.49=2)
+
+(3.5 thru 4.99=3)
+
+(5 thru 8888=4)
+
+(9999=99)
+
+INTO IND_HACINA.
+
+VARIABLE LABELS IND_HACINA "Índice de hacinamiento".
+
+VALUE LABELS IND_HACINA 1 "Sin hacinamiento (menos de 2,5 personas por dormitorio)"
+
+2 "Hacinamiento medio (entre 2,5 y 3,49 personas por dormitorio)"
+
+3 "Hacinamiento alto (entre 3,5 y 4,99 personas por dormitorio)"
+
+4 "Hacinamiento crítico (5 y más personas por dormitorio u hogar sin dormitorios de uso exclusivo)"
+
+99 "Sin dato (NS/NR en N° dormitorios de uso exclusivo)".
+
+EXECUTE.

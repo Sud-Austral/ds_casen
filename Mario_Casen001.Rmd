@@ -1,0 +1,1058 @@
+
+---
+title: |
+  <font size="16">La construcción de la variable Ingreso en la Casen 2017</font>
+author:
+- name: Mario Salazar
+  affiliation: DataIntelligence-Chile
+subtitle: |
+  Ingresos de hogares versus el de las personas
+date: "10-02-2021"
+abstract: |
+      [En un artículo previo](https://rpubs.com/dataintelligence/construccion_del_ingreso_en_la_casen), identificamos 4 variables relevantes a utilizar en la Casen del 2017 para la generación de tablas de contingencia (ttcc) sobre las categorías de comuna, sexo, alfabetismo y etnia(inmigración), sobre las que calcularemos el promedio del ingreso que se trate, la desviación estándar de tal rango y su coeficiente de Gini. Comenzamos identificando el nombre de éstas variables en cada una de las Casen desde 1996 para poder construir las series de tiempo. 
+
+
+
+  
+header-includes:
+   - \usepackage[]{babel}
+output: 
+  html_document:
+      theme: flatly
+---
+
+# Índice
+
+## [I Primera parte: Identificación de variables](#test1)
+## [II Tablas de contingencia sobre la variable de ingreso total personal](#test2)
+
+
+
+ |**variable de ingreso**| | | 
+:-----:|:-----:|:-----:|:-----:|:-----:
+ |  |Ingreso total|Ingreso autónomo|Ingreso del trabajo|Ingreso de la ocupación principal
+año| | |
+2017|ytotcor|yautcor|ytrabajocor|yoprcor
+2015|ytotcor|yautcor|ytrabajocor|yoprcor
+2013|ytotcor|yautcor|ytrabajocor|yoprcor
+2011|ytotaj|yautaj|ytrabaj|yopraj
+2009|ytotaj|yautaj|ytrabaj|yopraj
+2006|ytotaj|yautaj|ytrabaj|yopraj
+
+
+
+```{r , message=FALSE, warning=FALSE, include = FALSE, echo = FALSE}
+
+suppressWarnings(library(RODBC))
+
+library(ggplot2)
+library(ggpubr)
+library(markdown)
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(plotly)
+library(xts)
+library(dygraphs)
+library(kableExtra)
+library(knitr)
+library("readxl")
+library(rsconnect)
+library(dplyr)
+library(summarytools)
+library(epiDisplay)
+#library(leaflet)
+library(haven)
+library(epiDisplay)
+library("readxl")
+library(expss)
+library(hrbrthemes)
+library(viridis)
+library(viridisLite)
+library(DescTools)
+library(roperators)
+library(shinycssloaders)
+library(writexl)
+library(labelled)
+library(tidyverse)
+library(haven)
+library(readr)
+library(sjmisc)
+library(WriteXLS)
+
+library(ineq)
+library(readstata13)
+library(reldist)
+
+```
+
+
+
+
+
+
+
+
+## 1. Introducción{#test1}
+
+Generaremos una tabla de contingencia para la casen 2017 sobre la variable ytotcor, con las categorias comuna, alfabetismo, sexo y etnia(inmigración).
+
+Obtendremos el valor del promedio de tal ingreso para las categorías en cuestion, su desviación standard y coeficiente de Gini.
+
+
+```{r}
+dataset_2006 <- readRDS(file = "casen_2006_c.rds")
+dataset_2009 <- readRDS(file = "casen_2009_c.rds")
+dataset_2011 <- readRDS(file = "casen_2011_c.rds")
+dataset_2013 <- readRDS(file = "casen_2013_c.rds")
+dataset_2015 <- readRDS(file = "casen_2015_c.rds")
+dataset_2017 <- readRDS(file = "casen_2017_c.rds")
+
+```
+
+
+## Vamos a desplegar tablas de contingencia sobre la variable de ingreso total, que para los años del 2013 al 2017 se llama ytotcor y del 2006 al 2011 ytotaj{#test2}
+
+# INGRESO TOTAL: ytotcor-ytotaj
+
+### 2017
+
+#### Verifiquemos que la variable ytotcor este presente en nuestros 6 datasets
+```{r}
+z<-dataset_2017$ytotcor
+head(z,7)
+
+```
+
+## 2015
+```{r}
+z<-dataset_2015$ytotcor
+head(z,7)
+
+```
+## 2013
+```{r}
+z<-dataset_2013$ytotcor
+head(z,7)
+
+```
+## 2011
+```{r}
+z<-dataset_2011$ytotcor
+head(z,7)
+```
+## 2009
+```{r}
+z<-dataset_2009$ytotcor
+head(z,7)
+```
+## 2006
+```{r}
+z<-dataset_2006$ytotcor
+head(z,7)
+```
+### generación de la tabla de contingencia para el 2017
+```{r , message=FALSE, warning=FALSE, results='hide'}
+# dataset <- readRDS(file = "casen_2017_c.rds")
+ab_2017 <- readRDS(file = "casen_2017_c.rds")
+```
+
+## 1.Excluimos los outliers: 
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+ab_2017 <- ab_2017[!is.na(ab_2017$ytotcor),]
+
+Q <- quantile(ab_2017$ytotcor, probs=c(.25, .75), na.rm = FALSE)
+iqr <- IQR(ab_2017$ytotcor)
+
+eliminated <- subset(ab_2017, ab_2017$ytotcor > (Q[1] - 1.5*iqr) & ab_2017$ytotcor < (Q[2]+1.5*iqr))
+#eliminated
+```
+
+## 2. Generamos los promedios grupales
+
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$e1 #alfabetismo
+d <- eliminated$r3 #etnia
+e <- eliminated$sexo
+
+promedios_grupales <-aggregate(a, by=list(b, c, d, e), FUN = mean , na.rm = TRUE)
+
+head(promedios_grupales,5)
+```
+
+## 3.Generamos las desviaciones standard asociados a los rangos de ingresos por comuna
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+promedios_grupales_sd <-aggregate(a, by=list(b, c, d, e), FUN = sd , na.rm = TRUE)
+head(promedios_grupales_sd,3)
+
+```
+## 4.Generamos los coeficientes de Gini asociados a los rangos de ingresos por comuna
+
+```{r}
+promedios_grupales_gini <-aggregate(a, by=list(b, c, d, e), FUN = gini , na.rm = TRUE)
+head(promedios_grupales_gini,3)
+```
+## 5.Adjuntamos en una misma tabla los valores de promedio, desviación standard y Gini y generamos una nueva columna con el valor del año:
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+promedios_grupales$sd = promedios_grupales_sd$sd.a
+promedios_grupales$gini = promedios_grupales_gini$gini.a
+d<-promedios_grupales
+d$Año <- "2017"
+head(d,5)
+
+```
+## 6. Asignamos los nombres correctos a las cabeceras
+
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+names(d)[1] <- "Comuna"
+names(d)[2] <- "Alfabetismo"
+names(d)[3] <- "Etnia"
+names(d)[4] <- "Sexo"
+names(d)[5] <- "Promedio del Ingreso"
+names(d)[6] <- "Desviación standard"
+names(d)[7] <- "Gini"
+names(d)[8] <- "Año"
+head(d,3)
+```
+## 7.Asociamos a los nombres de las comunas sus códigos en una nueva columna:
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+codigos_comunales <- readRDS(file = "codigos_comunales_2011-2017.rds")
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df_2017 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+df_2017 <-df_2017[!(df_2017$Promedio == 0),]
+head(df_2017,5)
+```
+
+
+
+### generación de la tabla de contingencia para el 2015
+
+```{r , message=FALSE, warning=FALSE, results='hide'}
+# dataset <- readRDS(file = "casen_2015_c.rds")
+ab_2015 <- readRDS(file = "casen_2015_c.rds")
+```
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+ab_2015 <- ab_2015[!is.na(ab_2015$ytotcor),]
+
+Q <- quantile(ab_2015$ytotcor, probs=c(.25, .75), na.rm = FALSE)
+iqr <- IQR(ab_2015$ytotcor)
+
+eliminated <- subset(ab_2015, ab_2015$ytotcor > (Q[1] - 1.5*iqr) & ab_2015$ytotcor < (Q[2]+1.5*iqr))
+#eliminated
+```
+
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$e1 #alfabetismo
+d <- eliminated$r3 #etnia
+e <- eliminated$sexo
+
+promedios_grupales <-aggregate(a, by=list(b, c, d, e), FUN = mean , na.rm = TRUE)
+
+head(promedios_grupales,5)
+```
+
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+promedios_grupales_sd <-aggregate(a, by=list(b, c, d, e), FUN = sd , na.rm = TRUE)
+head(promedios_grupales_sd,3)
+
+```
+```{r}
+promedios_grupales_gini <-aggregate(a, by=list(b, c, d, e), FUN = gini , na.rm = TRUE)
+head(promedios_grupales_gini,3)
+```
+
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+promedios_grupales$sd = promedios_grupales_sd$sd.a
+promedios_grupales$gini = promedios_grupales_gini$gini.a
+d<-promedios_grupales
+d$Año <- "2015"
+head(d,5)
+
+```
+
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+names(d)[1] <- "Comuna"
+names(d)[2] <- "Alfabetismo"
+names(d)[3] <- "Etnia"
+names(d)[4] <- "Sexo"
+names(d)[5] <- "Promedio del Ingreso"
+names(d)[6] <- "Desviación standard"
+names(d)[7] <- "Gini"
+names(d)[8] <- "Año"
+head(d,3)
+```
+```{r, message=FALSE, warning=FALSE, results='hide'}
+codigos_comunales <- readRDS(file = "codigos_comunales_2011-2017.rds")
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df_2015 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+df_2015 <-df_2015[!(df_2015$Promedio == 0),]
+head(df_2015,5)
+```
+
+
+
+
+### generación de la tabla de contingencia para el 2013
+
+```{r , message=FALSE, warning=FALSE, results='hide'}
+# dataset <- readRDS(file = "casen_2017_c.rds")
+ab_2013 <- readRDS(file = "casen_2013_c.rds")
+```
+
+## 1.Excluimos los outliers:
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+ab_2013 <- ab_2013[!is.na(ab_2013$ytotcor),]
+
+Q <- quantile(ab_2013$ytotcor, probs=c(.25, .75), na.rm = FALSE)
+iqr <- IQR(ab_2013$ytotcor)
+
+eliminated <- subset(ab_2013, ab_2013$ytotcor > (Q[1] - 1.5*iqr) & ab_2013$ytotcor < (Q[2]+1.5*iqr))
+#eliminated
+```
+
+## 2. Generamos los promedios grupales dentro de tablas de contingencia sobre la variable ytotcor, comsiderando las categorias comuna, alfabetismo, etnia y sexo
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$e1 #alfabetismo
+d <- eliminated$r6 #etnia
+e <- eliminated$sexo
+
+promedios_grupales <-aggregate(a, by=list(b, c, d, e), FUN = mean , na.rm = TRUE)
+
+head(promedios_grupales,5)
+```
+
+## 3.Generamos las desviaciones standard asociados a los rangos de ingresos por comuna
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+promedios_grupales_sd <-aggregate(a, by=list(b, c, d, e), FUN = sd , na.rm = TRUE)
+head(promedios_grupales_sd,3)
+
+```
+
+## 4.Generamos los coeficientes de Gini asociados a los rangos de ingresos por comuna
+
+```{r}
+promedios_grupales_gini <-aggregate(a, by=list(b, c, d, e), FUN = gini , na.rm = TRUE)
+head(promedios_grupales_gini,3)
+```
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+promedios_grupales$sd = promedios_grupales_sd$sd.a
+promedios_grupales$gini = promedios_grupales_gini$gini.a
+d<-promedios_grupales
+d$Año <- "2013"
+head(d,5)
+
+```
+
+## 6. Asignamos los nombres correctos a las cabeceras
+
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+names(d)[1] <- "Comuna"
+names(d)[2] <- "Alfabetismo"
+names(d)[3] <- "Etnia"
+names(d)[4] <- "Sexo"
+names(d)[5] <- "Promedio del Ingreso"
+names(d)[6] <- "Desviación standard"
+names(d)[7] <- "Gini"
+names(d)[8] <- "Año"
+head(d,3)
+```
+## 7.Asociamos a los nombres de las comunas sus códigos en una nueva columna:
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+codigos_comunales <- readRDS(file = "codigos_comunales_2011-2017.rds")
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df_2013 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+df_2013 <-df_2013[!(df_2013$Promedio == 0),]
+head(df_2013,5)
+```
+
+
+
+### generación de la tabla de contingencia para el 2011
+
+```{r , message=FALSE, warning=FALSE, results='hide'}
+# dataset <- readRDS(file = "casen_2011_c.rds")
+ab_2011 <- readRDS(file = "casen_2011_c.rds")
+```
+
+## 1.Excluimos los outliers:
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+ab_2011 <- ab_2011[!is.na(ab_2011$ytotaj),]
+
+Q <- quantile(ab_2011$ytotaj, probs=c(.25, .75), na.rm = FALSE)
+iqr <- IQR(ab_2011$ytotaj)
+
+eliminated <- subset(ab_2011, ab_2011$ytotaj > (Q[1] - 1.5*iqr) & ab_2011$ytotaj < (Q[2]+1.5*iqr))
+#eliminated
+```
+
+## 2. Generamos los promedios grupales
+
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+a <- eliminated$ytotaj
+b <- eliminated$comuna
+c <- eliminated$e1 #alfabetismo
+d <- eliminated$r1p_cod #etnia
+e <- eliminated$sexo
+
+promedios_grupales <-aggregate(a, by=list(b, c, d, e), FUN = mean , na.rm = TRUE)
+
+head(promedios_grupales,5)
+```
+
+## 3.Generamos las desviaciones standard asociados a los rangos de ingresos por comuna
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+promedios_grupales_sd <-aggregate(a, by=list(b, c, d, e), FUN = sd , na.rm = TRUE)
+head(promedios_grupales_sd,3)
+
+```
+## 4.Generamos los coeficientes de Gini asociados a los rangos de ingresos por comuna
+
+```{r}
+promedios_grupales_gini <-aggregate(a, by=list(b, c, d, e), FUN = gini , na.rm = TRUE)
+head(promedios_grupales_gini,3)
+```
+## 5.Adjuntamos en una misma tabla los valores de promedio, desviación standard y Gini y generamos una nueva columna con el valor del año:
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+promedios_grupales$sd = promedios_grupales_sd$sd.a
+promedios_grupales$gini = promedios_grupales_gini$gini.a
+d<-promedios_grupales
+d$Año <- "2011"
+head(d,5)
+
+```
+## 6. Asignamos los nombres correctos a las cabeceras
+
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+names(d)[1] <- "Comuna"
+names(d)[2] <- "Alfabetismo"
+names(d)[3] <- "Etnia"
+names(d)[4] <- "Sexo"
+names(d)[5] <- "Promedio del Ingreso"
+names(d)[6] <- "Desviación standard"
+names(d)[7] <- "Gini"
+names(d)[8] <- "Año"
+head(d,3)
+```
+## 7.Asociamos a los nombres de las comunas sus códigos en una nueva columna:
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+codigos_comunales <- readRDS(file = "codigos_comunales_2011-2017.rds")
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df_2011 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+df_2011 <-df_2011[!(df_2011$Promedio == 0),]
+head(df_2011,5)
+```
+
+
+###############################################
+###############################################
+###############################################
+A PARTIR DE AQUI TERMINA EL TRABAJO SOBRE MIGRACIÓN EN VEZ DE ETNIA
+###############################################
+###############################################
+###############################################
+
+
+### generación de la tabla de contingencia para el 2009
+```{r , message=FALSE, warning=FALSE, results='hide'}
+# dataset <- readRDS(file = "casen_2009_c.rds")
+ab_2009 <- readRDS(file = "casen_2009_c.rds")
+```
+
+
+## 1.Excluimos los outliers:
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+ab_2009 <- ab_2009[!is.na(ab_2009$YTOTAJ),]
+
+Q <- quantile(ab_2009$YTOTAJ, probs=c(.25, .75), na.rm = FALSE)
+iqr <- IQR(ab_2009$YTOTAJ)
+
+eliminated <- subset(ab_2009, ab_2009$YTOTAJ > (Q[1] - 1.5*iqr) & ab_2009$YTOTAJ < (Q[2]+1.5*iqr))
+
+```
+
+## 2. Generamos los promedios grupales
+
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+a <- eliminated$YTOTAJ
+b <- eliminated$COMUNA
+c <- eliminated$E1 #alfabetismo
+d <- eliminated$T5 #etnia
+e <- eliminated$SEXO
+
+promedios_grupales <-aggregate(a, by=list(b, c, d, e), FUN = mean , na.rm = TRUE)
+
+head(promedios_grupales,5)
+```
+
+## 3.Generamos las desviaciones standard asociados a los rangos de ingresos por comuna
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+promedios_grupales_sd <-aggregate(a, by=list(b, c, d, e), FUN = sd , na.rm = TRUE)
+head(promedios_grupales_sd,3)
+
+```
+## 4.Generamos los coeficientes de Gini asociados a los rangos de ingresos por comuna
+
+```{r}
+promedios_grupales_gini <-aggregate(a, by=list(b, c, d, e), FUN = gini , na.rm = TRUE)
+head(promedios_grupales_gini,3)
+```
+## 5.Adjuntamos en una misma tabla los valores de promedio, desviación standard y Gini y generamos una nueva columna con el valor del año:
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+promedios_grupales$sd = promedios_grupales_sd$sd.a
+promedios_grupales$gini = promedios_grupales_gini$gini.a
+d<-promedios_grupales
+d$Año <- "2009"
+head(d,5)
+
+```
+## 6. Asignamos los nombres correctos a las cabeceras
+
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+names(d)[1] <- "Comuna"
+names(d)[2] <- "Alfabetismo"
+names(d)[3] <- "Etnia"
+names(d)[4] <- "Sexo"
+names(d)[5] <- "Promedio del Ingreso"
+names(d)[6] <- "Desviación standard"
+names(d)[7] <- "Gini"
+names(d)[8] <- "Año"
+head(d,3)
+```
+## 7.Asociamos a los nombres de las comunas sus códigos en una nueva columna:
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+codigos_comunales <- readRDS(file = "codigos_comunales_2009.rds")
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df_2009 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+df_2009 <-df_2009[!(df_2009$Promedio == 0),]
+head(df_2009,5)
+```
+
+
+
+### generación de la tabla de contingencia para el 2006
+```{r , message=FALSE, warning=FALSE, results='hide'}
+# dataset <- readRDS(file = "casen_2006_c.rds")
+ab_2006 <- readRDS(file = "casen_2006_c.rds")
+```
+
+
+
+## 1.Excluimos los outliers:
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+ab_2006 <- ab_2006[!is.na(ab_2006$YTOTAJ),]
+
+Q <- quantile(ab_2006$YTOTAJ, probs=c(.25, .75), na.rm = FALSE)
+iqr <- IQR(ab_2006$YTOTAJ)
+
+eliminated <- subset(ab_2006, ab_2006$YTOTAJ > (Q[1] - 1.5*iqr) & ab_2006$YTOTAJ < (Q[2]+1.5*iqr))
+
+```
+
+## 2. Generamos los promedios grupales
+
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+a <- eliminated$YTOTAJ
+b <- eliminated$COMUNA
+c <- eliminated$E1 #alfabetismo
+d <- eliminated$T4 #etnia
+e <- eliminated$SEXO
+
+promedios_grupales <-aggregate(a, by=list(b, c, d, e), FUN = mean , na.rm = TRUE)
+
+head(promedios_grupales,5)
+```
+
+## 3.Generamos las desviaciones standard asociados a los rangos de ingresos por comuna
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+promedios_grupales_sd <-aggregate(a, by=list(b, c, d, e), FUN = sd , na.rm = TRUE)
+head(promedios_grupales_sd,3)
+
+```
+## 4.Generamos los coeficientes de Gini asociados a los rangos de ingresos por comuna
+
+```{r}
+promedios_grupales_gini <-aggregate(a, by=list(b, c, d, e), FUN = gini , na.rm = TRUE)
+head(promedios_grupales_gini,3)
+```
+## 5.Adjuntamos en una misma tabla los valores de promedio, desviación standard y Gini y generamos una nueva columna con el valor del año:
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+promedios_grupales$sd = promedios_grupales_sd$sd.a
+promedios_grupales$gini = promedios_grupales_gini$gini.a
+d<-promedios_grupales
+d$Año <- "2006"
+head(d,5)
+
+```
+## 6. Asignamos los nombres correctos a las cabeceras
+
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+names(d)[1] <- "Comuna"
+names(d)[2] <- "Alfabetismo"
+names(d)[3] <- "Etnia"
+names(d)[4] <- "Sexo"
+names(d)[5] <- "Promedio del Ingreso"
+names(d)[6] <- "Desviación standard"
+names(d)[7] <- "Gini"
+names(d)[8] <- "Año"
+head(d,3)
+```
+## 7.Asociamos a los nombres de las comunas sus códigos en una nueva columna:
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+codigos_comunales <- readRDS(file = "codigos_comunales_2006.rds")
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df_2006 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+df_2006 <-df_2006[!(df_2006$Promedio == 0),]
+head(df_2006,5)
+```
+
+
+
+
+
+
+
+```{r}
+options(scipen=999)
+uni_parcial <- rbind(df_2006,df_2009,df_2011,df_2013,df_2015,df_2017)
+head(uni_parcial,5)
+```
+
+
+```{r}
+saveRDS(uni_parcial,"uni_parcial.rds")
+```
+
+```{r}
+uni_parcial_leido <- readRDS("uni_parcial.rds")
+head(uni_parcial_leido,5)
+```
+
+```{r}
+write_xlsx(uni_parcial,"uni_parcial.xlsx")
+```
+
+```{r}
+objeto_leido <- read_excel("uni_parcial.xlsx")
+head(objeto_leido,5)
+```
+
+
+
+<!-- 2009 -->
+
+<!-- ```{r, message=FALSE, warning=FALSE, results='hide'} -->
+<!-- # dataset <- readRDS(file = "casen_2017_c.rds") -->
+<!-- ab <- dataset_2009 -->
+<!-- ``` -->
+
+
+<!-- ```{r, message=FALSE, warning=FALSE, results='hide'} -->
+<!-- ab <- ab[!is.na(ab$YTOTAJ),] -->
+
+<!-- Q <- quantile(ab$YTOTAJ, probs=c(.25, .75), na.rm = FALSE) -->
+<!-- iqr <- IQR(ab$YTOTAJ) -->
+
+<!-- eliminated <- subset(ab, ab$YTOTAJ > (Q[1] - 1.5*iqr) & ab$YTOTAJ < (Q[2]+1.5*iqr)) -->
+<!-- #eliminated -->
+<!-- ``` -->
+
+
+<!-- ```{r, message=FALSE, warning=FALSE, results='hide'} -->
+<!-- a <- eliminated$YTOTAJ -->
+<!-- b <- eliminated$COMUNA -->
+<!-- c <- eliminated$E15C1 -->
+<!-- d <- eliminated$T5 -->
+<!-- e <- eliminated$SEXO -->
+
+<!-- promedios_grupales <-aggregate(a, by=list(b, c, d, e), FUN = mean , na.rm = TRUE) -->
+<!-- promedios_grupales_sd <-aggregate(a, by=list(b, c, d, e), FUN = sd , na.rm = TRUE) -->
+<!-- promedios_grupales$sd = promedios_grupales_sd$sd.a -->
+<!-- d<-promedios_grupales -->
+<!-- d$Año <- "2009" -->
+
+<!-- ``` -->
+
+<!-- ```{r, message=FALSE, warning=FALSE, results='hide'} -->
+<!-- names(d)[1] <- "Comuna" -->
+<!-- names(d)[2] <- "Crédito" -->
+<!-- names(d)[3] <- "Etnia" -->
+<!-- names(d)[4] <- "Sexo" -->
+<!-- names(d)[5] <- "Promedio" -->
+<!-- names(d)[6] <- "Desviación standard" -->
+<!-- names(d)[7] <- "Año" -->
+
+<!-- codigos_comunales <- readRDS(file = "codigos_comunales_2009.rds") -->
+<!-- names(codigos_comunales)[1] <- "Código" -->
+<!-- names(codigos_comunales)[2] <- "Comuna" -->
+<!-- # codigos_comunales -->
+
+<!-- df_2006 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE) -->
+<!-- df_2009 <-df_2006[!(df_2006$Promedio == 0),] -->
+<!-- head(df_2009,5) -->
+<!-- ``` -->
+
+
+
+<!-- 2011 -->
+
+<!-- ```{r, message=FALSE, warning=FALSE, results='hide'} -->
+<!-- # dataset <- readRDS(file = "casen_2017_c.rds") -->
+<!-- ab <- dataset_2011 -->
+<!-- ``` -->
+
+
+
+<!-- ```{r, message=FALSE, warning=FALSE, results='hide'} -->
+<!-- ab <- ab[!is.na(ab$ytotaj),] -->
+
+<!-- Q <- quantile(ab$ytotaj, probs=c(.25, .75), na.rm = FALSE) -->
+<!-- iqr <- IQR(ab$ytotaj) -->
+
+<!-- eliminated <- subset(ab, ab$ytotaj > (Q[1] - 1.5*iqr) & ab$ytotaj < (Q[2]+1.5*iqr)) -->
+<!-- #eliminated -->
+<!-- ``` -->
+
+
+<!-- ```{r, message=FALSE, warning=FALSE, results='hide'} -->
+<!-- a <- eliminated$ytotaj -->
+<!-- b <- eliminated$comuna -->
+<!-- c <- eliminated$e17t1 -->
+<!-- d <- eliminated$r6 -->
+<!-- e <- eliminated$sexo -->
+
+<!-- promedios_grupales <-aggregate(a, by=list(b, c, d, e), FUN = mean , na.rm = TRUE) -->
+<!-- promedios_grupales_sd <-aggregate(a, by=list(b, c, d, e), FUN = sd , na.rm = TRUE) -->
+<!-- promedios_grupales$sd = promedios_grupales_sd$sd.a -->
+<!-- d<-promedios_grupales -->
+<!-- d$Año <- "2011" -->
+
+<!-- ``` -->
+
+<!-- ```{r, message=FALSE, warning=FALSE, results='hide'} -->
+<!-- names(d)[1] <- "Comuna" -->
+<!-- names(d)[2] <- "Crédito" -->
+<!-- names(d)[3] <- "Etnia" -->
+<!-- names(d)[4] <- "Sexo" -->
+<!-- names(d)[5] <- "Promedio" -->
+<!-- names(d)[6] <- "Desviación standard" -->
+<!-- names(d)[7] <- "Año" -->
+
+<!-- codigos_comunales <- readRDS(file = "codigos_comunales_2011-2017.rds") -->
+<!-- names(codigos_comunales)[1] <- "Código" -->
+<!-- names(codigos_comunales)[2] <- "Comuna" -->
+<!-- # codigos_comunales -->
+
+<!-- df_2006 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE) -->
+<!-- df_2011 <-df_2006[!(df_2006$Promedio == 0),] -->
+<!-- head(df_2011,5) -->
+<!-- ``` -->
+
+
+
+
+<!-- 2013 -->
+
+<!-- ```{r, message=FALSE, warning=FALSE, results='hide'} -->
+<!-- # dataset <- readRDS(file = "casen_2017_c.rds") -->
+<!-- ab <- dataset_2013 -->
+<!-- ``` -->
+
+
+
+<!-- ```{r, message=FALSE, warning=FALSE, results='hide'} -->
+<!-- ab <- ab[!is.na(ab$ytotcor),] -->
+
+<!-- Q <- quantile(ab$ytotcor, probs=c(.25, .75), na.rm = FALSE) -->
+<!-- iqr <- IQR(ab$ytotcor) -->
+
+<!-- eliminated <- subset(ab, ab$ytotcor > (Q[1] - 1.5*iqr) & ab$ytotcor < (Q[2]+1.5*iqr)) -->
+<!-- #eliminated -->
+<!-- ``` -->
+
+
+<!-- ```{r, message=FALSE, warning=FALSE, results='hide'} -->
+<!-- a <- eliminated$ytotcor -->
+<!-- b <- eliminated$comuna -->
+<!-- c <- eliminated$e17t1 -->
+<!-- d <- eliminated$r6 -->
+<!-- e <- eliminated$sexo -->
+
+<!-- promedios_grupales <-aggregate(a, by=list(b, c, d, e), FUN = mean , na.rm = TRUE) -->
+<!-- promedios_grupales_sd <-aggregate(a, by=list(b, c, d, e), FUN = sd , na.rm = TRUE) -->
+<!-- promedios_grupales$sd = promedios_grupales_sd$sd.a -->
+<!-- d<-promedios_grupales -->
+<!-- d$Año <- "2013" -->
+
+<!-- ``` -->
+
+<!-- ```{r, message=FALSE, warning=FALSE, results='hide'} -->
+<!-- names(d)[1] <- "Comuna" -->
+<!-- names(d)[2] <- "Crédito" -->
+<!-- names(d)[3] <- "Etnia" -->
+<!-- names(d)[4] <- "Sexo" -->
+<!-- names(d)[5] <- "Promedio" -->
+<!-- names(d)[6] <- "Desviación standard" -->
+<!-- names(d)[7] <- "Año" -->
+
+<!-- codigos_comunales <- readRDS(file = "codigos_comunales_2011-2017.rds") -->
+<!-- names(codigos_comunales)[1] <- "Código" -->
+<!-- names(codigos_comunales)[2] <- "Comuna" -->
+<!-- # codigos_comunales -->
+
+<!-- df_2006 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE) -->
+<!-- df_2013 <-df_2006[!(df_2006$Promedio == 0),] -->
+<!-- head(df_2013,5) -->
+<!-- ``` -->
+
+
+
+
+
+
+<!-- 2015 -->
+
+<!-- ```{r, message=FALSE, warning=FALSE, results='hide'} -->
+<!-- # dataset <- readRDS(file = "casen_2017_c.rds") -->
+<!-- ab <- dataset_2015 -->
+<!-- ``` -->
+
+
+
+<!-- ```{r, message=FALSE, warning=FALSE, results='hide'} -->
+<!-- ab <- ab[!is.na(ab$ytotcor),] -->
+
+<!-- Q <- quantile(ab$ytotcor, probs=c(.25, .75), na.rm = FALSE) -->
+<!-- iqr <- IQR(ab$ytotcor) -->
+
+<!-- eliminated <- subset(ab, ab$ytotcor > (Q[1] - 1.5*iqr) & ab$ytotcor < (Q[2]+1.5*iqr)) -->
+<!-- #eliminated -->
+<!-- ``` -->
+
+
+<!-- ```{r, message=FALSE, warning=FALSE, results='hide'} -->
+<!-- a <- eliminated$ytotcor -->
+<!-- b <- eliminated$comuna -->
+<!-- c <- eliminated$e16t1 -->
+<!-- d <- eliminated$r3 -->
+<!-- e <- eliminated$sexo -->
+
+<!-- promedios_grupales <-aggregate(a, by=list(b, c, d, e), FUN = mean , na.rm = TRUE) -->
+<!-- promedios_grupales_sd <-aggregate(a, by=list(b, c, d, e), FUN = sd , na.rm = TRUE) -->
+<!-- promedios_grupales$sd = promedios_grupales_sd$sd.a -->
+<!-- d<-promedios_grupales -->
+<!-- d$Año <- "2015" -->
+
+<!-- ``` -->
+
+<!-- ```{r, message=FALSE, warning=FALSE, results='hide'} -->
+<!-- names(d)[1] <- "Comuna" -->
+<!-- names(d)[2] <- "Crédito" -->
+<!-- names(d)[3] <- "Etnia" -->
+<!-- names(d)[4] <- "Sexo" -->
+<!-- names(d)[5] <- "Promedio" -->
+<!-- names(d)[6] <- "Desviación standard" -->
+<!-- names(d)[7] <- "Año" -->
+
+<!-- codigos_comunales <- readRDS(file = "codigos_comunales_2011-2017.rds") -->
+<!-- names(codigos_comunales)[1] <- "Código" -->
+<!-- names(codigos_comunales)[2] <- "Comuna" -->
+<!-- # codigos_comunales -->
+
+<!-- df_2006 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE) -->
+<!-- df_2015 <-df_2006[!(df_2006$Promedio == 0),] -->
+<!-- head(df_2015,5) -->
+<!-- ``` -->
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 2017 -->
+
+<!-- ```{r, message=FALSE, warning=FALSE, results='hide'} -->
+<!-- # dataset <- readRDS(file = "casen_2017_c.rds") -->
+<!-- ab <- dataset_2017 -->
+<!-- ``` -->
+
+
+<!-- ```{r, message=FALSE, warning=FALSE, results='hide'} -->
+<!-- ab <- ab[!is.na(ab$ytotcor),] -->
+
+<!-- Q <- quantile(ab$ytotcor, probs=c(.25, .75), na.rm = FALSE) -->
+<!-- iqr <- IQR(ab$ytotcor) -->
+
+<!-- eliminated <- subset(ab, ab$ytotcor > (Q[1] - 1.5*iqr) & ab$ytotcor < (Q[2]+1.5*iqr)) -->
+<!-- ``` -->
+
+
+
+<!-- ```{r, message=FALSE, warning=FALSE, results='hide'} -->
+<!-- a <- eliminated$ytotcor -->
+<!-- b <- eliminated$comuna -->
+<!-- c <- eliminated$e19_1 -->
+<!-- d <- eliminated$r3 -->
+<!-- e <- eliminated$sexo -->
+
+
+<!-- promedios_grupales <-aggregate(a, by=list(b, c, d, e), FUN = mean , na.rm = TRUE) -->
+<!-- promedios_grupales_sd <-aggregate(a, by=list(b, c, d, e), FUN = sd , na.rm = TRUE) -->
+<!-- promedios_grupales$sd = promedios_grupales_sd$sd.a -->
+<!-- d<-promedios_grupales -->
+<!-- d$Año <- "2017" -->
+
+<!-- ``` -->
+
+
+
+<!-- ```{r, message=FALSE, warning=FALSE, results='hide'} -->
+<!-- names(d)[1] <- "Comuna" -->
+<!-- names(d)[2] <- "Crédito" -->
+<!-- names(d)[3] <- "Etnia" -->
+<!-- names(d)[4] <- "Sexo" -->
+<!-- names(d)[5] <- "Promedio" -->
+<!-- names(d)[6] <- "Desviación standard" -->
+<!-- names(d)[7] <- "Año" -->
+
+<!-- codigos_comunales <- readRDS(file = "codigos_comunales_2011-2017.rds") -->
+<!-- names(codigos_comunales)[1] <- "Código" -->
+<!-- names(codigos_comunales)[2] <- "Comuna" -->
+<!-- # codigos_comunales -->
+
+<!-- df_2017 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE) -->
+<!-- df_2017 <-df_2017[!(df_2017$Promedio == 0),] -->
+<!-- head(df_2017,5) -->
+
+<!-- ``` -->
+
+
+<!-- ## Union de los dataframes y escritura: -->
+
+
+
+<!-- ```{r, message=FALSE, warning=FALSE, echo=FALSE} -->
+<!-- variables_casen <- rbind( -->
+<!--    df_2006, -->
+<!--    df_2009, -->
+<!--   df_2011, -->
+<!--   df_2013, -->
+<!--   df_2015, -->
+<!--   df_2017 -->
+<!-- ) -->
+
+<!-- write_xlsx(variables_casen, 'ytotcor_edu_cre_etnia_2.xlsx') -->
+<!-- ``` -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

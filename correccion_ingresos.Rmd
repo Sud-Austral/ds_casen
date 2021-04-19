@@ -1,0 +1,165 @@
+---
+title: "correcciones_001"
+author: "Christian Castro"
+date: "29-12-2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+
+library(ggplot2)
+library(ggpubr)
+library(markdown)
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(plotly)
+library(xts)
+library(dygraphs)
+library(kableExtra)
+library(knitr)
+library("readxl")
+library(rsconnect)
+library(dplyr)
+library(summarytools)
+library(epiDisplay)
+#library(leaflet)
+library(haven)
+library(epiDisplay)
+library("readxl")
+library(hrbrthemes)
+library(viridis)
+library(viridisLite)
+library(writexl)
+library(plyr)
+library(kableExtra)
+library(knitr)
+library(DescTools)
+
+# https://www.datacamp.com/community/tutorials/contingency-tables-r
+
+oldw <- getOption("warn")
+options(warn = -1)
+
+
+```
+```{r, echo=FALSE}
+
+dataset2006_original  <- readRDS("CASEN_2006.rds")
+# Como humanos, preferimos trabajar con etiquetas que con códigos.
+dataset2006  <- as_factor(dataset2006_original, only_labelled = TRUE)
+```
+
+
+
+```{r}
+colnames(dataset2006)
+```
+
+
+```{r}
+data_code <- stack(attr(dataset2006_original$COMUNA, 'labels'))
+names(data_code)[2] <- "comuna"
+head(data_code,10)
+```
+```{r}
+data_code <- data_code[,c(2,1)]
+data_code
+```
+
+
+
+
+
+## R 
+```{r}
+
+    
+    data_code[270,2]<-11201
+    data_code[8,2]<-15101
+    data_code[178,2]<-16102
+    data_code[9,2]<-15102
+    data_code[2,2]<-1402
+    data_code[177,2]<-16101
+    data_code[182,2]<-16103
+    data_code[96,2]<-6303
+    data_code[179,2]<-16202
+    data_code[180,2]<-16203
+    data_code[181,2]<-16302
+    data_code[3,2]<-1403
+    data_code[287,2]<-13104
+    data_code[261,2]<-14102
+    data_code[183,2]<-16104
+    data_code[262,2]<-14202
+    data_code[11,2]<-15202
+    data_code[4,2]<-1404
+    data_code[292,2]<-13110
+    data_code[263,2]<-14201
+    data_code[264,2]<-14203
+    data_code[265,2]<-14103
+    data_code[66,2]<-5802
+    data_code[266,2]<-14104
+    data_code[267,2]<-14105
+    data_code[268,2]<-14106
+    data_code[89,2]<-6110
+    data_code[184,2]<-16204
+    data_code[185,2]<-16303
+    data_code[68,2]<-5803
+    data_code[271,2]<-14107
+    data_code[272,2]<-14108
+    data_code[186,2]<-16105
+    data_code[5,2]<-1405
+    data_code[187,2]<-16106
+    data_code[188,2]<-16205
+    data_code[6,2]<-1401
+    data_code[10,2]<-15201
+    data_code[246,2]<-16107
+    data_code[49,2]<-5801
+    data_code[92,2]<-6114
+    data_code[190,2]<-16201
+    data_code[191,2]<-16206
+    data_code[273,2]<-14204
+    data_code[192,2]<-16301
+    data_code[193,2]<-16304
+    data_code[194,2]<-16108
+    data_code[195,2]<-16305
+    data_code[286,2]<-13505
+    data_code[196,2]<-16207
+    data_code[260,2]<-14101
+    data_code[51,2]<-5804
+    data_code[197,2]<-16109
+    
+    data_code
+```
+
+
+```{r}
+promedios_grupales <-aggregate(dataset2006$YAUTHAJ, by=list(dataset2006$COMUNA, dataset2006$T4, dataset2006$SEXO), FUN = mean , na.rm = TRUE)
+names(promedios_grupales)[1] <- "comuna"
+
+
+
+    promedios_grupales$anio <- "2006"
+
+head(promedios_grupales,5)
+```
+
+
+
+```{r}
+    df = merge( x = promedios_grupales, y = data_code, by = "comuna", all.x = TRUE)
+
+df
+```
+
+```{r}
+write_xlsx(df,"ingresos_promedio_etnia_2006.xlsx")
+```
+
+
+

@@ -1,0 +1,13 @@
+name: casen
+title: casen
+username:
+account: dataintelligencechile
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3385925
+bundleId: 3972769
+url: https://dataintelligencechile.shinyapps.io/casen/
+when: 1607638265.71282
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: exc_prec.Rmd|extracciondicc.Rmd|frecuencias_agregados.Rmd|IdeaVictor.Rmd|promedios_agregados.Rmd|read stata.Rmd|rrnn_I.Rmd|spss.Rmd|tabla2006.Rmd|test.Rmd|ttgg.Rmd|ttgg_socio.Rmd|casen_di/app.R

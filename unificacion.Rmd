@@ -1,0 +1,111 @@
+---
+title: |
+  <font size="16">Casen: Compendio de análisis</font>
+author:
+- name: VE-CC
+  affiliation: |
+subtitle: |
+  Centralización de las investigaciones hecha sobre la Casen.
+date: "15-01-2020"
+abstract: |
+
+  Se exponen metodologías de análisis.
+  
+header-includes:
+   - \usepackage[]{babel}
+output: 
+  html_document:
+      theme: flatly
+---
+
+<style type="text/css">
+
+.main-container {
+  max-width: 1300px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+body, td {
+    font-family: Helvetica;
+    font-size: 22px;
+}
+code.r{
+  font-size: 12px;
+}
+pre {
+  font-size: 18px;
+}
+</style>
+
+
+```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width = 9, fig.height=9)
+
+# https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html
+```
+
+```{r, echo=FALSE}
+#htmltools::img(src = knitr::image_uri("C:/Users/usuario/Desktop/dataintelligence.png"), 
+ #              style = 'position:absolute; top:0; right:0; padding:10px;')
+```
+
+# Índice
+
+[Aplicación shiny](https://dataintelligencechile.shinyapps.io/casenfinal "shiny")
+
+[1 ML Clasificacion](https://rpubs.com/dataintelligence/casen001 "ml clasificacion")
+
+Se exponen una serie de algoritmos de ML para eventualmente ser aplicados a la Casen.
+
+[2 Análisis de los ingresos](https://rpubs.com/dataintelligence/casen002 "ingresos en la casen")
+
+Se revisan algunos conceptos sobre el ingreso, las variables que lo miden en la Casen, el procedimiento de cálculo de promedios sobre frecuencias y su revisión y un pequeño análisis de regresión de un ingreso sobre la probabilidad de ser pobre.
+
+[3 Análisis de la pobreza](https://rpubs.com/dataintelligence/casen003 "pobreza en la casen")
+
+En un trabajo previo (ir al documento: “Propuesta de solución a la ausencia de factores de expansión comunales en 185 comunas de la Casen 2015”), propusimos una solución al problema de los factores de expansión ausentes en la Casen del 2015 (una investigación posterior nos reveló que para éstas 185 comunas no se buscó contar con representatividad estadística en la Casen 2015, siendo reemplazados los factores de expansión por una estimación SAE (Small Areas Estimation) cuyos detalles nos son inaccesibles). Sobre ésta base de datos ya corregida, calcularemos nuestro propio porcentaje de pobreza para Chile el 2015 y veremos que un resultado difiere en dos décimas de los resultados oficiales y el otro en una. Calcularemos el porcentaje de pobreza para una comuna que no posee factor de expansión y veremos que el resultado cae dentro de los límites de error para la pobreza estimada con SAE y veremos que para Iquique nuestra estimación coincide con el dato oficial. Revisaremos una definición conceptual de qué es la pobreza y cómo intenta medirla la Casen en sus seis versiones desde el 2006, y concluiremos con gráficos que relacionan algunas variables relevantes con el decil de ingreso al que pertenecen las personas.
+
+[4 Análisis de la vivienda -en preparación-](https://rpubs.com/dataintelligence/casen004 "vivienda en la casen")
+
+La situación de tenencia de los sitios y de las viviendas en las que habitan los hogares de la RMS. También se examinan los indicadores relacionados con la materialidad, estado de conservación, acceso a servicios básicos y calidad global de las viviendas, distinguiendo -en cada caso- por quintil de ingreso autónomo regional.
+
+La segunda sección presenta las situaciones de hacinamiento y allegamiento –tanto externo como interno- que enfrentan los hogares, distinguiendo también por quintil de ingreso autónomo regional.
+
+En la tercera sección se define el déficit cuantitativo de viviendas (a través de sus componentes), se examinan su nivel y evolución durante los últimos años, así como la distribución de este déficit entre los distintos quintiles de ingreso. Es necesario señalar que la magnitud del déficit habitacional cuantitativo medido en base a la encuesta Casen presenta diferencias importantes con aquella realizada por el Ministerio de Vivienda y Urbanismo (MINVU) en base al Censo de Población y Vivienda. Si bien, la definición conceptual de déficit habitacional es similar en ambos casos, existen diferencias debidas a las características de los instrumentos de medición utilizados, así como al hecho que la identificación de hogares y núcleos es diferente entre la Casen y el Censo. En esta sección también se examina el concepto de déficit cualitativo de viviendas, estableciéndose su magnitud y desagregación por quintil de ingreso.
+
+La cuarta sección recoge algunos resultados relacionados con las nuevas preguntas sobre entorno de las viviendas que fueron incorporadas, por primera vez, en el cuestionario de la encuesta Casen 2015. Concretamente, se presenta información sobre disponibilidad de distintas alternativas de equipamiento: servicios de transporte, centros educacionales, centros de salud, supermercado y almacenes, equipamiento deportivo y otros. Además, se presentan los resultados respecto de la incidencia de distintas situaciones de contaminación: acústica, basura en calles, plagas de insectos o de animales, del aire y/o malos olores, contaminación visual, etc.
+
+[5 Código para calcular promedios dentro de tablas de contingencia](https://rpubs.com/dataintelligence/casen005 "promedios dentro de tablas de contingencia")
+
+El codigo de éste trabajo fue construido para que la generación de promedios comunales sobre tablas de contingencia construidas de las Casen corregidas sea un acto trivial.
+
+[6 Código para generar tablas de contingencia](https://rpubs.com/dataintelligence/casen006 "tablas de contingencia")
+
+El codigo de éste trabajo fue construido para que la generación de tablas de contingencia sobre las Casen corregidas sea un acto trivial.
+
+[7 Pruebas](https://rpubs.com/dataintelligence/casen007 "pruebas")
+
+Se realizan ejercicios para corroborar que los datos que obtenemos sean los mismos de la informacion oficial. Necesitamos que nuestras estimaciones de pobreza obtenidas con cálculos propios desde la Casen coincidan con la información ya publicada.
+
+Hicimos 6 contrastes, en algunos acertamos y en otros no. Para el primero, en el que consideramos la pobreza en Iquique para el 2006, nuestras estimaciones coinciden perfectamente. Éste resultado indica que nuestra metodología de cálculo es correcta, pero que sin embargo, pueden existir errores de nuestra parte (al no considerar correctamente las variables de la Casen referidas a la pobreza o tomando un factor de expansión errado) como también, y eso lo veremos en el quinto y el sexto contraste, posibles errores de calculo de la fuente.
+
+[8 Tablas de contingencia](https://rpubs.com/dataintelligence/casen008 "tablas de contingencia")
+
+Se construyen algunas tablas de contingencia y se les da formato gráfico para realizar análisis sociales.
+
+[9 Gráficos](https://rpubs.com/dataintelligence/casen009 "gráficos")
+
+En éste documento comenzamos un despliegue masivo de gráficos a modo exploratorio y descriptivo, por lo que se priorizó la cantidad que el análisis.
+
+[10 Explicitación de variables](https://rpubs.com/dataintelligence/casen010 "variables")
+
+Se hace revisión a las variables más importantes de la Casen y se despliegan sus nombres y categorías de respuesta por año.
+
+<hr/>
+<br>
+<br>
+
+
+
+<br>

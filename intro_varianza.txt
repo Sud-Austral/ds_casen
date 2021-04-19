@@ -1,0 +1,25 @@
+El análisis de datos de la Encuesta Casen permite satisfacer diversos propósitos analíticos, incluyendo la exploración, descripción y contraste de hipótesis estadísticas.
+Los módulos de información de Casen permiten generar un variado conjunto de indicadores demográficos y socioeconómicos, además de facilitar la obtención de datos útiles para el diagnóstico, monitoreo y evaluación de la política pública tanto de carácter sectorial como transversal.
+Sin perjuicio de lo anterior, es preciso enfatizar que las estimaciones producidas a partir de la información provista por la Encuesta Casen están sujetas a error de muestreo, determinado por las características de su diseño muestral.
+Para un análisis riguroso de la información se debe tomar en cuenta las características del diseño muestral de la Encuesta Casen (el que se caracteriza como un diseño de tipo complejo) y emplear módulos de análisis estadístico que permitan estimar varianzas complejas en función de aquellas variables que identifican a los estratos, conglomerados, la fracción de muestreo y los factores de expansión correspondientes.
+
+Estimación de parámetros a partir de muestras complejas
+La obtención de estimadores a partir de encuestas con un diseño muestral complejo, requiere la consideración de las características del diseño muestral para una adecuada estimación de la varianza. La consecuencia práctica de no considerar el diseño muestral en estudios sustentados en diseños muestrales complejos, es la obtención de varianzas subestimadas (estimadas por defecto considerando un muestreo aleatorio simple), que pueden llevar a detectar diferencias que podrían no ser estadísticamente significativas.
+En esta breve reseña se presentan las sintaxis requeridas para la obtención de parámetros de interés de la Encuesta Casen, considerando el diseño muestral del estudio. Para un mayor detalle del diseño muestral, así como de las variables que permitan identificar las características del diseño en la Casen 2017, se recomienda la revisión del documento “Metodología de Diseño Muestral de la Encuesta Casen".
+Para estimar varianzas con la Encuesta Casen, es necesario identificar las variables que dan cuenta del diseño muestral complejo, que corresponden a las variables que identifican a los estratos, los conglomerados y al factor de expansión.
+Existen distintas opciones para estimar varianzas complejas en la Encuesta Casen. Los métodos de estimación varían en virtud de las variables que sean utilizadas como identificador de estratos y conglomerados. Para Casen 2017, las estimaciones oficiales de la varianza compleja han sido desarrolladas utilizando pseudo estrato y pseudo conglomerado.
+La creación de pseudo estratos (varstrat) tiene como objetivo corregir el problema de estimación de varianza que generan los estratos unitarios (1 conglomerado por estrato), el cual se traduce en una subestimación de la varianza de cualquier variable de interés. Por su parte, la creación de pseudo conglomerados (varunit) tiene como objetivo estabilizar las estimaciones de varianza, la cual tiende a incrementarse cuando las estimaciones se basan en conglomerados con muy pocas unidades muestrales.
+La pseudo estratificación y pseudo conglomeración simultánea corrige la conformación de los estratos de muestreo y de conglomerados, permitiendo que en cada uno de ellos haya tantas unidades de conglomeración como de viviendas, de modo que la estimación de la varianza se pueda calcular en forma óptima, acercándose más precisamente al verdadero valor poblacional.
+Las variables pseudo estratos (varstrat) y pseudo conglomerados (varunit) se encuentran disponibles en las bases de datos Casen 2011, 2013, 2015 y 2017. Para la serie 1998 a 2009, la estimación de varianza bajo muestreo complejo puede realizarse a partir de las variables “estrato” (que identifica a los estratos), y “segmento” (que identifica a los conglomerados).
+
+Corresponden a las columnas 12 y 13.
+
+
+
+
+
+
+
+
+
+
