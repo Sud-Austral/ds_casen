@@ -3,3 +3,11 @@
 El objetivo es ir generando productos en forma de tablas globales, desde la cuales se puede ir agregando información y generando tablas chiquitas al estilo Zoho
 
 El primer set de productos serán los ingresos.
+
+El segundo:
+
+https://rpubs.com/dataintelligence/ttcc_vaiables_de_interes_27_04_21
+
+El tercero:
+
+
