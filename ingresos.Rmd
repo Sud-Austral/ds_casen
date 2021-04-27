@@ -2,16 +2,16 @@
 title: |
   <br>
   <font size="14">
-  Ingresos</font>
+  Los ingresos totales de los chilenos desde el 2006 al 2017 </font>
 author:
 - name: VE-MS-CC
   affiliation: DataIntelligence
 subtitle: |
   Compendio
-date: "19-04-2021"
+date: "20-04-2021"
 abstract: |
 
-  Éste
+  En nuestro artículo https://rpubs.com/dataintelligence/la_construccion_de_los_ingresos_2, defendimos el analisis de 4 ingresos. En éste trabajo generamos la tabla que permitirá desplegar gráficas en Zoho. Hacemos un respaldo de las tablas en Postgres en Azure a la vez que vamos construyendo nuestra propia base de datos en ella.
 
 header-includes:
    - \usepackage[]{babel}
@@ -20,547 +20,692 @@ output:
       theme: flatly
 ---
 
-
 ```{r , message=FALSE, warning=FALSE, include = FALSE, echo = FALSE}
-
-suppressWarnings(library(RODBC))
-
-library(ggplot2)
-library(ggpubr)
-library(markdown)
-library(shiny)
-library(shinythemes)
-library(tidyverse)
-library(magrittr)
-library(lubridate)
-library(plotly)
-library(xts)
-library(dygraphs)
-library(kableExtra)
-library(knitr)
-library("readxl")
-library(rsconnect)
-library(dplyr)
-library(summarytools)
-library(epiDisplay)
-#library(leaflet)
-library(haven)
-library(epiDisplay)
-library("readxl")
-library(expss)
-library(hrbrthemes)
-library(viridis)
-library(viridisLite)
-library(DescTools)
-library(roperators)
-library(shinycssloaders)
-library(writexl)
-library(labelled)
-library(tidyverse)
-library(haven)
-library(readr)
-library(sjmisc)
-library(WriteXLS)
-
-library(ineq)
-library(readstata13)
-library(reldist)
-
 library(RPostgreSQL)
 library(devtools)
 library(remotes)
 library(DBI)
+library(tidyverse)
+library(kableExtra)
+library(reldist)
+library("readxl")
 ```
 
-
-```{r}
-db <- 'trabajo-con-casen'  #provide the name of your db
-host_db <- 'post-to-r.postgres.database.azure.com' #i.e. # i.e. 'ec2-54-83-201-96.compute-1.amazonaws.com'  
-db_port <- '5432'  # or any other port specified by the DBA
-db_user <- 'yomismo@post-to-r'  
-db_password <- '123456Fg*'
-con <- dbConnect(RPostgres::Postgres(), dbname = db, host=host_db, port=db_port, user=db_user, password=db_password) 
-```
-
-
-
-
-# Índice
+## Índice{#invtest1}
 
 **Éste programa corre con la version R-3.6.3**
 
-[1. Introducción ](#test1)
+### [1. Introducción ](#test1)
 
-[2. Generación de tablas de desigualdad ](#test2)
+[(volver al índice)](#invtest1)
 
-[3. Gráficas con el coeficiente de Gini. ](#test3)
-
-[4. Curvas de Lorenz](#test4)
-
-## 1. Introducción
+### 1. Introducción
 
 <!-- falta hacer tabas de migra con ingresos(27-01-21) -->
 <!-- generar tablas de variable que falta -->
 <!-- graficas con vivienda -->
+
+
+
+<hr style="height:1px;border-width:1;color:Gray;background-color:Gray">
+
+<br>
+
+### 2006
+
 ```{r}
 dataset_2006 <- readRDS(file = "casen_2006_c.rds")
 ```
 
+```{r}
+ab <- dataset_2006
+```
+
+```{r}
+# Eliminamos del dataframe los registros que no posean valores en la columna del ingreso total:
+ab <- ab[!is.na(ab$YTOTAJ),]
+
+# Excluimos los outliers
+Q <- quantile(ab$YTOTAJ, probs=c(.25, .75), na.rm = FALSE)
+iqr <- IQR(ab$YTOTAJ)
+eliminated <- subset(ab, ab$YTOTAJ > (Q[1] - 1.5*iqr) & ab$YTOTAJ < (Q[2]+1.5*iqr))
+eliminated <- data.frame(lapply(eliminated, as.character), stringsAsFactors=FALSE)
+
+# despleguemos los primeros 100 registros en pantalla del subset creado:
+# eliminated_100 <- eliminated[c(1:100),]
+# eliminated_100 %>%  kbl() %>%
+# kable_material(c("striped", "hover"), font_size = 12)%>%
+#    scroll_box(width = "100%", height = "500px")
+
+# eliminated_100
+
+
+```
+
+```{r}
+prueba <- unique(eliminated[c("COMUNA")])
+pru
+```
+
+
+
+```{r}
+#prueba <- unique(eliminated$COMUNA) %>% unique(eliminated$SEXO)
+
+prueba <- unique(eliminated[c("COMUNA", "SEXO", "T4", "E1")])
+
+prueba
+
+
+```
+
+
+
+20100
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+b <-  as.numeric(eliminated$YTOTAJ)
+a <- eliminated$COMUNA
+c <- eliminated$T4
+d <- eliminated$E1
+e <- eliminated$SEXO
+
+# Calculamos los promedios de ingreso grupales, la desviación estandar del rango y el coeficiente de Gini:
+promedios_grupales <-aggregate(b, by=list(a,c,d,e), FUN = mean , na.rm=TRUE )
+promedios_grupales_sd <-aggregate(b, by=list(a,c,d,e), FUN = sd , na.rm=TRUE )
+promedios_grupales_gini <-aggregate(b, by=list(a,c,d,e), FUN = gini  )
+
+# Asignamos nuevas columnas a la tabla base con medias y sd:
+promedios_grupales$sd <- promedios_grupales_sd$x
+promedios_grupales$gini <- promedios_grupales_gini$x
+
+# Eliminamos los valores que no tengan desviacion standard, pues implican registros unicos.
+promedios_grupales <-promedios_grupales[!(is.na(promedios_grupales$sd)),]
+
+# promedios_grupales_100 <- promedios_grupales[c(1:100),]
+
+# promedios_grupales_100 %>%  kbl() %>% kable_material(c("striped", "hover"), font_size = 12)%>%
+#    scroll_box(width = "100%", height = "500px")
+
+# promedios_grupales_100
+
+
+```
+
+```{r}
+#Asignamos nombres con sentido a las cabeceras:
+names(promedios_grupales)[1] <- "comuna"
+names(promedios_grupales)[2] <- "Etnia"
+names(promedios_grupales)[3] <- "Alfabetismo"
+names(promedios_grupales)[4] <- "sexo"
+names(promedios_grupales)[5] <- "promedio"
+names(promedios_grupales)[6] <- "sd"
+names(promedios_grupales)[7] <- "gini"
+promedios_grupales$año <- "2006"
+```
+
+```{r}
+codigos_comunales <- readRDS(file = "codigos_comunales_2006.rds")
+names(codigos_comunales)[1] <- "código"
+names(codigos_comunales)[2] <- "comuna"
+```
+
+```{r}
+df_2006 = merge( x = promedios_grupales, y = codigos_comunales, by = "comuna", all.x = TRUE)
+# head(df_2006,50) %>%  kbl() %>% kable_material(c("striped", "hover"), font_size = 12)%>%
+# scroll_box(width = "100%", height = "500px")
+
+head(df_2006,10)
+
+
+```
+
+
+```{r}
+uno <-unique(df_2006$sexo)
+uno
+```
+20100
+
+
+335
+10
+3
+2
+
+
+### 2009
 
 ```{r}
 dataset_2009 <- readRDS(file = "casen_2009_c.rds")
 ```
 
+```{r}
+ab <- dataset_2009
+```
 
 ```{r}
-dataset_2011 <- readRDS(file = "casen_2011_c.rds")
-dataset_2013 <- readRDS(file = "casen_2013_c.rds")
-dataset_2015 <- readRDS(file = "casen_2015_c.rds")
-dataset_2017 <- readRDS(file = "casen_2017_c.rds")
-```
-
-
-2006
-
-```{r, message=FALSE, warning=FALSE, results='hide'}
-# dataset <- readRDS(file = "casen_2017_c.rds")
-ab <- dataset_2006
-```
-
-
-
-```{r, message=FALSE, warning=FALSE, results='hide'}
+# Eliminamos del dataframe los registros que no posean valores en la columna del ingreso total:
 ab <- ab[!is.na(ab$YTOTAJ),]
 
+# Excluimos los outliers
 Q <- quantile(ab$YTOTAJ, probs=c(.25, .75), na.rm = FALSE)
 iqr <- IQR(ab$YTOTAJ)
-
 eliminated <- subset(ab, ab$YTOTAJ > (Q[1] - 1.5*iqr) & ab$YTOTAJ < (Q[2]+1.5*iqr))
-
 eliminated <- data.frame(lapply(eliminated, as.character), stringsAsFactors=FALSE)
 
-
-eliminated
+# despleguemos los primeros 100 registros en pantalla del subset creado:
+eliminated_100 <- eliminated[c(1:100),]
+# eliminated_100 %>%  kbl() %>%
+# kable_material(c("striped", "hover"), font_size = 12)%>%
+#    scroll_box(width = "100%", height = "500px")
 ```
-
-
-
-
 
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 b <-  as.numeric(eliminated$YTOTAJ)
 a <- eliminated$COMUNA
- c <- eliminated$T4
- d <- eliminated$PCO2
+c <- eliminated$T5
+d <- eliminated$E1
 e <- eliminated$SEXO
 
+# Calculamos los promedios de ingreso grupales, la desviación estandar del rango y el coeficiente de Gini:
 promedios_grupales <-aggregate(b, by=list(a,c,d,e), FUN = mean , na.rm=TRUE )
-
-promedios_grupales
-```
-
-
-```{r, message=FALSE, warning=FALSE, results='hide'}
 promedios_grupales_sd <-aggregate(b, by=list(a,c,d,e), FUN = sd , na.rm=TRUE )
+promedios_grupales_gini <-aggregate(b, by=list(a,c,d,e), FUN = gini  )
+
+# Asignamos nuevas columnas a la tabla base con medias y sd:
 promedios_grupales$sd <- promedios_grupales_sd$x
-promedios_grupales <- as.data.frame(promedios_grupales)
+promedios_grupales$gini <- promedios_grupales_gini$x
+
+# Eliminamos los valores que no tengan desviacion standard, pues implican registros unicos.
+promedios_grupales <-promedios_grupales[!(is.na(promedios_grupales$sd)),]
+
+promedios_grupales_100 <- promedios_grupales[c(1:100),]
+
+# 
+# 
+# promedios_grupales_100 %>%  kbl() %>% kable_material(c("striped", "hover"), font_size = 12)%>%
+#    scroll_box(width = "100%", height = "500px")
 ```
 
 ```{r}
-library('RPostgreSQL')
-tn <- 'links'
-dbRemoveTable(con,tn)
-```
-
-
-```{r}
-library('RPostgreSQL')
-tn <- 'links'
-dbWriteTable(con,'promedios_grupales',promedios_grupales, row.names=FALSE)
-```
-
-```{r}
-dbGetQuery(con, 'SELECT * FROM promedios_grupales') 
-```
-
-
-Debemos excluir las sd NA pues representa a un individuo, cuando nosotros necesitamos un grupo.
-
-```{r, message=FALSE, warning=FALSE, results='hide'}
-promedios_grupales$sd = promedios_grupales_sd$sd.a
-
-promedios_grupales$Año <- "2006"
-promedios_grupales
+#Asignamos nombres con sentido a las cabeceras:
+names(promedios_grupales)[1] <- "comuna"
+names(promedios_grupales)[2] <- "Etnia"
+names(promedios_grupales)[3] <- "Alfabetismo"
+names(promedios_grupales)[4] <- "sexo"
+names(promedios_grupales)[5] <- "promedio"
+names(promedios_grupales)[6] <- "sd"
+names(promedios_grupales)[7] <- "gini"
+promedios_grupales$año <- "2009"
 ```
 
 ```{r}
-d
-```
-
-
-```{r, message=FALSE, warning=FALSE, results='hide'}
-names(d)[1] <- "Comuna"
-names(d)[2] <- "Crédito"
-names(d)[3] <- "Etnia"
-names(d)[4] <- "Sexo"
-names(d)[5] <- "Promedio"
-names(d)[6] <- "Desviación standard"
-names(d)[7] <- "Año"
-
-codigos_comunales <- readRDS(file = "codigos_comunales_2006.rds")
-names(codigos_comunales)[1] <- "Código"
-names(codigos_comunales)[2] <- "Comuna"
-# codigos_comunales
-
-df_2006 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
-df_2006 <-df_2006[!(df_2006$Promedio == 0),]
-head(df_2006,5)
-```
-
-
-
-2009
-
-```{r, message=FALSE, warning=FALSE, results='hide'}
-# dataset <- readRDS(file = "casen_2017_c.rds")
-ab <- dataset_2009
-```
-
-
-```{r, message=FALSE, warning=FALSE, results='hide'}
-ab <- ab[!is.na(ab$YTOTAJ),]
-
-Q <- quantile(ab$YTOTAJ, probs=c(.25, .75), na.rm = FALSE)
-iqr <- IQR(ab$YTOTAJ)
-
-eliminated <- subset(ab, ab$YTOTAJ > (Q[1] - 1.5*iqr) & ab$YTOTAJ < (Q[2]+1.5*iqr))
-#eliminated
-```
-
-
-```{r, message=FALSE, warning=FALSE, results='hide'}
-a <- eliminated$YTOTAJ
-b <- eliminated$COMUNA
-c <- eliminated$E15C1
-d <- eliminated$T5
-e <- eliminated$SEXO
-
-promedios_grupales <-aggregate(a, by=list(b, c, d, e), FUN = mean , na.rm = TRUE)
-promedios_grupales_sd <-aggregate(a, by=list(b, c, d, e), FUN = sd , na.rm = TRUE)
-promedios_grupales$sd = promedios_grupales_sd$sd.a
-d<-promedios_grupales
-d$Año <- "2009"
-
-```
-
-```{r, message=FALSE, warning=FALSE, results='hide'}
-names(d)[1] <- "Comuna"
-names(d)[2] <- "Crédito"
-names(d)[3] <- "Etnia"
-names(d)[4] <- "Sexo"
-names(d)[5] <- "Promedio"
-names(d)[6] <- "Desviación standard"
-names(d)[7] <- "Año"
-
 codigos_comunales <- readRDS(file = "codigos_comunales_2009.rds")
-names(codigos_comunales)[1] <- "Código"
-names(codigos_comunales)[2] <- "Comuna"
-# codigos_comunales
+names(codigos_comunales)[1] <- "código"
+names(codigos_comunales)[2] <- "comuna"
+```
 
-df_2006 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
-df_2009 <-df_2006[!(df_2006$Promedio == 0),]
-head(df_2009,5)
+```{r}
+df_2009 = merge( x = promedios_grupales, y = codigos_comunales, by = "comuna", all.x = TRUE)
+head(df_2009,10)
 ```
 
 
 
-2011
 
-```{r, message=FALSE, warning=FALSE, results='hide'}
-# dataset <- readRDS(file = "casen_2017_c.rds")
+### 2011
+
+```{r}
+dataset_2011 <- readRDS(file = "casen_2011_c.rds")
+```
+
+```{r}
 ab <- dataset_2011
 ```
 
-
-
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r}
+# Eliminamos del dataframe los registros que no posean valores en la columna del ingreso total:
 ab <- ab[!is.na(ab$ytotaj),]
 
+```
+
+```{r}
+# Excluimos los outliers
 Q <- quantile(ab$ytotaj, probs=c(.25, .75), na.rm = FALSE)
 iqr <- IQR(ab$ytotaj)
-
 eliminated <- subset(ab, ab$ytotaj > (Q[1] - 1.5*iqr) & ab$ytotaj < (Q[2]+1.5*iqr))
-#eliminated
+eliminated <- data.frame(lapply(eliminated, as.character), stringsAsFactors=FALSE)
+
+# despleguemos los primeros 100 registros en pantalla del subset creado:
+eliminated_100 <- eliminated[c(1:100),]
+# eliminated_100 %>%  kbl() %>%
+# kable_material(c("striped", "hover"), font_size = 12)%>%
+#    scroll_box(width = "100%", height = "500px")
 ```
 
-
 ```{r, message=FALSE, warning=FALSE, results='hide'}
-a <- eliminated$ytotaj
-b <- eliminated$comuna
-c <- eliminated$e17t1
-d <- eliminated$r6
+b <-  as.numeric(eliminated$ytotaj)
+a <- eliminated$comuna
+c <- eliminated$r6
+d <- eliminated$e1
 e <- eliminated$sexo
 
-promedios_grupales <-aggregate(a, by=list(b, c, d, e), FUN = mean , na.rm = TRUE)
-promedios_grupales_sd <-aggregate(a, by=list(b, c, d, e), FUN = sd , na.rm = TRUE)
-promedios_grupales$sd = promedios_grupales_sd$sd.a
-d<-promedios_grupales
-d$Año <- "2011"
+# Calculamos los promedios de ingreso grupales, la desviación estandar del rango y el coeficiente de Gini:
+promedios_grupales <-aggregate(b, by=list(a,c,d,e), FUN = mean , na.rm=TRUE )
+promedios_grupales_sd <-aggregate(b, by=list(a,c,d,e), FUN = sd , na.rm=TRUE )
+promedios_grupales_gini <-aggregate(b, by=list(a,c,d,e), FUN = gini  )
 
+# Asignamos nuevas columnas a la tabla base con medias y sd:
+promedios_grupales$sd <- promedios_grupales_sd$x
+promedios_grupales$gini <- promedios_grupales_gini$x
+
+# Eliminamos los valores que no tengan desviacion standard, pues implican registros unicos.
+promedios_grupales <-promedios_grupales[!(is.na(promedios_grupales$sd)),]
+
+promedios_grupales_100 <- promedios_grupales[c(1:100),]
+
+# promedios_grupales_100 %>%  kbl() %>% kable_material(c("striped", "hover"), font_size = 12)%>%
+#    scroll_box(width = "100%", height = "500px")
 ```
 
-```{r, message=FALSE, warning=FALSE, results='hide'}
-names(d)[1] <- "Comuna"
-names(d)[2] <- "Crédito"
-names(d)[3] <- "Etnia"
-names(d)[4] <- "Sexo"
-names(d)[5] <- "Promedio"
-names(d)[6] <- "Desviación standard"
-names(d)[7] <- "Año"
+```{r}
+#Asignamos nombres con sentido a las cabeceras:
+names(promedios_grupales)[1] <- "comuna"
+names(promedios_grupales)[2] <- "Etnia"
+names(promedios_grupales)[3] <- "Alfabetismo"
+names(promedios_grupales)[4] <- "sexo"
+names(promedios_grupales)[5] <- "promedio"
+names(promedios_grupales)[6] <- "sd"
+names(promedios_grupales)[7] <- "gini"
+promedios_grupales$año <- "2011"
+```
 
+```{r}
 codigos_comunales <- readRDS(file = "codigos_comunales_2011-2017.rds")
-names(codigos_comunales)[1] <- "Código"
-names(codigos_comunales)[2] <- "Comuna"
-# codigos_comunales
+names(codigos_comunales)[1] <- "código"
+names(codigos_comunales)[2] <- "comuna"
+```
 
-df_2006 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
-df_2011 <-df_2006[!(df_2006$Promedio == 0),]
-head(df_2011,5)
+```{r}
+df_2011 = merge( x = promedios_grupales, y = codigos_comunales, by = "comuna", all.x = TRUE)
+
+head(df_2011,10)
 ```
 
 
 
+### 2013
 
-2013
+```{r}
+dataset_2013 <- readRDS(file = "casen_2013_c.rds")
+```
 
-```{r, message=FALSE, warning=FALSE, results='hide'}
-# dataset <- readRDS(file = "casen_2017_c.rds")
+```{r}
 ab <- dataset_2013
 ```
 
-
-
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r}
+# Eliminamos del dataframe los registros que no posean valores en la columna del ingreso total:
 ab <- ab[!is.na(ab$ytotcor),]
 
+```
+
+```{r}
+# Excluimos los outliers
 Q <- quantile(ab$ytotcor, probs=c(.25, .75), na.rm = FALSE)
 iqr <- IQR(ab$ytotcor)
-
 eliminated <- subset(ab, ab$ytotcor > (Q[1] - 1.5*iqr) & ab$ytotcor < (Q[2]+1.5*iqr))
-#eliminated
+eliminated <- data.frame(lapply(eliminated, as.character), stringsAsFactors=FALSE)
+
+# despleguemos los primeros 100 registros en pantalla del subset creado:
+eliminated_100 <- eliminated[c(1:100),]
+# eliminated_100 %>%  kbl() %>%
+# kable_material(c("striped", "hover"), font_size = 12)%>%
+#    scroll_box(width = "100%", height = "500px")
 ```
 
-
 ```{r, message=FALSE, warning=FALSE, results='hide'}
-a <- eliminated$ytotcor
-b <- eliminated$comuna
-c <- eliminated$e17t1
-d <- eliminated$r6
+b <-  as.numeric(eliminated$ytotcor)
+a <- eliminated$comuna
+c <- eliminated$r6
+d <- eliminated$e1
 e <- eliminated$sexo
 
-promedios_grupales <-aggregate(a, by=list(b, c, d, e), FUN = mean , na.rm = TRUE)
-promedios_grupales_sd <-aggregate(a, by=list(b, c, d, e), FUN = sd , na.rm = TRUE)
-promedios_grupales$sd = promedios_grupales_sd$sd.a
-d<-promedios_grupales
-d$Año <- "2013"
+# Calculamos los promedios de ingreso grupales, la desviación estandar del rango y el coeficiente de Gini:
+promedios_grupales <-aggregate(b, by=list(a,c,d,e), FUN = mean , na.rm=TRUE )
+promedios_grupales_sd <-aggregate(b, by=list(a,c,d,e), FUN = sd , na.rm=TRUE )
+promedios_grupales_gini <-aggregate(b, by=list(a,c,d,e), FUN = gini  )
 
+# Asignamos nuevas columnas a la tabla base con medias y sd:
+promedios_grupales$sd <- promedios_grupales_sd$x
+promedios_grupales$gini <- promedios_grupales_gini$x
+
+# Eliminamos los valores que no tengan desviacion standard, pues implican registros unicos.
+promedios_grupales <-promedios_grupales[!(is.na(promedios_grupales$sd)),]
+
+promedios_grupales_100 <- promedios_grupales[c(1:100),]
+
+
+
+# promedios_grupales_100 %>%  kbl() %>% kable_material(c("striped", "hover"), font_size = 12)%>%
+#    scroll_box(width = "100%", height = "500px")
 ```
 
-```{r, message=FALSE, warning=FALSE, results='hide'}
-names(d)[1] <- "Comuna"
-names(d)[2] <- "Crédito"
-names(d)[3] <- "Etnia"
-names(d)[4] <- "Sexo"
-names(d)[5] <- "Promedio"
-names(d)[6] <- "Desviación standard"
-names(d)[7] <- "Año"
+```{r}
+#Asignamos nombres con sentido a las cabeceras:
+names(promedios_grupales)[1] <- "comuna"
+names(promedios_grupales)[2] <- "Etnia"
+names(promedios_grupales)[3] <- "Alfabetismo"
+names(promedios_grupales)[4] <- "sexo"
+names(promedios_grupales)[5] <- "promedio"
+names(promedios_grupales)[6] <- "sd"
+names(promedios_grupales)[7] <- "gini"
+promedios_grupales$año <- "2013"
+```
 
+```{r}
 codigos_comunales <- readRDS(file = "codigos_comunales_2011-2017.rds")
-names(codigos_comunales)[1] <- "Código"
-names(codigos_comunales)[2] <- "Comuna"
-# codigos_comunales
+names(codigos_comunales)[1] <- "código"
+names(codigos_comunales)[2] <- "comuna"
+```
 
-df_2006 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
-df_2013 <-df_2006[!(df_2006$Promedio == 0),]
-head(df_2013,5)
+```{r}
+df_2013 = merge( x = promedios_grupales, y = codigos_comunales, by = "comuna", all.x = TRUE)
+
+head(df_2013,10)
 ```
 
 
 
 
+### 2015
 
+```{r}
+dataset_2015 <- readRDS(file = "casen_2015_c.rds")
+```
 
-2015
-
-```{r, message=FALSE, warning=FALSE, results='hide'}
-# dataset <- readRDS(file = "casen_2017_c.rds")
+```{r}
 ab <- dataset_2015
 ```
 
-
-
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r}
+# Eliminamos del dataframe los registros que no posean valores en la columna del ingreso total:
 ab <- ab[!is.na(ab$ytotcor),]
 
+```
+
+```{r}
+# Excluimos los outliers
 Q <- quantile(ab$ytotcor, probs=c(.25, .75), na.rm = FALSE)
 iqr <- IQR(ab$ytotcor)
-
 eliminated <- subset(ab, ab$ytotcor > (Q[1] - 1.5*iqr) & ab$ytotcor < (Q[2]+1.5*iqr))
-#eliminated
+eliminated <- data.frame(lapply(eliminated, as.character), stringsAsFactors=FALSE)
+
+# despleguemos los primeros 100 registros en pantalla del subset creado:
+eliminated_100 <- eliminated[c(1:100),]
+# eliminated_100 %>%  kbl() %>%
+# kable_material(c("striped", "hover"), font_size = 12)%>%
+#    scroll_box(width = "100%", height = "500px")
 ```
 
-
 ```{r, message=FALSE, warning=FALSE, results='hide'}
-a <- eliminated$ytotcor
-b <- eliminated$comuna
-c <- eliminated$e16t1
-d <- eliminated$r3
+b <-  as.numeric(eliminated$ytotcor)
+a <- eliminated$comuna
+c <- eliminated$r3
+d <- eliminated$e1
 e <- eliminated$sexo
 
-promedios_grupales <-aggregate(a, by=list(b, c, d, e), FUN = mean , na.rm = TRUE)
-promedios_grupales_sd <-aggregate(a, by=list(b, c, d, e), FUN = sd , na.rm = TRUE)
-promedios_grupales$sd = promedios_grupales_sd$sd.a
-d<-promedios_grupales
-d$Año <- "2015"
+# Calculamos los promedios de ingreso grupales, la desviación estandar del rango y el coeficiente de Gini:
+promedios_grupales <-aggregate(b, by=list(a,c,d,e), FUN = mean , na.rm=TRUE )
+promedios_grupales_sd <-aggregate(b, by=list(a,c,d,e), FUN = sd , na.rm=TRUE )
+promedios_grupales_gini <-aggregate(b, by=list(a,c,d,e), FUN = gini  )
 
+# Asignamos nuevas columnas a la tabla base con medias y sd:
+promedios_grupales$sd <- promedios_grupales_sd$x
+promedios_grupales$gini <- promedios_grupales_gini$x
+
+# Eliminamos los valores que no tengan desviacion standard, pues implican registros unicos.
+promedios_grupales <-promedios_grupales[!(is.na(promedios_grupales$sd)),]
+
+promedios_grupales_100 <- promedios_grupales[c(1:100),]
+
+# promedios_grupales_100 %>%  kbl() %>% kable_material(c("striped", "hover"), font_size = 12)%>%
+#    scroll_box(width = "100%", height = "500px")
 ```
 
-```{r, message=FALSE, warning=FALSE, results='hide'}
-names(d)[1] <- "Comuna"
-names(d)[2] <- "Crédito"
-names(d)[3] <- "Etnia"
-names(d)[4] <- "Sexo"
-names(d)[5] <- "Promedio"
-names(d)[6] <- "Desviación standard"
-names(d)[7] <- "Año"
+```{r}
+#Asignamos nombres con sentido a las cabeceras:
+names(promedios_grupales)[1] <- "comuna"
+names(promedios_grupales)[2] <- "Etnia"
+names(promedios_grupales)[3] <- "Alfabetismo"
+names(promedios_grupales)[4] <- "sexo"
+names(promedios_grupales)[5] <- "promedio"
+names(promedios_grupales)[6] <- "sd"
+names(promedios_grupales)[7] <- "gini"
+promedios_grupales$año <- "2015"
+```
 
+```{r}
 codigos_comunales <- readRDS(file = "codigos_comunales_2011-2017.rds")
-names(codigos_comunales)[1] <- "Código"
-names(codigos_comunales)[2] <- "Comuna"
-# codigos_comunales
+names(codigos_comunales)[1] <- "código"
+names(codigos_comunales)[2] <- "comuna"
+```
 
-df_2006 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
-df_2015 <-df_2006[!(df_2006$Promedio == 0),]
-head(df_2015,5)
+```{r}
+df_2015 = merge( x = promedios_grupales, y = codigos_comunales, by = "comuna", all.x = TRUE)
+
+head(df_2015,10)
 ```
 
 
 
 
+### 2017
 
+```{r}
+dataset_2017 <- readRDS(file = "casen_2017_c.rds")
+```
 
-
-
-
-
-
-
-2017
-
-```{r, message=FALSE, warning=FALSE, results='hide'}
-# dataset <- readRDS(file = "casen_2017_c.rds")
+```{r}
 ab <- dataset_2017
 ```
 
-
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r}
+# Eliminamos del dataframe los registros que no posean valores en la columna del ingreso total:
 ab <- ab[!is.na(ab$ytotcor),]
 
+```
+
+```{r}
+# Excluimos los outliers
 Q <- quantile(ab$ytotcor, probs=c(.25, .75), na.rm = FALSE)
 iqr <- IQR(ab$ytotcor)
-
 eliminated <- subset(ab, ab$ytotcor > (Q[1] - 1.5*iqr) & ab$ytotcor < (Q[2]+1.5*iqr))
+eliminated <- data.frame(lapply(eliminated, as.character), stringsAsFactors=FALSE)
+
+# despleguemos los primeros 100 registros en pantalla del subset creado:
+eliminated_100 <- eliminated[c(1:100),]
+# eliminated_100 %>%  kbl() %>%
+# kable_material(c("striped", "hover"), font_size = 12)%>%
+#    scroll_box(width = "100%", height = "500px")
 ```
 
-
-
 ```{r, message=FALSE, warning=FALSE, results='hide'}
-a <- eliminated$ytotcor
-b <- eliminated$comuna
-c <- eliminated$e19_1
-d <- eliminated$r3
+b <-  as.numeric(eliminated$ytotcor)
+a <- eliminated$comuna
+c <- eliminated$r3
+d <- eliminated$e1
 e <- eliminated$sexo
 
+# Calculamos los promedios de ingreso grupales, la desviación estandar del rango y el coeficiente de Gini:
+promedios_grupales <-aggregate(b, by=list(a,c,d,e), FUN = mean , na.rm=TRUE )
+promedios_grupales_sd <-aggregate(b, by=list(a,c,d,e), FUN = sd , na.rm=TRUE )
+promedios_grupales_gini <-aggregate(b, by=list(a,c,d,e), FUN = gini  )
 
-promedios_grupales <-aggregate(a, by=list(b, c, d, e), FUN = mean , na.rm = TRUE)
-promedios_grupales_sd <-aggregate(a, by=list(b, c, d, e), FUN = sd , na.rm = TRUE)
-promedios_grupales$sd = promedios_grupales_sd$sd.a
-d<-promedios_grupales
-d$Año <- "2017"
+# Asignamos nuevas columnas a la tabla base con medias y sd:
+promedios_grupales$sd <- promedios_grupales_sd$x
+promedios_grupales$gini <- promedios_grupales_gini$x
 
+# Eliminamos los valores que no tengan desviacion standard, pues implican registros unicos.
+promedios_grupales <-promedios_grupales[!(is.na(promedios_grupales$sd)),]
+
+# promedios_grupales %>%  kbl() %>% kable_material(c("striped", "hover"), font_size = 12)%>%
+#    scroll_box(width = "100%", height = "500px")
 ```
 
+```{r}
+#Asignamos nombres con sentido a las cabeceras:
+names(promedios_grupales)[1] <- "comuna"
+names(promedios_grupales)[2] <- "Etnia"
+names(promedios_grupales)[3] <- "Alfabetismo"
+names(promedios_grupales)[4] <- "sexo"
+names(promedios_grupales)[5] <- "promedio"
+names(promedios_grupales)[6] <- "sd"
+names(promedios_grupales)[7] <- "gini"
+promedios_grupales$año <- "2017"
+```
 
-
-```{r, message=FALSE, warning=FALSE, results='hide'}
-names(d)[1] <- "Comuna"
-names(d)[2] <- "Crédito"
-names(d)[3] <- "Etnia"
-names(d)[4] <- "Sexo"
-names(d)[5] <- "Promedio"
-names(d)[6] <- "Desviación standard"
-names(d)[7] <- "Año"
-
+```{r}
 codigos_comunales <- readRDS(file = "codigos_comunales_2011-2017.rds")
-names(codigos_comunales)[1] <- "Código"
-names(codigos_comunales)[2] <- "Comuna"
-# codigos_comunales
-
-df_2017 = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
-df_2017 <-df_2017[!(df_2017$Promedio == 0),]
-head(df_2017,5)
-
+names(codigos_comunales)[1] <- "código"
+names(codigos_comunales)[2] <- "comuna"
 ```
 
+```{r}
+df_2017 = merge( x = promedios_grupales, y = codigos_comunales, by = "comuna", all.x = TRUE)
 
-## Union de los dataframes y escritura:
-
-
-
-```{r, message=FALSE, warning=FALSE, echo=FALSE}
-variables_casen <- rbind(
-   df_2006,
-   df_2009,
-  df_2011,
-  df_2013,
-  df_2015,
-  df_2017
-)
-
-write_xlsx(variables_casen, 'ytotcor_edu_cre_etnia_2.xlsx')
+head(df_2017,10)
 ```
 
 
 
+```{r}
+ytotcor_ytotaj <- rbind(df_2006,df_2009,df_2011,df_2013,df_2015,df_2017)
+head(ytotcor_ytotaj,10)
+nrow(ytotcor_ytotaj)
+```
+
+20100*6 = 120600
+
+
+
+
+### Vamos a homologar las categorias de etnia y alfabetismo
+
+```{r}
+alfabetismo <- read_xlsx("alfabetismo_unicos.xlsx")
+categorias <- read_xlsx("categorias_etnia.xlsx")
+
+nuevas_cat = merge( x = ytotcor_ytotaj, y = alfabetismo, by = "Alfabetismo", all.x = TRUE)
+
+# nuevas_cat
+
+
+```
+
+
+```{r}
+alfa_corr <- nuevas_cat[,c(-1)]
+# alfa_corr
+```
+
+
+```{r}
+categoriasbuenas = merge( x = alfa_corr, y = categorias, by = "Etnia", all.x = TRUE)
+# categoriasbuenas
+```
+
+
+```{r}
+etnia_corr <- categoriasbuenas[,c(-1)]
+# etnia_corr
+```
+
+
+```{r}
+names(etnia_corr)[8] <- "alfabetismo"
+names(etnia_corr)[9] <- "etnia"
+receptaculo <- etnia_corr[,c(1,2,8,9,3,4,5,6,7)]
+
+head(receptaculo, 10)
+nrow(receptaculo)
+```
+```{r}
+saveRDS(receptaculo,"receptaculo.rds")
+```
+
+
+
+```{r}
+rec <- filter(receptaculo, receptaculo$comuna == "Iquique" & receptaculo$sexo == "Hombre" & receptaculo$etnia == "Aymara" & receptaculo$alfabetismo == "Sí")
+rec
+```
+
+```{r}
+rec$año <- as.double(rec$año)
+rec
+```
+
+```{r}
+library(ggplot2)
+# Basic line plot with points
+ggplot(data=rec, aes(x=año, y=promedio, group=1)) +
+  geom_line()+
+  geom_point()
+```
 
 
 
 
 
 
+```{r}
+# write_excel_csv2(receptaculo, "ingresos.csv")
+```
 
 
 
 
+Apendice: trabajo sobre la base de datos Postgres
+
+```{r echo = FALSE}
+# db <- 'trabajo-con-casen'  #provide the name of your db
+# host_db <- 'post-to-r.postgres.database.azure.com' #i.e. # i.e. 'ec2-54-83-201-96.compute-1.amazonaws.com'
+# db_port <- '5432'  # or any other port specified by the DBA
+# db_user <- 'yomismo@post-to-r'
+# db_password <- '123456Fg*'
+# con <- dbConnect(RPostgres::Postgres(), dbname = db, host=host_db, port=db_port, user=db_user, password=db_password)
+```
+
+```{r}
+# library('RPostgreSQL')
+# tn <- 'promedios_grupales_x'
+# dbRemoveTable(con,tn)
+```
+#
+#
+```{r}
+# library('RPostgreSQL')
+# # tn <- 'links'
+# dbWriteTable(con,'promedios_grupales_x',promedios_grupales_x, row.names=FALSE)
+```
+#
+```{r}
+# dbGetQuery(con, 'SELECT * FROM promedios_grupales_x ')
+```
+#
+#
+```{r}
+#
+# dbGetQuery(con, "SELECT * FROM promedios_grupales_x WHERE comuna = 'Antofagasta' ")
+```
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+<!-- ```{r} -->
+<!-- dbGetQuery(con, 'SELECT * FROM promedios_grupales')  -->
+<!-- ``` -->
 
 
 
