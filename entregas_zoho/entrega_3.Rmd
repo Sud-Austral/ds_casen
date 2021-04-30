@@ -1,0 +1,1326 @@
+---
+title: Generación de ttcc sobre variables de interés para La Casen en diferentes años
+author:
+- name: VE-CC
+  affiliation: DataIntelligence
+subtitle: Entrega numero 3:Presencia de enfermedades y accidentes y el modo de enfrentarlas
+  
+date: "27-04-2021"
+abstract: Este trabajo comprende el despliegue de las frecuencias por las enfermedades y accidentes que sufren las personas, si consulto y el porqué. Se peregunta especificamente para medicina general, de urgencia y mental, cuantas consultas se tubienron, donde se realizaron y cuanto costaron. Esta informacion aparece transversalmente en todas las casen. Se generaran 6 tablas.
+ 
+  
+output: 
+ html_document:
+  toc: true
+  toc_float: true
+---
+```{r , message=FALSE, warning=FALSE, include = FALSE, echo = FALSE}
+
+suppressWarnings(library(RODBC))
+
+library(ggplot2)
+library(ggpubr)
+library(markdown)
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(plotly)
+library(xts)
+library(dygraphs)
+library(kableExtra)
+library(knitr)
+library("readxl")
+library(rsconnect)
+library(dplyr)
+library(summarytools)
+library(epiDisplay)
+#library(leaflet)
+library(haven)
+library(epiDisplay)
+library("readxl")
+library(expss)
+library(hrbrthemes)
+library(viridis)
+library(viridisLite)
+library(DescTools)
+library(roperators)
+library(shinycssloaders)
+library(writexl)
+library(labelled)
+library(tidyverse)
+library(haven)
+library(readr)
+library(sjmisc)
+library(WriteXLS)
+
+library(ineq)
+library(readstata13)
+library(reldist)
+
+library(RPostgreSQL)
+library(devtools)
+library(remotes)
+library(DBI)
+```
+
+# Preguntas:
+
+1. Tuvo algun problema de salud?.
+2. Consulto por ese problema de salud?.
+3. Porqué no tuvo consulta?.
+
+# Medicina general:
+
+4. Cuantas consultas tuvo?.
+5. Donde las tuvo?.
+6. Cuanto le costaron?.
+
+La pregunta de "Cuanto le costaron?" parece no existir en las primeras Casen, evaluar la posibilidad de integrar la pregunta sobre medicamento, su costo y la forma de adquisicion
+
+# Lectura de tablas Casen
+
+```{r}
+dataset_2006 <- readRDS(file = "casen_2006_c.rds")
+dataset_2006 <- dataset_2006[,c("COMUNA","S5","S6","S7","S8A","S8B","T4","E1","SEXO","EXPC")]
+
+dataset_2009 <- readRDS(file = "casen_2009_c.rds")
+dataset_2009 <- dataset_2009[,c("COMUNA","S9","S10","S11","S14A","S14B","T5","E1","SEXO","EXPC")]
+
+dataset_2011 <- readRDS(file = "casen_2011_c.rds")
+dataset_2011 <- dataset_2011[,c("comuna","s20","s22","s23","s25a","s25b","r6","e1","sexo","expc_full")]
+
+dataset_2013 <- readRDS(file = "casen_2013_c.rds")
+dataset_2013 <- dataset_2013[,c("comuna","s17","s19","s20","s22a","s22b","r6","e1","sexo","expc")]
+
+dataset_2015 <- readRDS(file = "casen_2015_c.rds")
+dataset_2015 <- dataset_2015[,c("comuna","s15","s16","s17","s19a","s19b","r3","e1","sexo","expc_todas")]
+
+dataset_2017 <- readRDS(file = "casen_2017_c.rds")
+dataset_2017 <- dataset_2017[,c("comuna","s15","s16","s17","s19a","s19b","r3","e1","sexo","expc")]
+
+```
+
+
+<br>
+<hr style="height:1px;border-width:1;color:Gray;background-color:Gray">
+<br>
+
+
+# 1. enfermedad o accidente
+
+Últimos 3. meses ¿Tuvo algún problema de salud, enfermedad o accidente?
+
+```{r}
+funcion1 <- function(n){
+  
+  
+  comunales<-switch(n, "codigos_comunales_2006.rds","codigos_comunales_2009.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds")
+ xx<-switch(n, "2006","2009","2011","2013","2015","2017")
+ # dataset_06 <<- NA
+
+
+ if(xx==2006) {
+  eliminated <- dataset_2006
+# a <- eliminated$ytotaj
+b <- eliminated$COMUNA
+c <- eliminated$S5
+d <- eliminated$E1 #alfabetismo
+e <- eliminated$T4 #etnia
+f <- eliminated$SEXO
+anio <- 2006
+cross_tab =  xtabs(eliminated$EXPC ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$EXPC ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+ if(xx==2009) {
+  eliminated <- dataset_2009
+# a <- eliminated$ytotaj
+b <- eliminated$COMUNA
+c <- eliminated$S9
+d <- eliminated$E1 #alfabetismo
+e <- eliminated$T5 #etnia
+f <- eliminated$SEXO
+anio <- 2009
+cross_tab =  xtabs(eliminated$EXPC ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$EXPC ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+ }
+
+if(xx==2011) {
+  eliminated <- dataset_2011
+# a <- eliminated$ytotaj
+b <- eliminated$comuna
+c <- eliminated$s20
+d <- eliminated$e1 #alfabetismo
+e <- eliminated$r6 #etnia
+f <- eliminated$sexo
+anio <- 2011
+cross_tab =  xtabs(eliminated$expc_full ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc_full ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2013) {
+  eliminated <- dataset_2013
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$s17
+d <- eliminated$e1 #alfabetismo
+e <- eliminated$r6 #etnia
+f <- eliminated$sexo
+anio <- 2013
+cross_tab =  xtabs(eliminated$expc ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2015) {
+  eliminated <- dataset_2015
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$s15
+d <- eliminated$e1 #alfabetismo
+e <- eliminated$r3 #etnia
+f <- eliminated$sexo
+anio <- 2015
+cross_tab =  xtabs(eliminated$expc_todas ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc_todas ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2017) {
+  eliminated <- dataset_2017
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$s15
+d <- eliminated$e1 #alfabetismo
+e <- eliminated$r3 #etnia
+f <- eliminated$sexo
+anio <- 2017
+cross_tab =  xtabs(eliminated$expc ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+
+
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$Año <- anio
+
+names(d)[1] <- "Comuna"
+names(d)[2] <- "enfermedad_accidente"
+names(d)[3] <- "Alfabetismo"
+names(d)[4] <- "Etnia"
+names(d)[5] <- "sexo"
+codigos_comunales <- readRDS(file = comunales)
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+
+ingreso_rds <- paste("tablas_peque/enfermedad_accidente_",anio,".rds", sep="")
+saveRDS(df,ingreso_rds)
+
+# print(head(df,10))
+
+}
+
+for (n in 1:6){
+  funcion1(n)
+}
+```
+
+## 1.1 Tratamientos
+
+
+### 1.1.1 Union de tablas
+
+Unión de subtablas, homologación de categorías de respuesta con código independiente para la variable de estudio de la ttcc y creación de la tabla general.
+
+```{r}
+receptaculo <- data.frame()
+for (n in 1 : 6){
+    numero <- switch(n, "2006","2009","2011","2013","2015","2017")
+    direc_tablas <- paste("tablas_peque/enfermedad_accidente_",numero,".rds", sep="")
+    tablas <- readRDS(direc_tablas)
+
+    receptaculo <<- rbind(receptaculo, tablas)
+
+}
+```
+
+### 1.1.2 Diccionario
+
+Para la creación del diccionario se necesita el dataset “receptáculo” al que se le hará un **unique()** en la columna a la que se le hará el diccionario, luego se guarda como **xlsx** para hacer el tratamiento
+
+```{r}
+# receptaculo_unicos <- unique(receptaculo$enfermedad_accidente)
+# receptaculo_unicos <- as.data.frame(receptaculo_unicos)
+# write_xlsx(receptaculo_unicos,"diccionario/unico_enfermedad_accidente.xlsx")
+```
+
+
+```{r}
+alfabetismo <- read_xlsx("diccionario/alfabetismo_unicos.xlsx")
+categorias <- read_xlsx("diccionario/categorias_etnia.xlsx")
+cat_disc <- read_xlsx("diccionario/unico_enfermedad_accidente.xlsx")
+
+# cod_cat <- unique(cat_disc$discapacidad_n)
+# cod_cat<- as.data.frame(cod_cat)
+# cod_cat$codigo_discapacidad <- paste("00",seq(1:nrow(cod_cat)), sep = "")
+# names(cod_cat)[1] <- "discapacidad_n"
+# cat_disc = merge( x = cat_disc, y = cod_cat, by = "discapacidad_n", all.x = TRUE)
+# cat_disc <- cat_disc[,c(2,1,3)]
+
+
+nuevas_cat = merge( x = receptaculo, y = alfabetismo, by = "Alfabetismo", all.x = TRUE)
+alfa_corr <- nuevas_cat[,c(-1)]
+
+
+categoriasbuenas = merge( x = alfa_corr, y = categorias, by = "Etnia", all.x = TRUE)
+etnia_corr <- categoriasbuenas[,c(-1)]
+
+categoriasbuenas = merge( x = etnia_corr, y = cat_disc, by = "enfermedad_accidente", all.x = TRUE)
+discapacidad_corr <- categoriasbuenas[,c(-1)]
+
+receptaculo<-discapacidad_corr[,c(1,10,11,8,9,6,7,2,3,4,5)]
+
+names(receptaculo)[1] <- "comuna"
+names(receptaculo)[2] <- "enfermedad_accidente"
+names(receptaculo)[4] <- "etnia"
+names(receptaculo)[6] <- "alfabetismo"
+names(receptaculo)[8] <- "sexo"
+names(receptaculo)[9] <- "frec"
+names(receptaculo)[10] <- "anio"
+names(receptaculo)[11] <- "codigo_comuna"
+
+receptaculo_tab <- receptaculo[1:30,]
+kbl(receptaculo_tab) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "500px")
+```
+
+### 1.1.3 Guardado de tablas
+
+El siguiente código establece una conexión con nuestra base de datos en **postgres** donde estaremos guardando la tabla resultado del código previo.
+También se guardará la tabla de forma local en formato **xlsx**
+
+```{r}
+# db <- 'trabajo-con-casen'  #provide the name of your db
+# host_db <- 'post-to-r.postgres.database.azure.com' #i.e. # i.e. 'ec2-54-83-201-96.compute-1.amazonaws.com'
+# db_port <- '5432'  # or any other port specified by the DBA
+# db_user <- 'yomismo@post-to-r'
+# db_password <- '123456Fg*'
+# con <- dbConnect(RPostgres::Postgres(), dbname = db, host=host_db, port=db_port, user=db_user, password=db_password)
+# 
+# library('RPostgreSQL')
+# tn <- 'links'
+# dbWriteTable(con,'tabla_discapacidad',receptaculo, row.names=FALSE)
+
+write_xlsx(receptaculo,"tablas_grandes/entrega_4_enfermedad_accidente.xlsx")
+# receptaculo <- read_xlsx("tablas_grandes/entrega_4_enfermedad_accidente.xlsx")
+# head(receptaculo,3)
+```
+```{r}
+# tabla_grande <- dbGetQuery(con, 'SELECT * FROM tabla_discapacidad')
+# tabla_grande
+```
+
+## 1.2 Gráficos
+
+### 1.2.1 Gráfico I
+
+```{r}
+p1 <- plot_ly(receptaculo , x = ~anio , color = ~enfermedad_accidente) %>% add_histogram() %>%
+    layout(title = "Ha tenido enfermedad o accidente",
+         xaxis = list(title = "Años"),showlegend = TRUE, autosize = F, legend = list(font = list(size = 8)))
+p1
+```
+
+### 1.2.2 Gráfico II
+
+```{r}
+p2 <- plot_ly(receptaculo , x = ~etnia , color = ~enfermedad_accidente)  %>% add_histogram()%>%
+    layout(title = "Discapacidad por grupo etnico",
+         xaxis = list(title = "Etnia"),showlegend = TRUE, autosize = F, legend = list(font = list(size = 8)))
+p2
+```
+
+
+
+
+<br>
+<hr style="height:1px;border-width:1;color:Gray;background-color:Gray">
+<br>
+
+
+# 2. consulta_medica
+
+¿Tuvo alguna consulta o atención médica por esa enfermedad o accidente?
+
+```{r}
+funcion1 <- function(n){
+
+  comunales<-switch(n, "codigos_comunales_2006.rds","codigos_comunales_2009.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds")
+ xx<-switch(n, "2006","2009","2011","2013","2015","2017")
+ # dataset_06 <<- NA
+
+
+ if(xx==2006) {
+  eliminated <- dataset_2006
+# a <- eliminated$ytotaj
+b <- eliminated$COMUNA
+c <- eliminated$S6
+d <- eliminated$E1 #alfabetismo
+e <- eliminated$T4 #etnia
+f <- eliminated$SEXO
+anio <- 2006
+cross_tab =  xtabs(eliminated$EXPC ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$EXPC ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+ if(xx==2009) {
+  eliminated <- dataset_2009
+# a <- eliminated$ytotaj
+b <- eliminated$COMUNA
+c <- eliminated$S10
+d <- eliminated$E1 #alfabetismo
+e <- eliminated$T5 #etnia
+f <- eliminated$SEXO
+anio <- 2009
+cross_tab =  xtabs(eliminated$EXPC ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$EXPC ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+ }
+
+if(xx==2011) {
+  eliminated <- dataset_2011
+# a <- eliminated$ytotaj
+b <- eliminated$comuna
+c <- eliminated$s22
+d <- eliminated$e1 #alfabetismo
+e <- eliminated$r6 #etnia
+f <- eliminated$sexo
+anio <- 2011
+cross_tab =  xtabs(eliminated$expc_full ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc_full ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2013) {
+  eliminated <- dataset_2013
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$s19
+d <- eliminated$e1 #alfabetismo
+e <- eliminated$r6 #etnia
+f <- eliminated$sexo
+anio <- 2013
+cross_tab =  xtabs(eliminated$expc ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2015) {
+  eliminated <- dataset_2015
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$s16
+d <- eliminated$e1 #alfabetismo
+e <- eliminated$r3 #etnia
+f <- eliminated$sexo
+anio <- 2015
+cross_tab =  xtabs(eliminated$expc_todas ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc_todas ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2017) {
+  eliminated <- dataset_2017
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$s16
+d <- eliminated$e1 #alfabetismo
+e <- eliminated$r3 #etnia
+f <- eliminated$sexo
+anio <- 2017
+cross_tab =  xtabs(eliminated$expc ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+
+
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$Año <- anio
+
+names(d)[1] <- "Comuna"
+names(d)[2] <- "consulta_medica"
+names(d)[3] <- "Alfabetismo"
+names(d)[4] <- "Etnia"
+names(d)[5] <- "sexo"
+codigos_comunales <- readRDS(file = comunales)
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+
+ingreso_rds <- paste("tablas_peque/consulta_medica_",anio,".rds", sep="")
+saveRDS(df,ingreso_rds)
+
+# print(head(df,10))
+
+}
+
+for (n in 1:6){
+  funcion1(n)
+}
+```
+
+2.1 Tratamientos
+
+
+2.1.1 Union de tablas
+
+Unión de subtablas, homologación de categorías de respuesta con código independiente para la variable de estudio de la ttcc y creación de la tabla general.
+
+```{r}
+receptaculo <- data.frame()
+for (n in 1 : 6){
+    numero <- switch(n, "2006","2009","2011","2013","2015","2017")
+    direc_tablas <- paste("tablas_peque/consulta_medica_",numero,".rds", sep="")
+    tablas <- readRDS(direc_tablas)
+
+    receptaculo <<- rbind(receptaculo, tablas)
+
+}
+```
+
+2.1.2 Diccionario
+
+Para la creación del diccionario se necesita el dataset “receptáculo” al que se le hará un **unique()** en la columna a la que se le hará el diccionario, luego se guarda como **xlsx** para hacer el tratamiento
+
+```{r}
+# receptaculo_unicos <- unique(receptaculo$consulta_medica)
+# receptaculo_unicos <- as.data.frame(receptaculo_unicos)
+# write_xlsx(receptaculo_unicos,"diccionario/unico_consulta_medica.xlsx")
+```
+
+
+```{r}
+alfabetismo <- read_xlsx("diccionario/alfabetismo_unicos.xlsx")
+categorias <- read_xlsx("diccionario/categorias_etnia.xlsx")
+cat_disc <- read_xlsx("diccionario/unico_consulta_medica.xlsx")
+
+# cod_cat <- unique(cat_disc$discapacidad_n)
+# cod_cat<- as.data.frame(cod_cat)
+# cod_cat$codigo_discapacidad <- paste("00",seq(1:nrow(cod_cat)), sep = "")
+# names(cod_cat)[1] <- "discapacidad_n"
+# cat_disc = merge( x = cat_disc, y = cod_cat, by = "discapacidad_n", all.x = TRUE)
+# cat_disc <- cat_disc[,c(2,1,3)]
+
+
+nuevas_cat = merge( x = receptaculo, y = alfabetismo, by = "Alfabetismo", all.x = TRUE)
+alfa_corr <- nuevas_cat[,c(-1)]
+
+
+categoriasbuenas = merge( x = alfa_corr, y = categorias, by = "Etnia", all.x = TRUE)
+etnia_corr <- categoriasbuenas[,c(-1)]
+
+categoriasbuenas = merge( x = etnia_corr, y = cat_disc, by = "consulta_medica", all.x = TRUE)
+discapacidad_corr <- categoriasbuenas[,c(-1)]
+
+receptaculo<-discapacidad_corr[,c(1,10,11,8,9,6,7,2,3,4,5)]
+
+names(receptaculo)[1] <- "comuna"
+names(receptaculo)[2] <- "consulta_medica"
+names(receptaculo)[4] <- "etnia"
+names(receptaculo)[6] <- "alfabetismo"
+names(receptaculo)[8] <- "sexo"
+names(receptaculo)[9] <- "frec"
+names(receptaculo)[10] <- "anio"
+names(receptaculo)[11] <- "codigo_comuna"
+
+receptaculo_tab <- receptaculo[1:30,]
+kbl(receptaculo_tab) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "500px")
+```
+
+2.1.3 Guardado de tablas
+
+El siguiente código establece una conexión con nuestra base de datos en **postgres** donde estaremos guardando la tabla resultado del código previo.
+También se guardará la tabla de forma local en formato **xlsx**
+
+```{r}
+# db <- 'trabajo-con-casen'  #provide the name of your db
+# host_db <- 'post-to-r.postgres.database.azure.com' #i.e. # i.e. 'ec2-54-83-201-96.compute-1.amazonaws.com'
+# db_port <- '5432'  # or any other port specified by the DBA
+# db_user <- 'yomismo@post-to-r'
+# db_password <- '123456Fg*'
+# con <- dbConnect(RPostgres::Postgres(), dbname = db, host=host_db, port=db_port, user=db_user, password=db_password)
+#
+# library('RPostgreSQL')
+# tn <- 'links'
+# dbWriteTable(con,'tabla_discapacidad',receptaculo, row.names=FALSE)
+
+write_xlsx(receptaculo,"tablas_grandes/entrega_4_consulta_medica.xlsx")
+```
+```{r}
+# tabla_grande <- dbGetQuery(con, 'SELECT * FROM tabla_discapacidad')
+# tabla_grande
+```
+
+2.2 Gráficos
+
+2.2.1 Gráfico I
+
+```{r}
+p1 <- plot_ly(receptaculo , x = ~anio , color = ~consulta_medica) %>% add_histogram() %>%
+    layout(title = "Discapacidad en los años",
+         xaxis = list(title = "Años"),showlegend = TRUE, autosize = F, legend = list(font = list(size = 8)))
+p1
+```
+
+2.2.2 Gráfico II
+
+```{r}
+p2 <- plot_ly(receptaculo , x = ~etnia , color = ~consulta_medica)  %>% add_histogram()%>%
+    layout(title = "Discapacidad por grupo etnico",
+         xaxis = list(title = "Etnia"),showlegend = TRUE, autosize = F, legend = list(font = list(size = 8)))
+p2
+```
+
+
+<br>
+<hr style="height:1px;border-width:1;color:Gray;background-color:Gray">
+<br>
+
+
+# 3. motivo_no_consulta_medica
+
+ ¿Por qué no tuvo consulta ni atención?
+
+```{r}
+funcion1 <- function(n){
+
+  comunales<-switch(n, "codigos_comunales_2006.rds","codigos_comunales_2009.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds")
+ xx<-switch(n, "2006","2009","2011","2013","2015","2017")
+ # dataset_06 <<- NA
+
+
+ if(xx==2006) {
+  eliminated <- dataset_2006
+  
+
+# a <- eliminated$ytotaj
+b <- eliminated$COMUNA
+c <- eliminated$S7
+d <- eliminated$E1 #alfabetismo
+e <- eliminated$T4 #etnia
+f <- eliminated$SEXO
+anio <- 2006
+cross_tab =  xtabs(eliminated$EXPC ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$EXPC ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+ if(xx==2009) {
+  eliminated <- dataset_2009
+# a <- eliminated$ytotaj
+b <- eliminated$COMUNA
+c <- eliminated$S11
+d <- eliminated$E1 #alfabetismo
+e <- eliminated$T5 #etnia
+f <- eliminated$SEXO
+anio <- 2009
+cross_tab =  xtabs(eliminated$EXPC ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$EXPC ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+ }
+
+if(xx==2011) {
+  eliminated <- dataset_2011
+# a <- eliminated$ytotaj
+b <- eliminated$comuna
+c <- eliminated$s23
+d <- eliminated$e1 #alfabetismo
+e <- eliminated$r6 #etnia
+f <- eliminated$sexo
+anio <- 2011
+cross_tab =  xtabs(eliminated$expc_full ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc_full ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2013) {
+  eliminated <- dataset_2013
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$s20
+d <- eliminated$e1 #alfabetismo
+e <- eliminated$r6 #etnia
+f <- eliminated$sexo
+anio <- 2013
+cross_tab =  xtabs(eliminated$expc ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2015) {
+  eliminated <- dataset_2015
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$s17
+d <- eliminated$e1 #alfabetismo
+e <- eliminated$r3 #etnia
+f <- eliminated$sexo
+anio <- 2015
+cross_tab =  xtabs(eliminated$expc_todas ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc_todas ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2017) {
+  eliminated <- dataset_2017
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$s17
+d <- eliminated$e1 #alfabetismo
+e <- eliminated$r3 #etnia
+f <- eliminated$sexo
+anio <- 2017
+cross_tab =  xtabs(eliminated$expc ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+
+
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$Año <- anio
+
+names(d)[1] <- "Comuna"
+names(d)[2] <- "motivo_no_consulta_medica"
+names(d)[3] <- "Alfabetismo"
+names(d)[4] <- "Etnia"
+names(d)[5] <- "sexo"
+codigos_comunales <- readRDS(file = comunales)
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+
+ingreso_rds <- paste("tablas_peque/motivo_no_consulta_medica_",anio,".rds", sep="")
+saveRDS(df,ingreso_rds)
+
+# print(head(df,10))
+
+}
+
+for (n in 1:6){
+  funcion1(n)
+}
+```
+
+## 3.1 Tratamientos
+
+
+### 3.1.1 Union de tablas
+
+Unión de subtablas, homologación de categorías de respuesta con código independiente para la variable de estudio de la ttcc y creación de la tabla general.
+
+```{r}
+receptaculo <- data.frame()
+for (n in 1 : 6){
+    numero <- switch(n, "2006","2009","2011","2013","2015","2017")
+    direc_tablas <- paste("tablas_peque/motivo_no_consulta_medica_",numero,".rds", sep="")
+    tablas <- readRDS(direc_tablas)
+
+    receptaculo <<- rbind(receptaculo, tablas)
+
+}
+```
+
+### 3.1.2 Diccionario
+
+Para la creación del diccionario se necesita el dataset “receptáculo” al que se le hará un **unique()** en la columna a la que se le hará el diccionario, luego se guarda como **xlsx** para hacer el tratamiento
+
+```{r}
+# receptaculo_unicos <- unique(receptaculo$motivo_no_consulta_medica)
+# receptaculo_unicos <- as.data.frame(receptaculo_unicos)
+# write_xlsx(receptaculo_unicos,"diccionario/unico_motivo_no_consulta_medica.xlsx")
+```
+
+
+```{r}
+alfabetismo <- read_xlsx("diccionario/alfabetismo_unicos.xlsx")
+categorias <- read_xlsx("diccionario/categorias_etnia.xlsx")
+cat_disc <- read_xlsx("diccionario/unico_motivo_no_consulta_medica.xlsx")
+
+cod_cat <- unique(cat_disc$cat_motivo_no_consulta_medica)
+cod_cat<- as.data.frame(cod_cat)
+rango <- seq(1:nrow(cod_cat))
+cadena<- paste("000",seq(1:nrow(cod_cat)), sep = "")
+cadena <- substr(cadena,(nchar(cadena)[rango])-(4-2),5)
+cod_cat$codigo_discapacidad <- cadena
+names(cod_cat)[1] <- "cat_motivo_no_consulta_medica"
+
+cat_disc = merge( x = cat_disc, y = cod_cat, by = "cat_motivo_no_consulta_medica", all.x = TRUE)
+cat_disc <- cat_disc[,c(2,1,4)]
+
+```
+
+
+```{r}
+nuevas_cat = merge( x = receptaculo, y = alfabetismo, by = "Alfabetismo", all.x = TRUE)
+alfa_corr <- nuevas_cat[,c(-1)]
+
+
+categoriasbuenas = merge( x = alfa_corr, y = categorias, by = "Etnia", all.x = TRUE)
+etnia_corr <- categoriasbuenas[,c(-1)]
+
+categoriasbuenas = merge( x = etnia_corr, y = cat_disc, by = "motivo_no_consulta_medica", all.x = TRUE)
+discapacidad_corr <- categoriasbuenas[,c(-1)]
+
+receptaculo<-discapacidad_corr[,c(1,10,11,8,9,6,7,2,3,4,5)]
+
+names(receptaculo)[1] <- "comuna"
+names(receptaculo)[2] <- "motivo_no_consulta_medica"
+names(receptaculo)[4] <- "etnia"
+names(receptaculo)[6] <- "alfabetismo"
+names(receptaculo)[8] <- "sexo"
+names(receptaculo)[9] <- "frec"
+names(receptaculo)[10] <- "anio"
+names(receptaculo)[11] <- "codigo_comuna"
+
+receptaculo_tab <- receptaculo[1:30,]
+kbl(receptaculo_tab) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "500px")
+```
+
+### 3.1.3 Guardado de tablas
+
+El siguiente código establece una conexión con nuestra base de datos en **postgres** donde estaremos guardando la tabla resultado del código previo.
+También se guardará la tabla de forma local en formato **xlsx**
+
+```{r}
+# db <- 'trabajo-con-casen'  #provide the name of your db
+# host_db <- 'post-to-r.postgres.database.azure.com' #i.e. # i.e. 'ec2-54-83-201-96.compute-1.amazonaws.com'
+# db_port <- '5432'  # or any other port specified by the DBA
+# db_user <- 'yomismo@post-to-r'
+# db_password <- '123456Fg*'
+# con <- dbConnect(RPostgres::Postgres(), dbname = db, host=host_db, port=db_port, user=db_user, password=db_password)
+#
+# library('RPostgreSQL')
+# tn <- 'links'
+# dbWriteTable(con,'tabla_discapacidad',receptaculo, row.names=FALSE)
+
+write_xlsx(receptaculo,"tablas_grandes/entrega_4_motivo_no_consulta_medica.xlsx")
+```
+```{r}
+# tabla_grande <- dbGetQuery(con, 'SELECT * FROM tabla_discapacidad')
+# tabla_grande
+```
+
+## 3.2 Gráficos
+
+### 3.2.1 Gráfico I
+
+```{r}
+p1 <- plot_ly(receptaculo , x = ~anio , color = ~motivo_no_consulta_medica) %>% add_histogram() %>%
+    layout(title = "Discapacidad en los años",
+         xaxis = list(title = "Años"),showlegend = TRUE, autosize = F, legend = list(font = list(size = 8)))
+p1
+```
+
+### 3.2.2 Gráfico II
+
+```{r}
+p2 <- plot_ly(receptaculo , x = ~etnia , color = ~motivo_no_consulta_medica)  %>% add_histogram()%>%
+    layout(title = "Discapacidad por grupo etnico",
+         xaxis = list(title = "Etnia"),showlegend = TRUE, autosize = F, legend = list(font = list(size = 8)))
+p2
+```
+
+
+<br>
+<hr style="height:1px;border-width:1;color:Gray;background-color:Gray">
+<br>
+<br>
+<hr style="height:1px;border-width:1;color:Gray;background-color:Gray">
+<br>
+
+
+# 4. cuantas_consulta_medica
+
+¿Cuántas Consultas de Medicina General recibió?
+
+```{r}
+funcion1 <- function(n){
+
+  comunales<-switch(n, "codigos_comunales_2006.rds","codigos_comunales_2009.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds")
+ xx<-switch(n, "2006","2009","2011","2013","2015","2017")
+ # dataset_06 <<- NA
+
+
+ if(xx==2006) {
+  eliminated <- dataset_2006
+# a <- eliminated$ytotaj
+b <- eliminated$COMUNA
+c <- eliminated$S8A
+d <- eliminated$E1 #alfabetismo
+e <- eliminated$T4 #etnia
+f <- eliminated$SEXO
+anio <- 2006
+cross_tab =  xtabs(eliminated$EXPC ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$EXPC ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+ if(xx==2009) {
+  eliminated <- dataset_2009
+# a <- eliminated$ytotaj
+b <- eliminated$COMUNA
+c <- eliminated$S14A
+d <- eliminated$E1 #alfabetismo
+e <- eliminated$T5 #etnia
+f <- eliminated$SEXO
+anio <- 2009
+cross_tab =  xtabs(eliminated$EXPC ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$EXPC ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+ }
+
+if(xx==2011) {
+  eliminated <- dataset_2011
+# a <- eliminated$ytotaj
+b <- eliminated$comuna
+c <- eliminated$s25a
+d <- eliminated$e1 #alfabetismo
+e <- eliminated$r6 #etnia
+f <- eliminated$sexo
+anio <- 2011
+cross_tab =  xtabs(eliminated$expc_full ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc_full ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2013) {
+  eliminated <- dataset_2013
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$s22a
+d <- eliminated$e1 #alfabetismo
+e <- eliminated$r6 #etnia
+f <- eliminated$sexo
+anio <- 2013
+cross_tab =  xtabs(eliminated$expc ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2015) {
+  eliminated <- dataset_2015
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$s19a
+d <- eliminated$e1 #alfabetismo
+e <- eliminated$r3 #etnia
+f <- eliminated$sexo
+anio <- 2015
+cross_tab =  xtabs(eliminated$expc_todas ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc_todas ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2017) {
+  eliminated <- dataset_2017
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$s19a
+d <- eliminated$e1 #alfabetismo
+e <- eliminated$r3 #etnia
+f <- eliminated$sexo
+anio <- 2017
+cross_tab =  xtabs(eliminated$expc ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+
+
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$Año <- anio
+
+names(d)[1] <- "Comuna"
+names(d)[2] <- "cuantas_consulta_medica"
+names(d)[3] <- "Alfabetismo"
+names(d)[4] <- "Etnia"
+names(d)[5] <- "sexo"
+codigos_comunales <- readRDS(file = comunales)
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+
+ingreso_rds <- paste("tablas_peque/cuantas_consulta_medica_",anio,".rds", sep="")
+saveRDS(df,ingreso_rds)
+
+# print(head(df,10))
+
+}
+
+for (n in 1:6){
+  funcion1(n)
+}
+```
+
+## 4.1 Tratamientos
+
+
+### 4.1.1 Union de tablas
+
+Unión de subtablas, homologación de categorías de respuesta con código independiente para la variable de estudio de la ttcc y creación de la tabla general.
+
+```{r}
+receptaculo <- data.frame()
+for (n in 1 : 6){
+    numero <- switch(n, "2006","2009","2011","2013","2015","2017")
+    direc_tablas <- paste("tablas_peque/cuantas_consulta_medica_",numero,".rds", sep="")
+    tablas <- readRDS(direc_tablas)
+
+    receptaculo <<- rbind(receptaculo, tablas)
+
+}
+```
+
+### 4.1.2 Diccionario
+
+Para la creación del diccionario se necesita el dataset “receptáculo” al que se le hará un **unique()** en la columna a la que se le hará el diccionario, luego se guarda como **xlsx** para hacer el tratamiento
+
+```{r}
+# receptaculo_unicos <- unique(receptaculo$cuantas_consulta_medica)
+# receptaculo_unicos <- as.data.frame(receptaculo_unicos)
+# write_xlsx(receptaculo_unicos,"diccionario/unico_cuantas_consulta_medica.xlsx")
+```
+
+
+```{r}
+alfabetismo <- read_xlsx("diccionario/alfabetismo_unicos.xlsx")
+categorias <- read_xlsx("diccionario/categorias_etnia.xlsx")
+cat_disc <- read_xlsx("diccionario/unico_cuantas_consulta_medica.xlsx")
+
+# cod_cat <- unique(cat_disc$discapacidad_n)
+# cod_cat<- as.data.frame(cod_cat)
+# cod_cat$codigo_discapacidad <- paste("00",seq(1:nrow(cod_cat)), sep = "")
+# names(cod_cat)[1] <- "discapacidad_n"
+# cat_disc = merge( x = cat_disc, y = cod_cat, by = "discapacidad_n", all.x = TRUE)
+# cat_disc <- cat_disc[,c(2,1,3)]
+
+
+nuevas_cat = merge( x = receptaculo, y = alfabetismo, by = "Alfabetismo", all.x = TRUE)
+alfa_corr <- nuevas_cat[,c(-1)]
+
+
+categoriasbuenas = merge( x = alfa_corr, y = categorias, by = "Etnia", all.x = TRUE)
+etnia_corr <- categoriasbuenas[,c(-1)]
+
+categoriasbuenas = merge( x = etnia_corr, y = cat_disc, by = "cuantas_consulta_medica", all.x = TRUE)
+discapacidad_corr <- categoriasbuenas[,c(-1)]
+
+receptaculo<-discapacidad_corr[,c(1,10,11,8,9,6,7,2,3,4,5)]
+
+names(receptaculo)[1] <- "comuna"
+names(receptaculo)[2] <- "cuantas_consulta_medicina_gen"
+names(receptaculo)[4] <- "etnia"
+names(receptaculo)[6] <- "alfabetismo"
+names(receptaculo)[8] <- "sexo"
+names(receptaculo)[9] <- "frec"
+names(receptaculo)[10] <- "anio"
+names(receptaculo)[11] <- "codigo_comuna"
+
+receptaculo_tab <- receptaculo[1:30,]
+kbl(receptaculo_tab) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "500px")
+```
+
+### 4.1.3 Guardado de tablas
+
+El siguiente código establece una conexión con nuestra base de datos en **postgres** donde estaremos guardando la tabla resultado del código previo.
+También se guardará la tabla de forma local en formato **xlsx**
+
+```{r}
+# db <- 'trabajo-con-casen'  #provide the name of your db
+# host_db <- 'post-to-r.postgres.database.azure.com' #i.e. # i.e. 'ec2-54-83-201-96.compute-1.amazonaws.com'
+# db_port <- '5432'  # or any other port specified by the DBA
+# db_user <- 'yomismo@post-to-r'
+# db_password <- '123456Fg*'
+# con <- dbConnect(RPostgres::Postgres(), dbname = db, host=host_db, port=db_port, user=db_user, password=db_password)
+#
+# library('RPostgreSQL')
+# tn <- 'links'
+# dbWriteTable(con,'tabla_discapacidad',receptaculo, row.names=FALSE)
+
+write_xlsx(receptaculo,"tablas_grandes/entrega_4_cuantas_consulta_medica.xlsx")
+```
+```{r}
+# tabla_grande <- dbGetQuery(con, 'SELECT * FROM tabla_discapacidad')
+# tabla_grande
+```
+
+## 4.2 Gráficos
+
+### 4.2.1 Gráfico I
+
+```{r}
+p1 <- plot_ly(receptaculo , x = ~anio , color = ~cuantas_consulta_medicina_gen) %>% add_histogram() %>%
+    layout(title = "Discapacidad en los años",
+         xaxis = list(title = "Años"),showlegend = TRUE, autosize = F, legend = list(font = list(size = 8)))
+p1
+```
+
+### 4.2.2 Gráfico II
+
+```{r}
+p2 <- plot_ly(receptaculo , x = ~etnia , color = ~cuantas_consulta_medicina_gen)  %>% add_histogram()%>%
+    layout(title = "Discapacidad por grupo etnico",
+         xaxis = list(title = "Etnia"),showlegend = TRUE, autosize = F, legend = list(font = list(size = 8)))
+p2
+```
+
+
+
+<br>
+<hr style="height:1px;border-width:1;color:Gray;background-color:Gray">
+<br>
+
+
+# 5. Lugar de consulta
+
+¿En qué establecimiento recibió Medicina General?
+
+```{r}
+funcion1 <- function(n){
+
+  comunales<-switch(n, "codigos_comunales_2006.rds","codigos_comunales_2009.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds")
+ xx<-switch(n, "2006","2009","2011","2013","2015","2017")
+ # dataset_06 <<- NA
+
+
+ if(xx==2006) {
+  eliminated <- dataset_2006
+# a <- eliminated$ytotaj
+b <- eliminated$COMUNA
+c <- eliminated$S8B
+d <- eliminated$E1 #alfabetismo
+e <- eliminated$T4 #etnia
+f <- eliminated$SEXO
+anio <- 2006
+cross_tab =  xtabs(eliminated$EXPC ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$EXPC ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+ if(xx==2009) {
+  eliminated <- dataset_2009
+# a <- eliminated$ytotaj
+b <- eliminated$COMUNA
+c <- eliminated$S14B
+d <- eliminated$E1 #alfabetismo
+e <- eliminated$T5 #etnia
+f <- eliminated$SEXO
+anio <- 2009
+cross_tab =  xtabs(eliminated$EXPC ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$EXPC ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+ }
+
+if(xx==2011) {
+  eliminated <- dataset_2011
+# a <- eliminated$ytotaj
+b <- eliminated$comuna
+c <- eliminated$s25b
+d <- eliminated$e1 #alfabetismo
+e <- eliminated$r6 #etnia
+f <- eliminated$sexo
+anio <- 2011
+cross_tab =  xtabs(eliminated$expc_full ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc_full ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2013) {
+  eliminated <- dataset_2013
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$s22b
+d <- eliminated$e1 #alfabetismo
+e <- eliminated$r6 #etnia
+f <- eliminated$sexo
+anio <- 2013
+cross_tab =  xtabs(eliminated$expc ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2015) {
+  eliminated <- dataset_2015
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$s19b
+d <- eliminated$e1 #alfabetismo
+e <- eliminated$r3 #etnia
+f <- eliminated$sexo
+anio <- 2015
+cross_tab =  xtabs(eliminated$expc_todas ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc_todas ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2017) {
+  eliminated <- dataset_2017
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$s19b
+d <- eliminated$e1 #alfabetismo
+e <- eliminated$r3 #etnia
+f <- eliminated$sexo
+anio <- 2017
+cross_tab =  xtabs(eliminated$expc ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+
+
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$Año <- anio
+
+names(d)[1] <- "Comuna"
+names(d)[2] <- "donde_consulta_medicina_gen"
+names(d)[3] <- "Alfabetismo"
+names(d)[4] <- "Etnia"
+names(d)[5] <- "sexo"
+codigos_comunales <- readRDS(file = comunales)
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+
+ingreso_rds <- paste("tablas_peque/donde_consulta_medicina_gen_",anio,".rds", sep="")
+saveRDS(df,ingreso_rds)
+
+# print(head(df,10))
+
+}
+
+for (n in 1:6){
+  funcion1(n)
+}
+```
+
+## 5.1 Tratamientos
+
+
+### 5.1.1 Union de tablas
+
+Unión de subtablas, homologación de categorías de respuesta con código independiente para la variable de estudio de la ttcc y creación de la tabla general.
+
+```{r}
+receptaculo <- data.frame()
+for (n in 1 : 6){
+    numero <- switch(n, "2006","2009","2011","2013","2015","2017")
+    direc_tablas <- paste("tablas_peque/donde_consulta_medicina_gen_",numero,".rds", sep="")
+    tablas <- readRDS(direc_tablas)
+
+    receptaculo <<- rbind(receptaculo, tablas)
+
+}
+```
+
+### 5.1.2 Diccionario
+
+Para la creación del diccionario se necesita el dataset “receptáculo” al que se le hará un **unique()** en la columna a la que se le hará el diccionario, luego se guarda como **xlsx** para hacer el tratamiento
+
+```{r}
+# receptaculo_unicos <- unique(receptaculo$donde_consulta_medicina_gen)
+# receptaculo_unicos <- as.data.frame(receptaculo_unicos)
+# write_xlsx(receptaculo_unicos,"diccionario/unico_donde_consulta_medicina_gen.xlsx")
+```
+
+
+```{r}
+alfabetismo <- read_xlsx("diccionario/alfabetismo_unicos.xlsx")
+categorias <- read_xlsx("diccionario/categorias_etnia.xlsx")
+cat_disc <- read_xlsx("diccionario/unico_donde_consulta_medicina_gen.xlsx")
+
+# cod_cat <- unique(cat_disc$discapacidad_n)
+# cod_cat<- as.data.frame(cod_cat)
+# cod_cat$codigo_discapacidad <- paste("00",seq(1:nrow(cod_cat)), sep = "")
+# names(cod_cat)[1] <- "discapacidad_n"
+# cat_disc = merge( x = cat_disc, y = cod_cat, by = "discapacidad_n", all.x = TRUE)
+# cat_disc <- cat_disc[,c(2,1,3)]
+
+
+nuevas_cat = merge( x = receptaculo, y = alfabetismo, by = "Alfabetismo", all.x = TRUE)
+alfa_corr <- nuevas_cat[,c(-1)]
+
+
+categoriasbuenas = merge( x = alfa_corr, y = categorias, by = "Etnia", all.x = TRUE)
+etnia_corr <- categoriasbuenas[,c(-1)]
+
+categoriasbuenas = merge( x = etnia_corr, y = cat_disc, by = "donde_consulta_medicina_gen", all.x = TRUE)
+discapacidad_corr <- categoriasbuenas[,c(-1)]
+
+receptaculo<-discapacidad_corr[,c(1,10,11,8,9,6,7,2,3,4,5)]
+
+names(receptaculo)[1] <- "comuna"
+names(receptaculo)[2] <- "donde_consulta_medicina_gen"
+names(receptaculo)[4] <- "etnia"
+names(receptaculo)[6] <- "alfabetismo"
+names(receptaculo)[8] <- "sexo"
+names(receptaculo)[9] <- "frec"
+names(receptaculo)[10] <- "anio"
+names(receptaculo)[11] <- "codigo_comuna"
+
+receptaculo_tab <- receptaculo[1:30,]
+kbl(receptaculo_tab) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "500px")
+```
+
+### 5.1.3 Guardado de tablas
+
+El siguiente código establece una conexión con nuestra base de datos en **postgres** donde estaremos guardando la tabla resultado del código previo.
+También se guardará la tabla de forma local en formato **xlsx**
+
+```{r}
+# db <- 'trabajo-con-casen'  #provide the name of your db
+# host_db <- 'post-to-r.postgres.database.azure.com' #i.e. # i.e. 'ec2-54-83-201-96.compute-1.amazonaws.com'
+# db_port <- '5432'  # or any other port specified by the DBA
+# db_user <- 'yomismo@post-to-r'
+# db_password <- '123456Fg*'
+# con <- dbConnect(RPostgres::Postgres(), dbname = db, host=host_db, port=db_port, user=db_user, password=db_password)
+#
+# library('RPostgreSQL')
+# tn <- 'links'
+# dbWriteTable(con,'tabla_discapacidad',receptaculo, row.names=FALSE)
+
+write_xlsx(receptaculo,"tablas_grandes/entrega_4_donde_consulta_medicina_gen.xlsx")
+```
+```{r}
+# tabla_grande <- dbGetQuery(con, 'SELECT * FROM tabla_discapacidad')
+# tabla_grande
+```
+
+## 5.2 Gráficos
+
+### 5.2.1 Gráfico I
+
+```{r}
+p1 <- plot_ly(receptaculo , x = ~anio , color = ~donde_consulta_medicina_gen) %>% add_histogram() %>%
+    layout(title = "Discapacidad en los años",
+         xaxis = list(title = "Años"),showlegend = TRUE, autosize = F, legend = list(font = list(size = 8)))
+p1
+```
+
+### 5.2.2 Gráfico II
+
+```{r}
+p2 <- plot_ly(receptaculo , x = ~etnia , color = ~donde_consulta_medicina_gen)  %>% add_histogram()%>%
+    layout(title = "Discapacidad por grupo etnico",
+         xaxis = list(title = "Etnia"),showlegend = TRUE, autosize = F, legend = list(font = list(size = 8)))
+p2
+```
+
+
+<br>
+<hr style="height:1px;border-width:1;color:Gray;background-color:Gray">
+<br>
+
+
+# 6. Lugar de consulta
+
+¿En qué establecimiento recibió Medicina General?
+
+PENDIENTE!!!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
