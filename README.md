@@ -4,12 +4,10 @@ El objetivo es ir generando productos en forma de tablas globales, desde la cual
 
 El primer set de productos serán los ingresos.
 
-Semana 26 al 30 de Abril:
+Semana 26 al 30 de Abril\
+primera a quinta entrega:\
+ds_casen/entregas_zoho/
 
-26: primera entrega: \
-27: segunda entrega: \
-28: tercera entrega:\
-29: cuarta y quinta entrega:
 
 Nomenclatura de tablas en postgres:
 
