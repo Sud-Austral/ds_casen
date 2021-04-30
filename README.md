@@ -37,6 +37,6 @@ Nomenclatura de tablas en postgres:
 
 https://rpubs.com/dataintelligence/ttcc_vaiables_de_interes_27_04_21
 
-El tercero:
+
 
 
