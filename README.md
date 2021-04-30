@@ -26,7 +26,7 @@ Nomenclatura de tablas en postgres:
 
 [12] "entrega_3_consulta_medica.xlsx"            
 [13] "entrega_3_cuantas_consulta_medica.xlsx"    
-[14] "entrega_3_donde_consulta_medicina_gen.xlsx"
+[14] "entrega_3_donde_consulta_medicina_gen.xlsx"\
 [15] "entrega_3_enfermedad_accidente.xlsx"       
 [16] "entrega_3_motivo_no_consulta_medica.xlsx"  
 
