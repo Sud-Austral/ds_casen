@@ -274,8 +274,17 @@ con <- dbConnect(RPostgres::Postgres(), dbname = db, host=host_db, port=db_port,
 library('RPostgreSQL')
 # tn <- 'links'
 # dbWriteTable(con,'tabla_discapacidad',receptaculo, row.names=FALSE)
+```
 
-write_xlsx(receptaculo,"tablas_grandes/s_cant_hijos.xlsx")
+```{r}
+rrrr <- dir(pattern = ".xlsx")
+rrrr
+```
+
+```{r}
+aaaa <- read_xlsx("entrega_5_variables_base.xlsx")
+dbWriteTable(con,'entrega_5_variables_base',aaaa, row.names=FALSE)
+#write_xlsx(receptaculo,"tablas_grandes/s_cant_hijos.xlsx")
 ```
 ```{r}
 # tabla_grande <- dbGetQuery(con, 'SELECT * FROM tabla_discapacidad') 
@@ -485,9 +494,14 @@ library('RPostgreSQL')
 # tn <- 'links'
 # dbWriteTable(con,'tabla_discapacidad',receptaculo, row.names=FALSE)
 
-write_xlsx(receptaculo,"tablas_grandes/s_edad_al_tener_hijo.xlsx")
+#write_xlsx(receptaculo,"tablas_grandes/s_edad_al_tener_hijo.xlsx")
 ```
+
+
+
+
 ```{r}
+
 # tabla_grande <- dbGetQuery(con, 'SELECT * FROM tabla_discapacidad') 
 # tabla_grande
 ```
