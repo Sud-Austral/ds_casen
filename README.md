@@ -41,7 +41,7 @@ Nomenclatura de tablas en postgres:
 
 Semana del 3 al 7 de Mayo
 
-[23] ds_casen/entregas_zoho/entrega_6_vivienda_alle.Rmd 
+[23] ds_casen/entregas_zoho/entrega_6_vivienda_alle.Rmd \
 https://rpubs.com/dataintelligence/764596
 
 
