@@ -39,8 +39,9 @@ Nomenclatura de tablas en postgres:
 [22] "entrega_5_variables_base.xlsx"
 
 
-https://rpubs.com/dataintelligence/ttcc_vaiables_de_interes_27_04_21
+Semana del 3 al 7 de Mayo
 
-
+[23] "Entrega_6_"
+https://rpubs.com/dataintelligence/764596
 
 
