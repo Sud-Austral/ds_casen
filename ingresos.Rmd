@@ -7,11 +7,11 @@ author:
 - name: VE-MS-CC
   affiliation: DataIntelligence
 subtitle: |
-  Compendio
-date: "20-04-2021"
+  Ingresos totales de las personas 2006-2017
+date: "Viernes 07-05-2021"
 abstract: |
 
-  En nuestro artículo https://rpubs.com/dataintelligence/la_construccion_de_los_ingresos_2, defendimos el analisis de 4 ingresos. En éste trabajo generamos la tabla que permitirá desplegar gráficas en Zoho. Hacemos un respaldo de las tablas en Postgres en Azure a la vez que vamos construyendo nuestra propia base de datos en ella.
+  En nuestro artículo https://rpubs.com/dataintelligence/la_construccion_de_los_ingresos_2, defendimos el análisis de 4 ingresos. En éste trabajo generamos una tabla consolidada cuya variable de estudio es el ingreso total de las personas. Se corrige un error producto de una mala categorización y se revisamos el acto de calcular promedios de promedios.
 
 header-includes:
    - \usepackage[]{babel}
@@ -29,17 +29,28 @@ library(tidyverse)
 library(kableExtra)
 library(reldist)
 library("readxl")
+library("writexl")
+library(kableExtra)
+
+
+
+
 ```
 
 ## Índice{#invtest1}
 
+## [1. Introducción](#a301) 
+
+## [1. Promedios de promedios](#a302)
+
+
 **Éste programa corre con la version R-3.6.3**
 
-### [1. Introducción ](#test1)
+## 1. Introducción {#a301}
 
 [(volver al índice)](#invtest1)
 
-### 1. Introducción
+
 
 <!-- falta hacer tabas de migra con ingresos(27-01-21) -->
 <!-- generar tablas de variable que falta -->
@@ -53,13 +64,77 @@ library("readxl")
 
 ### 2006
 
+1 Leemos nuestra base de datos original
+
 ```{r}
 dataset_2006 <- readRDS(file = "casen_2006_c.rds")
 ```
 
+2 Asignamos el nombre de nuestra variable a ab
+
 ```{r}
 ab <- dataset_2006
 ```
+
+3 Llamamos a nuestros diccionarios
+
+Los diccionarios contienen dos columnas. Una recoge todas las alternativas posible de respuesta que pueden aparecer en un campo de un dataframe para con un posterior merge reemplazarlas con las correspondencias en la columna de la derecha y así poder homologar para todos los años.
+
+```{r}
+alfabetismo <- read_xlsx("alfabetismo_unicos.xlsx")
+categorias <- read_xlsx("categorias_etnia.xlsx")
+```
+
+```{r}
+kbl(alfabetismo) %>%
+kable_styling(bootstrap_options = c("striped", "hover")) %>%
+kable_paper() %>%
+scroll_box(width = "150%", height = "500px")
+```
+```{r}
+kbl(categorias) %>%
+kable_styling(bootstrap_options = c("striped", "hover")) %>%
+kable_paper() %>%
+scroll_box(width = "150%", height = "500px")
+
+```
+
+
+4 Leemos los nombres de sus cabeceras para verificar que coincidan para hacer el futuro merge:
+
+```{r}
+names(alfabetismo)
+```
+```{r}
+names(categorias)
+```
+
+5 Renombramos si es el caso con los nombres adecuados:
+
+```{r}
+names(alfabetismo)[1] <- "E1"
+names(categorias)[1] <- "T4"
+```
+
+6 Hacemos el merge para corregir las categorias de alfabetismo:
+
+```{r}
+dataset_2006_a = merge( x = ab, y = alfabetismo, by = "E1", all.x = TRUE)
+```
+
+7 Hacemos el merge para corregir las categorias de etnia:
+
+```{r}
+dataset_2006_b = merge( x = dataset_2006_a, y = categorias, by = "T4", all.x = TRUE)
+```
+
+8 asignamos el valor de nuestro dataframe modificado a nuestra variable de trabajo ab
+
+```{r}
+ab <- dataset_2006_b
+```
+
+9 Eliminamos los outliers:
 
 ```{r}
 # Eliminamos del dataframe los registros que no posean valores en la columna del ingreso total:
@@ -82,32 +157,17 @@ eliminated <- data.frame(lapply(eliminated, as.character), stringsAsFactors=FALS
 
 ```
 
-```{r}
-prueba <- unique(eliminated[c("COMUNA")])
-pru
-```
 
 
-
-```{r}
-#prueba <- unique(eliminated$COMUNA) %>% unique(eliminated$SEXO)
-
-prueba <- unique(eliminated[c("COMUNA", "SEXO", "T4", "E1")])
-
-prueba
+10 Calculamos promedios, ds y gini para el dataframe eliminated asegurandonos de tener correctamente asignados los nombres de las nuevas columnas corregidas de etnia y alfabetismo:
 
 
-```
-
-
-
-20100
 
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 b <-  as.numeric(eliminated$YTOTAJ)
 a <- eliminated$COMUNA
-c <- eliminated$T4
-d <- eliminated$E1
+c <- eliminated$categorias_etnicas
+d <- eliminated$cat_alfa
 e <- eliminated$SEXO
 
 # Calculamos los promedios de ingreso grupales, la desviación estandar del rango y el coeficiente de Gini:
@@ -154,35 +214,76 @@ names(codigos_comunales)[2] <- "comuna"
 df_2006 = merge( x = promedios_grupales, y = codigos_comunales, by = "comuna", all.x = TRUE)
 # head(df_2006,50) %>%  kbl() %>% kable_material(c("striped", "hover"), font_size = 12)%>%
 # scroll_box(width = "100%", height = "500px")
-
-head(df_2006,10)
-
-
 ```
 
 
 ```{r}
-uno <-unique(df_2006$sexo)
-uno
+#head(df_2006,10)
+# df_2006
+
 ```
-20100
 
 
-335
-10
-3
-2
+
+```{r}
+# write_xlsx(df_2006,"df_2006.xlsx")
+```
+
+Verificacion de que no existan categorizaciones repetidas
+
+```{r}
+unicos <- df_2006[,c(1,2,3,4)]
+```
+
+```{r}
+# unicos
+```
+
+
 
 
 ### 2009
 
 ```{r}
 dataset_2009 <- readRDS(file = "casen_2009_c.rds")
+
 ```
 
 ```{r}
 ab <- dataset_2009
 ```
+
+```{r}
+names(alfabetismo)
+```
+
+```{r}
+names(categorias)
+```
+
+```{r}
+names(alfabetismo)[1] <- "E1"
+names(categorias)[1] <- "T5"
+```
+
+
+```{r}
+dataset_2009_a = merge( x = ab, y = alfabetismo, by = "E1", all.x = TRUE)
+```
+
+
+```{r}
+dataset_2009_b = merge( x = dataset_2009_a, y = categorias, by = "T5", all.x = TRUE)
+```
+
+
+
+```{r}
+ab <- dataset_2009_b
+```
+
+
+
 
 ```{r}
 # Eliminamos del dataframe los registros que no posean valores en la columna del ingreso total:
@@ -204,8 +305,8 @@ eliminated_100 <- eliminated[c(1:100),]
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 b <-  as.numeric(eliminated$YTOTAJ)
 a <- eliminated$COMUNA
-c <- eliminated$T5
-d <- eliminated$E1
+c <- eliminated$categorias_etnicas
+d <- eliminated$cat_alfa
 e <- eliminated$SEXO
 
 # Calculamos los promedios de ingreso grupales, la desviación estandar del rango y el coeficiente de Gini:
@@ -248,8 +349,31 @@ names(codigos_comunales)[2] <- "comuna"
 
 ```{r}
 df_2009 = merge( x = promedios_grupales, y = codigos_comunales, by = "comuna", all.x = TRUE)
-head(df_2009,10)
+
 ```
+
+
+```{r}
+# df_2009
+```
+
+
+
+Verificacion de que no existan categorizaciones repetidas
+
+```{r}
+unicos <- df_2009[,c(1,2,3,4)]
+```
+
+```{r}
+# unicos
+```
+
+
+
+
+
+
 
 
 
@@ -263,6 +387,47 @@ dataset_2011 <- readRDS(file = "casen_2011_c.rds")
 ```{r}
 ab <- dataset_2011
 ```
+
+
+
+
+
+```{r}
+names(alfabetismo)
+```
+
+
+```{r}
+names(categorias)
+```
+
+```{r}
+names(alfabetismo)[1] <- "e1"
+names(categorias)[1] <- "r6"
+```
+
+
+
+
+
+```{r}
+dataset_2011_a = merge( x = ab, y = alfabetismo, by = "e1", all.x = TRUE)
+```
+
+
+```{r}
+dataset_2011_b = merge( x = dataset_2011_a, y = categorias, by = "r6", all.x = TRUE)
+```
+
+
+
+```{r}
+ab <- dataset_2011_b
+```
+
+
+
+
 
 ```{r}
 # Eliminamos del dataframe los registros que no posean valores en la columna del ingreso total:
@@ -287,8 +452,8 @@ eliminated_100 <- eliminated[c(1:100),]
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 b <-  as.numeric(eliminated$ytotaj)
 a <- eliminated$comuna
-c <- eliminated$r6
-d <- eliminated$e1
+c <- eliminated$categorias_etnicas
+d <- eliminated$cat_alfa
 e <- eliminated$sexo
 
 # Calculamos los promedios de ingreso grupales, la desviación estandar del rango y el coeficiente de Gini:
@@ -330,8 +495,37 @@ names(codigos_comunales)[2] <- "comuna"
 ```{r}
 df_2011 = merge( x = promedios_grupales, y = codigos_comunales, by = "comuna", all.x = TRUE)
 
-head(df_2011,10)
+
 ```
+
+```{r}
+# df_2011
+```
+
+
+
+Verificacion de que no existan categorizaciones repetidas
+
+```{r}
+unicos <- df_2011[,c(1,2,3,4)]
+```
+
+```{r}
+# unicos
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -344,6 +538,48 @@ dataset_2013 <- readRDS(file = "casen_2013_c.rds")
 ```{r}
 ab <- dataset_2013
 ```
+
+
+
+
+```{r}
+names(alfabetismo)
+```
+
+
+```{r}
+names(categorias)
+```
+
+```{r}
+names(alfabetismo)[1] <- "e1"
+names(categorias)[1] <- "r6"
+```
+
+
+
+
+```{r}
+dataset_2013_a = merge( x = ab, y = alfabetismo, by = "e1", all.x = TRUE)
+```
+
+
+```{r}
+dataset_2013_b = merge( x = dataset_2013_a, y = categorias, by = "r6", all.x = TRUE)
+```
+
+
+
+```{r}
+ab <- dataset_2013_b
+```
+
+
+
+
+
+
+
 
 ```{r}
 # Eliminamos del dataframe los registros que no posean valores en la columna del ingreso total:
@@ -368,8 +604,8 @@ eliminated_100 <- eliminated[c(1:100),]
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 b <-  as.numeric(eliminated$ytotcor)
 a <- eliminated$comuna
-c <- eliminated$r6
-d <- eliminated$e1
+c <- eliminated$categorias_etnicas
+d <- eliminated$cat_alfa
 e <- eliminated$sexo
 
 # Calculamos los promedios de ingreso grupales, la desviación estandar del rango y el coeficiente de Gini:
@@ -413,7 +649,32 @@ names(codigos_comunales)[2] <- "comuna"
 ```{r}
 df_2013 = merge( x = promedios_grupales, y = codigos_comunales, by = "comuna", all.x = TRUE)
 
-head(df_2013,10)
+```
+
+```{r}
+# df_2013
+```
+
+
+
+Verificacion de que no existan categorizaciones repetidas
+
+```{r}
+unicos <- df_2013[,c(1,2,3,4)]
+```
+
+```{r}
+# unicos
+```
+
+### guardamos los cuatro primeros en rds:
+
+```{r}
+unidos_los_cuatro <- rbind(df_2006,df_2009,df_2011,df_2013)
+```
+
+```{r}
+saveRDS(unidos_los_cuatro,"unidos_los_cuatro.rds")
 ```
 
 
@@ -428,6 +689,54 @@ dataset_2015 <- readRDS(file = "casen_2015_c.rds")
 ```{r}
 ab <- dataset_2015
 ```
+
+
+
+
+
+
+
+
+
+```{r}
+names(alfabetismo)
+```
+
+
+```{r}
+names(categorias)
+```
+
+```{r}
+# names(alfabetismo)[1] <- "e1"
+names(categorias)[1] <- "r3"
+```
+
+
+
+
+```{r}
+dataset_2015_a = merge( x = ab, y = alfabetismo, by = "e1", all.x = TRUE)
+```
+
+
+
+
+```{r}
+dataset_2015_b = merge( x = dataset_2015_a, y = categorias, by = "r3", all.x = TRUE)
+```
+
+
+
+```{r}
+ab <- dataset_2015_b
+```
+
+
+
+
+
+
 
 ```{r}
 # Eliminamos del dataframe los registros que no posean valores en la columna del ingreso total:
@@ -449,11 +758,15 @@ eliminated_100 <- eliminated[c(1:100),]
 #    scroll_box(width = "100%", height = "500px")
 ```
 
+
+
+
+
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 b <-  as.numeric(eliminated$ytotcor)
 a <- eliminated$comuna
-c <- eliminated$r3
-d <- eliminated$e1
+c <- eliminated$categorias_etnicas
+d <- eliminated$cat_alfa
 e <- eliminated$sexo
 
 # Calculamos los promedios de ingreso grupales, la desviación estandar del rango y el coeficiente de Gini:
@@ -495,8 +808,23 @@ names(codigos_comunales)[2] <- "comuna"
 ```{r}
 df_2015 = merge( x = promedios_grupales, y = codigos_comunales, by = "comuna", all.x = TRUE)
 
-head(df_2015,10)
 ```
+
+```{r}
+# df_2015
+```
+
+
+Verificacion de que no existan categorizaciones repetidas
+
+```{r}
+unicos <- df_2015[,c(1,2,3,4)]
+```
+
+```{r}
+# unicos
+```
+
 
 
 
@@ -510,6 +838,47 @@ dataset_2017 <- readRDS(file = "casen_2017_c.rds")
 ```{r}
 ab <- dataset_2017
 ```
+
+
+
+debemos nombrar correctamente las columnas del dataframe para el merge
+
+```{r}
+names(alfabetismo)
+```
+
+
+```{r}
+names(categorias)
+```
+
+
+
+```{r}
+dataset_2017_a = merge( x = ab, y = alfabetismo, by = "e1", all.x = TRUE)
+```
+
+
+```{r}
+dataset_2017_b = merge( x = dataset_2017_a, y = categorias, by = "r3", all.x = TRUE)
+```
+
+
+
+```{r}
+ab <- dataset_2017_b
+```
+
+
+```{r}
+
+```
+
+
+
+
+
+
 
 ```{r}
 # Eliminamos del dataframe los registros que no posean valores en la columna del ingreso total:
@@ -534,8 +903,8 @@ eliminated_100 <- eliminated[c(1:100),]
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 b <-  as.numeric(eliminated$ytotcor)
 a <- eliminated$comuna
-c <- eliminated$r3
-d <- eliminated$e1
+c <- eliminated$categorias_etnicas
+d <- eliminated$cat_alfa
 e <- eliminated$sexo
 
 # Calculamos los promedios de ingreso grupales, la desviación estandar del rango y el coeficiente de Gini:
@@ -575,8 +944,30 @@ names(codigos_comunales)[2] <- "comuna"
 ```{r}
 df_2017 = merge( x = promedios_grupales, y = codigos_comunales, by = "comuna", all.x = TRUE)
 
-head(df_2017,10)
 ```
+
+```{r}
+# df_2017
+```
+
+
+Verificacion de que no existan categorizaciones repetidas
+
+```{r}
+unicos <- df_2017[,c(1,2,3,4)]
+```
+
+```{r}
+# unicos
+```
+
+
+```{r}
+ufg <- unique(dataset_2017_b$cat_alfa)
+# ufg
+```
+
+
 
 
 
@@ -585,89 +976,193 @@ ytotcor_ytotaj <- rbind(df_2006,df_2009,df_2011,df_2013,df_2015,df_2017)
 head(ytotcor_ytotaj,10)
 nrow(ytotcor_ytotaj)
 ```
-
-20100*6 = 120600
-
-
-
-
-### Vamos a homologar las categorias de etnia y alfabetismo
-
 ```{r}
-alfabetismo <- read_xlsx("alfabetismo_unicos.xlsx")
-categorias <- read_xlsx("categorias_etnia.xlsx")
-
-nuevas_cat = merge( x = ytotcor_ytotaj, y = alfabetismo, by = "Alfabetismo", all.x = TRUE)
-
-# nuevas_cat
-
-
+write_xlsx(ytotcor_ytotaj, "ytotcor_ytotaj.xlsx")
 ```
 
 
+
+## 2. Promedios de promedios {#a302}
+
+[(volver al índice)](#invtest1)
+
+Tenemos un problema. Al parecer hay que ponderar los promedios por categoría para obtener un promedio general digamos, por ejemplo para todos los hombres mapuches de Algarrobo.
+
 ```{r}
-alfa_corr <- nuevas_cat[,c(-1)]
-# alfa_corr
+data_filtrada <- filter(ytotcor_ytotaj, ytotcor_ytotaj$comuna == "Algarrobo" , ytotcor_ytotaj$sexo == "Hombre",  ytotcor_ytotaj$Etnia == "Mapuche"  )
+data_filtrada
 ```
 
+### Pregunta: es el promedio del sueldo de los hombres mapuches en Algarrobo la cantidad siguiente?:
 
 ```{r}
-categoriasbuenas = merge( x = alfa_corr, y = categorias, by = "Etnia", all.x = TRUE)
-# categoriasbuenas
+mean(data_filtrada$promedio)
 ```
 
-
 ```{r}
-etnia_corr <- categoriasbuenas[,c(-1)]
-# etnia_corr
-```
-
-
-```{r}
-names(etnia_corr)[8] <- "alfabetismo"
-names(etnia_corr)[9] <- "etnia"
-receptaculo <- etnia_corr[,c(1,2,8,9,3,4,5,6,7)]
-
-head(receptaculo, 10)
-nrow(receptaculo)
-```
-```{r}
-saveRDS(receptaculo,"receptaculo.rds")
+data001 <- data_filtrada$promedio
+data001 <- as.data.frame(data001)
 ```
 
 
 
 ```{r}
-rec <- filter(receptaculo, receptaculo$comuna == "Iquique" & receptaculo$sexo == "Hombre" & receptaculo$etnia == "Aymara" & receptaculo$alfabetismo == "Sí")
-rec
+colSums(data001)/5
+```
+
+
+No. Obtengamos las frecuencias de personas existentes por categoría:
+
+```{r}
+funcion1 <- function(n){
+
+comunales<-switch(n, "codigos_comunales_2006.rds","codigos_comunales_2009.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds")
+xx<-switch(n,"2006","2009","2011","2013","2015","2017")
+# dataset_06 <<- NA
+
+
+if(xx==2006) {
+eliminated <- dataset_2006_b
+# a <- eliminated$ytotaj
+b <- eliminated$COMUNA
+
+d <- eliminated$cat_alfa
+e <- eliminated$categorias_etnicas
+f <- eliminated$SEXO
+anio <- 2006
+cross_tab = xtabs(eliminated$EXPC ~ + unlist(b) + unlist(d) + unlist(e)+ unlist(f) ,aggregate(eliminated$EXPC ~ + unlist(b) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2009) {
+eliminated <- dataset_2009_b
+# a <- eliminated$ytotaj
+b <- eliminated$COMUNA
+
+d <- eliminated$cat_alfa
+e <- eliminated$categorias_etnicas
+f <- eliminated$SEXO
+anio <- 2009
+cross_tab = xtabs(eliminated$EXPC ~ + unlist(b)  + unlist(d) + unlist(e)+ unlist(f) ,aggregate(eliminated$EXPC ~ + unlist(b)  + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2011) {
+eliminated <- dataset_2011_b
+# a <- eliminated$ytotaj
+b <- eliminated$comuna
+
+d <- eliminated$cat_alfa
+e <- eliminated$categorias_etnicas
+f <- eliminated$sexo
+anio <- 2011
+cross_tab = xtabs(eliminated$expc_full ~ + unlist(b)  + unlist(d) + unlist(e)+ unlist(f) ,aggregate(eliminated$expc_full ~ + unlist(b) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2013) {
+eliminated <- dataset_2013_b
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+
+d <- eliminated$cat_alfa
+e <- eliminated$categorias_etnicas
+f <- eliminated$sexo
+anio <- 2013
+cross_tab = xtabs(eliminated$expc ~ + unlist(b)  + unlist(d) + unlist(e)+ unlist(f) ,aggregate(eliminated$expc ~ + unlist(b) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2015) {
+eliminated <- dataset_2015_b
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+
+d <- eliminated$cat_alfa
+e <- eliminated$categorias_etnicas
+f <- eliminated$sexo
+anio <- 2015
+cross_tab = xtabs(eliminated$expc_todas ~ + unlist(b)  + unlist(d) + unlist(e)+ unlist(f) ,aggregate(eliminated$expc_todas ~ + unlist(b) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2017) {
+eliminated <- dataset_2017_b
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+
+d <- eliminated$cat_alfa
+e <- eliminated$categorias_etnicas
+f <- eliminated$sexo
+anio <- 2017
+cross_tab = xtabs(eliminated$expc ~ + unlist(b)  + unlist(d) + unlist(e)+ unlist(f) ,aggregate(eliminated$expc ~ + unlist(b)  + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+
+
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$Año <- anio
+
+names(d)[1] <- "Comuna"
+
+names(d)[2] <- "Alfabetismo"
+names(d)[3] <- "Etnia"
+names(d)[4] <- "sexo"
+codigos_comunales <- readRDS(file = comunales)
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+
+ingreso_rds <- paste("tablas_peque/base_madre",anio,".rds", sep="")
+saveRDS(df,ingreso_rds)
+
+# print(head(df,10))
+
+}
+
+for (n in 1:6){
+funcion1(n)
+}
+```
+
+
+
+```{r}
+receptaculo <- data.frame()
+for (n in 1 : 6){
+numero <- switch(n, "2006","2009","2011","2013","2015","2017")
+direc_tablas <- paste("tablas_peque/base_madre",numero,".rds", sep="")
+tablas <- readRDS(direc_tablas)
+
+receptaculo <<- rbind(receptaculo, tablas)
+
+}
+
+# receptaculo
 ```
 
 ```{r}
-rec$año <- as.double(rec$año)
-rec
+
+write_xlsx(receptaculo, "receptaculo.xlsx")
 ```
 
 ```{r}
-library(ggplot2)
-# Basic line plot with points
-ggplot(data=rec, aes(x=año, y=promedio, group=1)) +
-  geom_line()+
-  geom_point()
+data_filtrada_2 <- filter(receptaculo, receptaculo$Comuna == "Algarrobo" , receptaculo$sexo == "Hombre",  receptaculo$Etnia == "Mapuche"  )
+data_filtrada_2
 ```
 
+Ahora si tenemos las frecuencias por categoría que representan los pesos por los que tienen que ser multiplicados los valores de los ingresos promedio.
+
+Así, el ingreso promedio para los hombres mapuches que si saben leer en Algarrobo durante los años, 2009, 2011, 2013 y 2017 es:
+
+$$ promedio = 156* 242086,3 + 388* 414415 + 113 * 334313,8 + 185* 486795,5 =  387640,273  $$
+
+
+<br>
+<br>
+<br>
 
 
 
-
-
-```{r}
-# write_excel_csv2(receptaculo, "ingresos.csv")
-```
-
-
-
-
-Apendice: trabajo sobre la base de datos Postgres
+Apéndice: trabajo sobre la base de datos Postgres
 
 ```{r echo = FALSE}
 # db <- 'trabajo-con-casen'  #provide the name of your db
