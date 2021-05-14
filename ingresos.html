@@ -182,7 +182,7 @@ pre code {
 DataIntelligence<br><h4 class="date">Viernes 07-05-2021</h4>
 <div class="abstract">
 <p class="abstract">Abstract</p>
-<p>En nuestro artículo <a href="https://rpubs.com/dataintelligence/la_construccion_de_los_ingresos_2" class="uri">https://rpubs.com/dataintelligence/la_construccion_de_los_ingresos_2</a>, defendimos el análisis de 4 ingresos. En éste trabajo generamos una tabla consolidada cuya variable de estudio es el ingreso total de las personas. Se corrige un error producto de una mala categorización y se analiza el acto de calcular promedios de promedios.</p>
+<p>En nuestro artículo <a href="https://rpubs.com/dataintelligence/la_construccion_de_los_ingresos_2" class="uri">https://rpubs.com/dataintelligence/la_construccion_de_los_ingresos_2</a>, defendimos el análisis de 4 ingresos. En éste trabajo generamos una tabla consolidada cuya variable de estudio es el ingreso total de las personas. Se corrige un error producto de una mala categorización y se revisamos el acto de calcular promedios de promedios.</p>
 </div>
 
 </div>
@@ -191,21 +191,21 @@ DataIntelligence<br><h4 class="date">Viernes 07-05-2021</h4>
 <div id="invtest1" class="section level2">
 <h2>Índice</h2>
 </div>
-<div id="promedios-de-promedios304" class="section level2">
-<h2>Promedios de promedios(#304)</h2>
-<p><strong>Éste programa corre con la version R-3.6.3</strong></p>
-<div id="introducción" class="section level3">
-<h3><a href="#test1">1. Introducción</a></h3>
-<p><a href="#invtest1">(volver al índice)</a></p>
+<div id="introducción" class="section level2">
+<h2><a href="#a301">1. Introducción</a></h2>
 </div>
-<div id="introducción-1" class="section level3">
-<h3>1. Introducción</h3>
+<div id="promedios-de-promedios" class="section level2">
+<h2><a href="#a302">1. Promedios de promedios</a></h2>
+<p><strong>Éste programa corre con la version R-3.6.3</strong></p>
+</div>
+<div id="a301" class="section level2">
+<h2>1. Introducción</h2>
+<p><a href="#invtest1">(volver al índice)</a></p>
 <!-- falta hacer tabas de migra con ingresos(27-01-21) -->
 <!-- generar tablas de variable que falta -->
 <!-- graficas con vivienda -->
 <hr style="height:1px;border-width:1;color:Gray;background-color:Gray">
 <p><br></p>
-</div>
 <div id="section" class="section level3">
 <h3>2006</h3>
 <p>1 Leemos nuestra base de datos original</p>
@@ -219,8 +219,8 @@ categorias &lt;- read_xlsx(&quot;categorias_etnia.xlsx&quot;)</code></pre>
 <pre class="r"><code>kbl(alfabetismo) %&gt;%
 kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;)) %&gt;%
 kable_paper() %&gt;%
-scroll_box(width = &quot;150%&quot;, height = &quot;500px&quot;)</code></pre>
-<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:500px; overflow-x: scroll; width:150%; ">
+scroll_box(width = &quot;80%&quot;, height = &quot;500px&quot;)</code></pre>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:500px; overflow-x: scroll; width:80%; ">
 <table class="table table-striped table-hover lightable-paper" style="margin-left: auto; margin-right: auto; font-family: &quot;Arial Narrow&quot;, arial, helvetica, sans-serif; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -311,8 +311,8 @@ NS/NR
 <pre class="r"><code>kbl(categorias) %&gt;%
 kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;)) %&gt;%
 kable_paper() %&gt;%
-scroll_box(width = &quot;150%&quot;, height = &quot;500px&quot;)</code></pre>
-<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:500px; overflow-x: scroll; width:150%; ">
+scroll_box(width = &quot;80%&quot;, height = &quot;500px&quot;)</code></pre>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:500px; overflow-x: scroll; width:80%; ">
 <table class="table table-striped table-hover lightable-paper" style="margin-left: auto; margin-right: auto; font-family: &quot;Arial Narrow&quot;, arial, helvetica, sans-serif; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -981,8 +981,9 @@ head(ytotcor_ytotaj,10)</code></pre>
 <pre class="r"><code>write_xlsx(ytotcor_ytotaj, &quot;ytotcor_ytotaj.xlsx&quot;)</code></pre>
 </div>
 </div>
-<div id="promedios-de-promedios.-304" class="section level2">
-<h2>Promedios de promedios. {#304}</h2>
+<div id="a302" class="section level2">
+<h2>2. Promedios de promedios</h2>
+<p><a href="#invtest1">(volver al índice)</a></p>
 <p>Tenemos un problema. Al parecer hay que ponderar los promedios por categoría para obtener un promedio general digamos, por ejemplo para todos los hombres mapuches de Algarrobo.</p>
 <pre class="r"><code>data_filtrada &lt;- filter(ytotcor_ytotaj, ytotcor_ytotaj$comuna == &quot;Algarrobo&quot; , ytotcor_ytotaj$sexo == &quot;Hombre&quot;,  ytotcor_ytotaj$Etnia == &quot;Mapuche&quot;  )
 data_filtrada</code></pre>

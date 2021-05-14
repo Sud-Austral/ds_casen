@@ -1,0 +1,1968 @@
+---
+title: Generación de tablas de contingencia con información contenida en las encuestas Casen entre el 2006 y el 2017.
+author:
+- name: VE-CC
+  affiliation: DataIntelligence
+subtitle: Entrega número 7. La calidad del trabajo. 
+
+date: "Jueves 06-05-2021"
+abstract: En este informe revisamos la situación del empleo en Chile entre el 2006 y 2017. Para ello revisaremos 6 preguntas a lo largo de las Casen. Tres indagan sobre la actividad laboral de las     personas, si trabajaron o tuvieron actividad durante la semana pasada y si no la tuvieron, si tienen empleo. Para los inactivos (personas que pudiendo trabajar no buscan empleo) se les pregunta si han trabajado alguna vez y a los desocupados se les hacen 2 preguntas relacionadas a sus actitudes frente al empleo:. si han buscado trabajo remunerado últimamente y si están disponibles para hacerlo.
+ 
+
+output: 
+ html_document:
+  toc: true
+  toc_float: true
+---
+
+```{r , message=FALSE, warning=FALSE, include = FALSE, echo = FALSE}
+
+suppressWarnings(library(RODBC))
+
+library(ggplot2)
+library(ggpubr)
+library(markdown)
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(plotly)
+library(xts)
+library(dygraphs)
+library(kableExtra)
+library(knitr)
+library("readxl")
+library(rsconnect)
+library(dplyr)
+library(summarytools)
+library(epiDisplay)
+#library(leaflet)
+library(haven)
+library(epiDisplay)
+library("readxl")
+library(expss)
+library(hrbrthemes)
+library(viridis)
+library(viridisLite)
+library(DescTools)
+library(roperators)
+library(shinycssloaders)
+library(writexl)
+library(labelled)
+library(tidyverse)
+library(haven)
+library(readr)
+library(sjmisc)
+library(WriteXLS)
+
+library(ineq)
+library(readstata13)
+library(reldist)
+
+library(RPostgreSQL)
+library(devtools)
+library(remotes)
+library(DBI)
+
+```
+
+# 1. ¿Cuántas personas hay?
+
+ Es la pregunta básica que respondemos en esta serie de entregas. Queremos determinar cuántas personas hay en el cruce de tres variables esenciales: sexo, alfabetismo y etnia, para todas las comunas y para los 6 años de las Casen en referencia a una pregunta de investigación especifica. Veamos el siguiente ejemplo.
+
+  La tabla que sigue muestra el resultado de filtro sobre la Casen del 2006 en las respuestas categoricas "Hombre", "No", "Mapuche", para Temuco.
+
+| Registro  | Sexo   | Comuna | Alfabetismo | Etnia   | Año  |
+|-----------|--------|--------|-------------|---------|------|
+| Persona 1 | Hombre | Temuco | No          | Mapuche | 2006 |
+| Persona 2 | Hombre | Temuco | No          | Mapuche | 2006 |
+| Persona 3 | Hombre | Temuco | No          | Mapuche | 2006 |
+
+Vemos que el resultado son 3 registros, tres personas.
+
+Estamos trabajando a nivel de muestras. La Casen nos entrega una herramienta para poder expandir el resultado a nivel poblacional: Es el factor de expansión.
+
+El factor de expansión, 
+
+El **fe** es un valor asociado a cada registro, en una columna llamémosla "expc", representativo de la población a la que pertenece la muestra. La respuesta asociada a un registro puede equivaler a la respuesta de 65 personas y la de otro, por ejemplo a 81. 
+Con el factor de expansión se responde a la proporción: si 35 personas pertenecen a nuestra categorización en la muestra, a cuántas personas equivaldrá en la población total.
+Si en nuestro ejemplo anterior la persona 1 hubiese tenido un factor de expansión igual a 3, la persona 2 uno de 7 y la persona 3 uno de 5, el resultado esperado por nosotros debiese ser igual a 15. Y lo es. A continuación lo demostraremos.
+
+Primero aplicaremos nuestro código y verificaremos que las frecuencias obtenidas para los primeros dos registros correspondan al valor calculado de forma independiente con la metodología expuesta previamente, la de la simple suma de los factores de expansión: 
+
+## Nuestro código
+
+Tabla de contingencia para la pregunta ¿La semana pasada trabajo al menos una hora? para el año 2006 en la comuna de Temuco
+
+```{r}
+dataset_2006 <- readRDS(file = "dataset_2006_b.rds")
+dataset_2006 <- dataset_2006[,c("COMUNA","O1","O2","O3","O8","O4","O5","T4","cat_alfa","SEXO","EXPC")]
+eliminated <- dataset_2006
+# a <- eliminated$ytotaj
+b <- eliminated$COMUNA
+c <- eliminated$O1
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$T4 #etnia
+f <- eliminated$SEXO
+anio <- 2006
+cross_tab =  xtabs(eliminated$EXPC ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$EXPC ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$Año <- anio
+
+names(d)[1] <- "Comuna"
+names(d)[2] <- "v1"
+names(d)[3] <- "Alfabetismo"
+names(d)[4] <- "Etnia"
+names(d)[5] <- "sexo"
+codigos_comunales <- readRDS(file = "codigos_comunales_2006.rds")
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+df_tab <- df[1:30,]
+kbl(df_tab) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "500px")
+```
+El primer registro nos entrega una frecuencia de 35 y el segundo una de 626. Verificaremos que las cantidades de personas en éstas categorías sean las poblacionales.
+
+### Calculo independiente
+
+1. Realizaremos la búsqueda en la base de datos original, filtrando por Aísen, ¿La semana pasada trabajo al menos una hora? igual Sí, alfabeto, Kawaskar y Mujer para el 2006.
+
+```{r}
+filtro <- filter(dataset_2006, dataset_2006$COMUNA =="Aisén")
+filtro <- filter(filtro, filtro$O1 =="Sí")
+filtro <- filter(filtro, filtro$cat_alfa =="Sí")
+filtro <- filter(filtro, filtro$T4 =="Kawaskar")
+filtro <- filter(filtro, filtro$SEXO =="Mujer")
+filtro <- filtro[,c(1,2,8,9,10,11)]
+kbl(filtro) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "100px")
+```
+Tenemos un solo registro y su EXPC es igual a 35, el mismo valor que obtuvimos en nuestra tabla de contingencia.
+
+2. Realizaremos la búsqueda en la base de datos original, filtrando por Aisén, ¿La semana pasada trabajo al menos una hora? igual Sí, alfabeto, Mapuche y Hombre para el 2006.
+
+```{r}
+filtro <- filter(dataset_2006, dataset_2006$COMUNA =="Aisén")
+filtro <- filter(filtro, filtro$O1 =="Sí")
+filtro <- filter(filtro, filtro$cat_alfa =="Sí")
+filtro <- filter(filtro, filtro$T4 =="Mapuche")
+filtro <- filter(filtro, filtro$SEXO =="Hombre")
+filtro <- filtro[,c(1,2,8,9,10,11)]
+kbl(filtro) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "500px")
+```
+
+Si sumamos los factores de expansión de todos los registros vamos a obtener el valor de la frecuencia de nuestro segundo registro de la tabla de contingencias.
+
+
+```{r}
+fac_ex <- filtro$EXPC
+fac_ex <- as.data.frame(fac_ex)
+total_factor_ex <- colSums(fac_ex)
+total_factor_ex
+```
+
+
+```{r}
+eliminated <- dataset_2006
+   eliminated <- eliminated[!is.na(eliminated$O1),]
+# a <- eliminated$ytotaj
+b <- eliminated$COMUNA
+# c <- eliminated$O1
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$T4 #etnia
+f <- eliminated$SEXO
+anio <- 2006
+cross_tab =  xtabs(eliminated$EXPC ~  +  unlist(b)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$EXPC ~  +  unlist(b) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$Año <- anio
+
+names(d)[1] <- "Comuna"
+names(d)[2] <- "Alfabetismo"
+names(d)[3] <- "Etnia"
+names(d)[4] <- "sexo"
+codigos_comunales <- readRDS(file = "codigos_comunales_2006.rds")
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+df <- filter(df,df$Comuna=="Aisén")
+# df <- na.omit(df)
+
+df_tab <- df[1:10,]
+kbl(df_tab) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "500px")
+```
+<br>
+
+<span style="color:red"> La suma de la frecuencias de la tabla precedente nos entrega la población total de Aisén. Son frecuencias totales para comuna y año, por lo que las comparaciones deberían hacerse sobre la estimación población comunal.</span>
+
+# 2. Preguntas
+
+ 1. La semana pasada trabajo almenos una hora?,
+ 2. Si bien no trabajo la semana pasada, realizo algun actividad?, 
+ 3. Si bien no trabajo la semana pasada, enia algun empleo?.
+ 4. Otra pregunta relevante es, Ah trabajado alguna vez? esta le responden los desocupados.
+ 
+ La siguiente pregunta la responden los inactivos
+ 
+ 5. Busco trabajo remunerado en las ultimas 4 semanas?
+ 6. Esta disponeble para empezar a trabajar?
+ 
+## Tabla de variables
+
+| Año  | Comuna | v1 | v2 | v3 | v4 | v5 | v6 | Etnia | Alfabetismo | Sexo | Expansión  |
+|------|--------|----|----|----|----|----|----|-------|-------------|------|------------|
+| 2006 | COMUNA | O1 | O2 | O3 | O8 | O4 | O5 | T4    | cat_alfa          | SEXO | EXPC       |
+| 2009 | COMUNA | O1 | O2 | O3 | O8 | O4 | O5 | T5    | cat_alfa          | SEXO | EXPC       |
+| 2011 | comuna | o1 | o2 | o3 | o4 | o6 | o5 | r6    | cat_alfa          | sexo | expc_full  |
+| 2013 | comuna | o1 | o2 | o3 | o4 | o6 | o5 | r6    | cat_alfa          | sexo | expc       |
+| 2015 | comuna | o1 | o2 | o3 | o4 | o6 | o5 | r3    | cat_alfa          | sexo | expc_todas |
+| 2017 | comuna | o1 | o2 | o3 | o4 | o6 | o5 | r3    | cat_alfa          | sexo | expc       |
+
+
+# Lectura de tablas Casen
+
+```{r}
+dataset_2006 <- readRDS(file = "dataset_2006_b.rds")
+# dataset_2006 <- dataset_2006[,c("COMUNA","O1","O2","O3","O8","O4","O5","T4","cat_alfa","SEXO","EXPC")]
+
+dataset_2009 <- readRDS(file = "dataset_2009_b.rds")
+# dataset_2009 <- dataset_2009[,c("COMUNA","O1","O2","O3","O8","O4","O5","T5","cat_alfa","SEXO","EXPC")]
+
+dataset_2011 <- readRDS(file = "dataset_2011_b.rds")
+# dataset_2011 <- dataset_2011[,c("comuna","o1","o2","o3","o4","o6","o5","r6","cat_alfa","sexo","expc_full")]
+
+dataset_2013 <- readRDS(file = "dataset_2013_b.rds")
+# dataset_2013 <- dataset_2013[,c("comuna","o1","o2","o3","o4","o6","o5","r6","cat_alfa","sexo","expc")]
+
+dataset_2015 <- readRDS(file = "dataset_2015_b.rds")
+# dataset_2015 <- dataset_2015[,c("comuna","o1","o2","o3","o4","o6","o5","r3","cat_alfa","sexo","expc_todas")]
+
+dataset_2017 <- readRDS(file = "dataset_2017_b.rds")
+# dataset_2017 <- dataset_2017[,c("comuna","o1","o2","o3","o4","o6","o5","r3","e1","sexo","expc")]
+
+```
+
+
+### Diccionario alfabetismo
+
+```{r}
+# alfabetismo <- read_xlsx("diccionario/alfabetismo_unicos.xlsx")
+# names(alfabetismo)[1] <- "e1"
+# alfabetismo
+# kbl(alfabetismo) %>%
+#   kable_styling(bootstrap_options = c("striped", "hover")) %>%
+#   kable_paper() %>%
+#   scroll_box(width = "100%", height = "300px")
+```
+
+### Diccionario etnia
+
+```{r}
+# categorias <- read_xlsx("diccionario/categorias_etnia.xlsx")
+# names(categorias)[1] <- "r3"
+# categorias
+# kbl(categorias) %>%
+#   kable_styling(bootstrap_options = c("striped", "hover")) %>%
+#   kable_paper() %>%
+#   scroll_box(width = "100%", height = "300px")
+```
+
+```{r}
+# categorias <- read_xlsx("diccionario/diccionario_trabajado_alguna_vez.xlsx")
+# names(categorias)[1] <- "o4"
+# categorias
+# kbl(categorias) %>%
+#   kable_styling(bootstrap_options = c("striped", "hover")) %>%
+#   kable_paper() %>%
+#   scroll_box(width = "100%", height = "300px")
+```
+
+
+
+```{r}
+# nuevas_cat = merge( x = dataset_2006, y = alfabetismo, by = "e1", all.x = TRUE)
+
+
+# categoriasbuenas = merge( x = dataset_2017, y = categorias, by = "o4", all.x = TRUE)
+# 
+# 
+# saveRDS(categoriasbuenas,"dataset_2017_b.rds")
+                             
+```
+
+# 1. Primer pregunta
+ La semana pasada trabajo al menos una hora?
+
+```{r}
+funcion1 <- function(n){
+
+
+  comunales<-switch(n, "codigos_comunales_2006.rds","codigos_comunales_2009.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds")
+ xx<-switch(n,"2006","2009","2011","2013","2015","2017")
+ # dataset_06 <<- NA
+
+
+ if(xx==2006) {
+  eliminated <- dataset_2006
+# a <- eliminated$ytotaj
+b <- eliminated$COMUNA
+c <- eliminated$O1
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$SEXO
+anio <- 2006
+cross_tab =  xtabs(eliminated$EXPC ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$EXPC ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+ }
+ 
+  if(xx==2009) {
+  eliminated <- dataset_2009
+# a <- eliminated$ytotaj
+b <- eliminated$COMUNA
+c <- eliminated$O1
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$SEXO
+anio <- 2009
+cross_tab =  xtabs(eliminated$EXPC ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$EXPC ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+ }
+
+if(xx==2011) {
+  eliminated <- dataset_2011
+# a <- eliminated$ytotaj
+b <- eliminated$comuna
+c <- eliminated$o1
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$sexo
+anio <- 2011
+cross_tab =  xtabs(eliminated$expc_full ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc_full ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2013) {
+  eliminated <- dataset_2013
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$o1
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$sexo
+anio <- 2013
+cross_tab =  xtabs(eliminated$expc ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2015) {
+  eliminated <- dataset_2015
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$o1
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$sexo
+anio <- 2015
+cross_tab =  xtabs(eliminated$expc_todas ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc_todas ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2017) {
+  eliminated <- dataset_2017
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$o1
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$sexo
+anio <- 2017
+cross_tab =  xtabs(eliminated$expc ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+
+
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$Año <- anio
+
+names(d)[1] <- "Comuna"
+names(d)[2] <- "trabajo_una_hora"
+names(d)[3] <- "Alfabetismo"
+names(d)[4] <- "Etnia"
+names(d)[5] <- "sexo"
+codigos_comunales <- readRDS(file = comunales)
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+
+ingreso_rds <- paste("tablas_peque_revision/trabajo_una_hora_",anio,".rds", sep="")
+saveRDS(df,ingreso_rds)
+
+# print(head(df,10))
+
+}
+
+for (n in 1:6){
+  funcion1(n)
+}
+```
+
+## 1.1 Tratamientos
+
+
+### 1.1.1 Union de tablas
+
+```{r}
+receptaculo <- data.frame()
+for (n in 1 : 6){
+    numero <- switch(n, "2006","2009","2011","2013","2015","2017")
+    direc_tablas <- paste("tablas_peque_revision/trabajo_una_hora_",numero,".rds", sep="")
+    tablas <- readRDS(direc_tablas)
+
+    receptaculo <<- rbind(receptaculo, tablas)
+
+}
+```
+
+### 2.2.1 Diccionario alfabetismo
+```{r}
+cod_cat <- unique(receptaculo$trabajo_una_hora)
+cod_cat<- as.data.frame(cod_cat)
+
+rango <- seq(1:nrow(cod_cat))
+cadena<- paste("000",seq(1:nrow(cod_cat)), sep = "")
+cadena <- substr(cadena,(nchar(cadena)[rango])-(4-2),5)
+
+cod_cat$codigo_trabajo_una_hora <- cadena
+names(cod_cat)[1] <- "trabajo_una_hora"
+
+cat_disc = merge( x = receptaculo, y = cod_cat, by = "trabajo_una_hora", all.x = TRUE)
+cat_disc <- cat_disc[,c(1,9)]
+cat_disc <- unique(cat_disc)
+```
+
+```{r}
+alfabetismo <- read_xlsx("diccionario/codigos_alfa.xlsx")
+
+kbl(alfabetismo) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "300px")
+```
+
+### 2.2.2 Diccionario etnia
+
+```{r}
+categorias <- read_xlsx("diccionario/codigos_etnia.xlsx")
+
+kbl(categorias) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "300px")
+```
+
+```{r}
+nuevas_cat = merge( x = receptaculo, y = alfabetismo, by = "Alfabetismo", all.x = TRUE)
+
+categoriasbuenas = merge( x = nuevas_cat, y = categorias, by = "Etnia", all.x = TRUE)
+
+categoriasbuenas = merge( x = categoriasbuenas, y = cat_disc, by = "trabajo_una_hora", all.x = TRUE)
+```
+
+```{r}
+receptaculo<-categoriasbuenas[,c(4,1,11,2,10,3,9,5,6,7,8)]
+
+```
+
+
+```{r}
+names(receptaculo)[1] <- "comuna"
+names(receptaculo)[4] <- "etnia"
+names(receptaculo)[6] <- "alfabetismo"
+names(receptaculo)[9] <- "frec"
+names(receptaculo)[10] <- "anio"
+names(receptaculo)[11] <- "codigo_comuna"
+
+receptaculo_tab <- receptaculo[1:30,]
+kbl(receptaculo_tab) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "500px")
+```
+
+
+
+### 1.3.1 Guardado de tablas
+
+También se guardará la tabla de forma local en formato **xlsx**
+
+```{r}
+# db <- 'trabajo-con-casen'  #provide the name of your db
+# host_db <- 'post-to-r.postgres.database.azure.com' #i.e. # i.e. 'ec2-54-83-201-96.compute-1.amazonaws.com'
+# db_port <- '5432'  # or any other port specified by the DBA
+# db_user <- 'yomismo@post-to-r'
+# db_password <- '123456Fg*'
+# con <- dbConnect(RPostgres::Postgres(), dbname = db, host=host_db, port=db_port, user=db_user, password=db_password)
+# 
+# library('RPostgreSQL')
+# tn <- 'links'
+# dbWriteTable(con,'entrega_4_nivel_educ_padre',receptaculo, row.names=FALSE)
+
+write_xlsx(receptaculo,"tablas_grandes/entrega_7_trabajo_una_hora(revision).xlsx")
+# receptaculo <- read_xlsx("tablas_grandes/4_nivel_educ_padre.xlsx")
+# head(receptaculo,3)
+```
+```{r}
+# tabla_grande <- dbGetQuery(con, 'SELECT * FROM tabla_discapacidad')
+# tabla_grande
+```
+
+
+## 1.4 Gráficos
+
+### 1.4.1 Gráfico I
+
+Nuestra tabla de frecuencias observamos que casi la misma cantidad de personas esta activa laboralmente que las que no en todas las comunas
+
+```{r}
+p1 <- plot_ly(receptaculo , x = ~trabajo_una_hora , color = ~comuna) %>% add_histogram() %>%
+    layout(title = "La semana pasada trabajo al menos una hora? ",
+         xaxis = list(title = "Años"),showlegend = TRUE, autosize = F, legend = list(font = list(size = 8)))
+p1
+```
+
+
+### 1.4.2 Gráfico II
+
+En nuestra tabla de contingencia obtenemos que la mayoria de las personas que dicen no pertenecer a un pueblo indigena no estuvieron activas la semana pasada a la encuesta.
+
+```{r}
+p2 <- plot_ly(receptaculo , x = ~etnia , color = ~trabajo_una_hora)  %>% add_histogram()%>%
+    layout(title = "La semana pasada trabajo al menos una hora? grupo etnico",
+         xaxis = list(title = "Etnia"),showlegend = TRUE, autosize = F, legend = list(font = list(size = 8)))
+p2
+```
+
+
+<br>
+<hr style="height:1px;border-width:1;color:Gray;background-color:Gray">
+<br>
+
+# 2. Segunda pregunta
+
+2. Si bien no trabajo la semana pasada, realizo algun actividad?
+
+```{r}
+funcion1 <- function(n){
+
+
+  comunales<-switch(n, "codigos_comunales_2006.rds","codigos_comunales_2009.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds")
+ xx<-switch(n,"2006","2009","2011","2013","2015","2017")
+ # dataset_06 <<- NA
+
+
+ if(xx==2006) {
+  eliminated <- dataset_2006
+# a <- eliminated$ytotaj
+b <- eliminated$COMUNA
+c <- eliminated$O2
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$SEXO
+anio <- 2006
+cross_tab =  xtabs(eliminated$EXPC ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$EXPC ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+ }
+ 
+  if(xx==2009) {
+  eliminated <- dataset_2009
+# a <- eliminated$ytotaj
+b <- eliminated$COMUNA
+c <- eliminated$O2
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$SEXO
+anio <- 2009
+cross_tab =  xtabs(eliminated$EXPC ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$EXPC ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+ }
+
+if(xx==2011) {
+  eliminated <- dataset_2011
+# a <- eliminated$ytotaj
+b <- eliminated$comuna
+c <- eliminated$o2
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$sexo
+anio <- 2011
+cross_tab =  xtabs(eliminated$expc_full ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc_full ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2013) {
+  eliminated <- dataset_2013
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$o2
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$sexo
+anio <- 2013
+cross_tab =  xtabs(eliminated$expc ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2015) {
+  eliminated <- dataset_2015
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$o2
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$sexo
+anio <- 2015
+cross_tab =  xtabs(eliminated$expc_todas ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc_todas ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2017) {
+  eliminated <- dataset_2017
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$o2
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$sexo
+anio <- 2017
+cross_tab =  xtabs(eliminated$expc ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+
+
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$Año <- anio
+
+names(d)[1] <- "Comuna"
+names(d)[2] <- "realizo_actividad"
+names(d)[3] <- "Alfabetismo"
+names(d)[4] <- "Etnia"
+names(d)[5] <- "sexo"
+codigos_comunales <- readRDS(file = comunales)
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+
+ingreso_rds <- paste("tablas_peque_revision/realizo_actividad_",anio,".rds", sep="")
+saveRDS(df,ingreso_rds)
+
+# print(head(df,10))
+
+}
+
+for (n in 1:6){
+  funcion1(n)
+}
+```
+
+## 2.1 Tratamientos
+
+
+### 2.1.1 Union de tablas
+
+```{r}
+receptaculo <- data.frame()
+for (n in 1 : 6){
+    numero <- switch(n, "2006","2009","2011","2013","2015","2017")
+    direc_tablas <- paste("tablas_peque_revision/realizo_actividad_",numero,".rds", sep="")
+    tablas <- readRDS(direc_tablas)
+
+    receptaculo <<- rbind(receptaculo, tablas)
+
+}
+
+```
+
+### 2.1.2 Diccionario
+
+Para la creación del diccionario se necesita el dataset “receptáculo” al que se le hará un **unique()** en la columna de la variable en cuestion, luego se guarda como **xlsx** para hacer el tratamiento
+
+```{r}
+# receptaculo_unicos <- unique(receptaculo$realizo_actividad)
+# receptaculo_unicos <- as.data.frame(receptaculo_unicos)
+# receptaculo_unicos
+# #write_xlsx(receptaculo_unicos,"diccionario/diccionario_realizo_actividad.xlsx")
+```
+
+```{r}
+cod_cat <- unique(receptaculo$realizo_actividad)
+cod_cat<- as.data.frame(cod_cat)
+
+rango <- seq(1:nrow(cod_cat))
+cadena<- paste("000",seq(1:nrow(cod_cat)), sep = "")
+cadena <- substr(cadena,(nchar(cadena)[rango])-(4-2),5)
+
+cod_cat$codigo_realizo_actividad <- cadena
+names(cod_cat)[1] <- "realizo_actividad"
+
+cat_disc = merge( x = receptaculo, y = cod_cat, by = "realizo_actividad", all.x = TRUE)
+cat_disc <- cat_disc[,c(1,9)]
+cat_disc <- unique(cat_disc)
+```
+
+```{r}
+alfabetismo <- read_xlsx("diccionario/codigos_alfa.xlsx")
+
+kbl(alfabetismo) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "300px")
+```
+
+### 2.2.2 Diccionario etnia
+
+```{r}
+categorias <- read_xlsx("diccionario/codigos_etnia.xlsx")
+
+kbl(categorias) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "300px")
+```
+
+```{r}
+nuevas_cat = merge( x = receptaculo, y = alfabetismo, by = "Alfabetismo", all.x = TRUE)
+
+categoriasbuenas = merge( x = nuevas_cat, y = categorias, by = "Etnia", all.x = TRUE)
+
+categoriasbuenas = merge( x = categoriasbuenas, y = cat_disc, by = "realizo_actividad", all.x = TRUE)
+```
+
+```{r}
+receptaculo<-categoriasbuenas[,c(4,1,11,2,10,3,9,5,6,7,8)]
+
+```
+
+```{r}
+
+names(receptaculo)[1] <- "comuna"
+names(receptaculo)[2] <- "realizo_actividad"
+names(receptaculo)[4] <- "etnia"
+names(receptaculo)[6] <- "alfabetismo"
+names(receptaculo)[8] <- "sexo"
+names(receptaculo)[9] <- "frec"
+names(receptaculo)[10] <- "anio"
+names(receptaculo)[11] <- "codigo_comuna"
+
+receptaculo_tab <- receptaculo[1:30,]
+kbl(receptaculo_tab) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "500px")
+```
+
+### 2.3.1 Guardado de tablas
+
+También se guardará la tabla de forma local en formato **xlsx**
+
+```{r}
+# db <- 'trabajo-con-casen'  #provide the name of your db
+# host_db <- 'post-to-r.postgres.database.azure.com' #i.e. # i.e. 'ec2-54-83-201-96.compute-1.amazonaws.com'
+# db_port <- '5432'  # or any other port specified by the DBA
+# db_user <- 'yomismo@post-to-r'
+# db_password <- '123456Fg*'
+# con <- dbConnect(RPostgres::Postgres(), dbname = db, host=host_db, port=db_port, user=db_user, password=db_password)
+# 
+# library('RPostgreSQL')
+# tn <- 'links'
+# dbWriteTable(con,'entrega_4_nivel_educ_padre',receptaculo, row.names=FALSE)
+
+write_xlsx(receptaculo,"tablas_grandes/entrega_7_realizo_actividad(revision).xlsx")
+# receptaculo <- read_xlsx("tablas_grandes/4_nivel_educ_padre.xlsx")
+# head(receptaculo,3)
+```
+```{r}
+# tabla_grande <- dbGetQuery(con, 'SELECT * FROM tabla_discapacidad')
+# tabla_grande
+```
+
+
+## 2.4 Gráficos
+
+### 2.4.1 Gráfico I
+
+Las personas que manifiestan no haber trabajado la semana pasada en su gran mayoria declaran tampoco haber realizado actividad remunerada alguna
+
+```{r}
+p1 <- plot_ly(receptaculo , x = ~anio , color = ~realizo_actividad) %>% add_histogram() %>%
+    layout(title = "Si bien no trabajo la semana pasada, realizo algun actividad? ",
+         xaxis = list(title = "Años"),showlegend = TRUE, autosize = F, legend = list(font = list(size = 8)))
+p1
+```
+
+### 2.4.2 Gráfico II
+
+La mayor diferencia entre los desocupados y los que declaran no haber tenido actividad alguna en relacion con los que sí la tuvieron se da en la etnia mapuche
+
+```{r}
+p2 <- plot_ly(receptaculo , x = ~etnia , color = ~realizo_actividad)  %>% add_histogram()%>%
+    layout(title = "Si bien no trabajó la semana pasada, realizó alguna actividad? grupo étnico",
+         xaxis = list(title = "Etnia"),showlegend = TRUE, autosize = F, legend = list(font = list(size = 8)))
+p2
+```
+
+
+
+
+<br>
+<hr style="height:1px;border-width:1;color:Gray;background-color:Gray">
+<br>
+
+# 3. Tercer pregunta
+
+3. Si bien no trabajo la semana pasada, tenia algun empleo?.
+
+```{r}
+funcion1 <- function(n){
+
+
+  comunales<-switch(n, "codigos_comunales_2006.rds","codigos_comunales_2009.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds")
+ xx<-switch(n,"2006","2009","2011","2013","2015","2017")
+ # dataset_06 <<- NA
+
+
+ if(xx==2006) {
+  eliminated <- dataset_2006
+# a <- eliminated$ytotaj
+b <- eliminated$COMUNA
+c <- eliminated$O3
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$SEXO
+anio <- 2006
+cross_tab =  xtabs(eliminated$EXPC ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$EXPC ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+ }
+ 
+  if(xx==2009) {
+  eliminated <- dataset_2009
+# a <- eliminated$ytotaj
+b <- eliminated$COMUNA
+c <- eliminated$O3
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$SEXO
+anio <- 2009
+cross_tab =  xtabs(eliminated$EXPC ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$EXPC ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+ }
+
+if(xx==2011) {
+  eliminated <- dataset_2011
+# a <- eliminated$ytotaj
+b <- eliminated$comuna
+c <- eliminated$o3
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$sexo
+anio <- 2011
+cross_tab =  xtabs(eliminated$expc_full ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc_full ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2013) {
+  eliminated <- dataset_2013
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$o3
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$sexo
+anio <- 2013
+cross_tab =  xtabs(eliminated$expc ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2015) {
+  eliminated <- dataset_2015
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$o3
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$sexo
+anio <- 2015
+cross_tab =  xtabs(eliminated$expc_todas ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc_todas ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2017) {
+  eliminated <- dataset_2017
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$o3
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$sexo
+anio <- 2017
+cross_tab =  xtabs(eliminated$expc ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+
+
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$Año <- anio
+
+names(d)[1] <- "Comuna"
+names(d)[2] <- "tenia_algun_empleo"
+names(d)[3] <- "Alfabetismo"
+names(d)[4] <- "Etnia"
+names(d)[5] <- "sexo"
+codigos_comunales <- readRDS(file = comunales)
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+
+ingreso_rds <- paste("tablas_peque_revision/tenia_algun_empleo_",anio,".rds", sep="")
+saveRDS(df,ingreso_rds)
+
+# print(head(df,10))
+
+}
+
+for (n in 1:6){
+  funcion1(n)
+}
+```
+
+## 3.1 Tratamientos
+
+
+### 3.1.1 Union de tablas
+
+```{r}
+receptaculo <- data.frame()
+for (n in 1 : 6){
+    numero <- switch(n, "2006","2009","2011","2013","2015","2017")
+    direc_tablas <- paste("tablas_peque_revision/tenia_algun_empleo_",numero,".rds", sep="")
+    tablas <- readRDS(direc_tablas)
+
+    receptaculo <<- rbind(receptaculo, tablas)
+
+}
+
+```
+
+### 3.1.2 Diccionario
+
+Para la creación del diccionario se necesita el dataset “receptáculo” al que se le hará un **unique()** en la columna de la variable en cuestion, luego se guarda como **xlsx** para hacer el tratamiento
+
+```{r}
+# receptaculo_unicos <- unique(receptaculo$tenia_algun_empleo)
+# receptaculo_unicos <- as.data.frame(receptaculo_unicos)
+# receptaculo_unicos
+# #write_xlsx(receptaculo_unicos,"diccionario/diccionario_realizo_actividad.xlsx")
+```
+
+```{r}
+cod_cat <- unique(receptaculo$tenia_algun_empleo)
+cod_cat<- as.data.frame(cod_cat)
+
+rango <- seq(1:nrow(cod_cat))
+cadena<- paste("000",seq(1:nrow(cod_cat)), sep = "")
+cadena <- substr(cadena,(nchar(cadena)[rango])-(4-2),5)
+
+cod_cat$codigo_tenia_algun_empleo <- cadena
+names(cod_cat)[1] <- "tenia_algun_empleo"
+
+cat_disc = merge( x = receptaculo, y = cod_cat, by = "tenia_algun_empleo", all.x = TRUE)
+cat_disc <- cat_disc[,c(1,9)]
+cat_disc <- unique(cat_disc)
+```
+
+```{r}
+alfabetismo <- read_xlsx("diccionario/codigos_alfa.xlsx")
+
+kbl(alfabetismo) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "300px")
+```
+
+### 2.2.2 Diccionario etnia
+
+```{r}
+categorias <- read_xlsx("diccionario/codigos_etnia.xlsx")
+
+kbl(categorias) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "300px")
+```
+
+```{r}
+nuevas_cat = merge( x = receptaculo, y = alfabetismo, by = "Alfabetismo", all.x = TRUE)
+
+categoriasbuenas = merge( x = nuevas_cat, y = categorias, by = "Etnia", all.x = TRUE)
+
+categoriasbuenas = merge( x = categoriasbuenas, y = cat_disc, by = "tenia_algun_empleo", all.x = TRUE)
+```
+
+```{r}
+receptaculo<-categoriasbuenas[,c(4,1,11,2,10,3,9,5,6,7,8)]
+
+```
+
+```{r}
+names(receptaculo)[1] <- "comuna"
+names(receptaculo)[2] <- "tenia_algun_empleo"
+names(receptaculo)[4] <- "etnia"
+names(receptaculo)[6] <- "alfabetismo"
+names(receptaculo)[8] <- "sexo"
+names(receptaculo)[9] <- "frec"
+names(receptaculo)[10] <- "anio"
+names(receptaculo)[11] <- "codigo_comuna"
+
+receptaculo_tab <- receptaculo[1:30,]
+kbl(receptaculo_tab) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "500px")
+```
+
+### 3.3.1 Guardado de tablas
+
+También se guardará la tabla de forma local en formato **xlsx**
+
+```{r}
+# db <- 'trabajo-con-casen'  #provide the name of your db
+# host_db <- 'post-to-r.postgres.database.azure.com' #i.e. # i.e. 'ec2-54-83-201-96.compute-1.amazonaws.com'
+# db_port <- '5432'  # or any other port specified by the DBA
+# db_user <- 'yomismo@post-to-r'
+# db_password <- '123456Fg*'
+# con <- dbConnect(RPostgres::Postgres(), dbname = db, host=host_db, port=db_port, user=db_user, password=db_password)
+# 
+# library('RPostgreSQL')
+# tn <- 'links'
+# dbWriteTable(con,'entrega_4_nivel_educ_padre',receptaculo, row.names=FALSE)
+
+write_xlsx(receptaculo,"tablas_grandes/entrega_7_tenia_algun_empleo(revision).xlsx")
+# receptaculo <- read_xlsx("tablas_grandes/4_nivel_educ_padre.xlsx")
+# head(receptaculo,3)
+```
+```{r}
+# tabla_grande <- dbGetQuery(con, 'SELECT * FROM tabla_discapacidad')
+# tabla_grande
+```
+
+
+## 3.4 Gráficos
+
+### 3.4.1 Gráfico I
+
+La brecha entre los desempleados momentaneos y permanentes a aumentado en el tiempo
+
+```{r}
+p1 <- plot_ly(receptaculo , x = ~anio , color = ~tenia_algun_empleo) %>% add_histogram() %>%
+    layout(title = "Si bien no trabajó la semana pasada, tenia algun empleo? ",
+         xaxis = list(title = "Años"),showlegend = TRUE, autosize = F, legend = list(font = list(size = 8)))
+p1
+```
+
+### 3.4.2 Gráfico II
+
+En la etnia mapuche en general los que no trabajaron la semana pasada, no tienen empleo
+
+```{r}
+p2 <- plot_ly(receptaculo , x = ~etnia , color = ~tenia_algun_empleo)  %>% add_histogram()%>%
+    layout(title = "Si bien no trabajó la semana pasada, tenia algun empleo? grupo étnico",
+         xaxis = list(title = "Etnia"),showlegend = TRUE, autosize = F, legend = list(font = list(size = 8)))
+p2
+```
+
+
+<br>
+<hr style="height:1px;border-width:1;color:Gray;background-color:Gray">
+<br>
+
+# 4. Cuarta pregunta
+
+Ha trabajado alguna vez? esta le responden los desocupados
+
+
+
+```{r}
+funcion1 <- function(n){
+
+
+  comunales<-switch(n, "codigos_comunales_2006.rds","codigos_comunales_2009.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds")
+ xx<-switch(n,"2006","2009","2011","2013","2015","2017")
+ # dataset_06 <<- NA
+
+
+ if(xx==2006) {
+  eliminated <- dataset_2006
+# a <- eliminated$ytotaj
+b <- eliminated$COMUNA
+c <- eliminated$cat_trabajado_alguna_vez
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$SEXO
+anio <- 2006
+cross_tab =  xtabs(eliminated$EXPC ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$EXPC ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+ }
+ 
+  if(xx==2009) {
+  eliminated <- dataset_2009
+# a <- eliminated$ytotaj
+b <- eliminated$COMUNA
+c <- eliminated$cat_trabajado_alguna_vez
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$SEXO
+anio <- 2009
+cross_tab =  xtabs(eliminated$EXPC ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$EXPC ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+ }
+
+if(xx==2011) {
+  eliminated <- dataset_2011
+# a <- eliminated$ytotaj
+b <- eliminated$comuna
+c <- eliminated$cat_trabajado_alguna_vez
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$sexo
+anio <- 2011
+cross_tab =  xtabs(eliminated$expc_full ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc_full ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2013) {
+  eliminated <- dataset_2013
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$cat_trabajado_alguna_vez
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$sexo
+anio <- 2013
+cross_tab =  xtabs(eliminated$expc ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2015) {
+  eliminated <- dataset_2015
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$cat_trabajado_alguna_vez
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$sexo
+anio <- 2015
+cross_tab =  xtabs(eliminated$expc_todas ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc_todas ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2017) {
+  eliminated <- dataset_2017
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$cat_trabajado_alguna_vez
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$sexo
+anio <- 2017
+cross_tab =  xtabs(eliminated$expc ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+
+
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$Año <- anio
+
+names(d)[1] <- "Comuna"
+names(d)[2] <- "trabajado_alguna_vez"
+names(d)[3] <- "Alfabetismo"
+names(d)[4] <- "Etnia"
+names(d)[5] <- "sexo"
+codigos_comunales <- readRDS(file = comunales)
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+
+ingreso_rds <- paste("tablas_peque_revision/trabajado_alguna_vez_",anio,".rds", sep="")
+saveRDS(df,ingreso_rds)
+
+# print(head(df,10))
+
+}
+
+for (n in 1:6){
+  funcion1(n)
+}
+```
+
+## 4.1 Tratamientos
+
+
+### 4.1.1 Union de tablas
+
+```{r}
+
+receptaculo <- data.frame()
+for (n in 1 : 6){
+    numero <- switch(n, "2006","2009","2011","2013","2015","2017")
+    direc_tablas <- paste("tablas_peque_revision/trabajado_alguna_vez_",numero,".rds", sep="")
+    tablas <- readRDS(direc_tablas)
+
+    receptaculo <<- rbind(receptaculo, tablas)
+
+}
+
+```
+
+### 4.1.2 Diccionario
+
+Para la creación del diccionario se necesita el dataset “receptáculo” al que se le hará un **unique()** en la columna de la variable en cuestion, luego se guarda como **xlsx** para hacer el tratamiento
+
+```{r}
+# receptaculo_unicos <- unique(receptaculo$trabajado_alguna_vez)
+# receptaculo_unicos <- as.data.frame(receptaculo_unicos)
+# receptaculo_unicos
+# #write_xlsx(receptaculo_unicos,"diccionario/diccionario_trabajado_alguna_vez.xlsx")
+```
+
+No se necesita diccionario para la variable en cuestion 
+
+## 4.2 Diccionarios
+
+
+
+
+
+## 4.3 Unificación de categorías 
+
+
+```{r}
+cod_cat <- unique(receptaculo$trabajado_alguna_vez)
+cod_cat<- as.data.frame(cod_cat)
+
+rango <- seq(1:nrow(cod_cat))
+cadena<- paste("000",seq(1:nrow(cod_cat)), sep = "")
+cadena <- substr(cadena,(nchar(cadena)[rango])-(4-2),5)
+
+cod_cat$codigo_trabajado_alguna_vez <- cadena
+names(cod_cat)[1] <- "trabajado_alguna_vez"
+
+cat_disc = merge( x = receptaculo, y = cod_cat, by = "trabajado_alguna_vez", all.x = TRUE)
+cat_disc <- cat_disc[,c(1,9)]
+cat_disc <- unique(cat_disc)
+
+```
+
+```{r}
+alfabetismo <- read_xlsx("diccionario/codigos_alfa.xlsx")
+
+kbl(alfabetismo) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "300px")
+```
+
+### 2.2.2 Diccionario etnia
+
+```{r}
+categorias <- read_xlsx("diccionario/codigos_etnia.xlsx")
+
+kbl(categorias) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "300px")
+```
+                                                         
+```{r}
+nuevas_cat = merge( x = receptaculo, y = alfabetismo, by = "Alfabetismo", all.x = TRUE)
+
+categoriasbuenas = merge( x = nuevas_cat, y = categorias, by = "Etnia", all.x = TRUE)
+
+categoriasbuenas = merge( x = categoriasbuenas, y = cat_disc, by = "trabajado_alguna_vez", all.x = TRUE)
+
+```
+
+
+```{r}
+receptaculo<-categoriasbuenas[,c(4,1,11,2,10,3,9,5,6,7,8)]
+
+```
+
+```{r}
+names(receptaculo)[1] <- "comuna"
+names(receptaculo)[2] <- "trabajado_alguna_vez"
+names(receptaculo)[4] <- "etnia"
+names(receptaculo)[6] <- "alfabetismo"
+names(receptaculo)[8] <- "sexo"
+names(receptaculo)[9] <- "frec"
+names(receptaculo)[10] <- "anio"
+names(receptaculo)[11] <- "codigo_comuna"
+
+receptaculo_tab <- receptaculo[1:30,]
+kbl(receptaculo_tab) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "500px")
+```
+
+### 4.3.1 Guardado de tablas
+
+También se guardará la tabla de forma local en formato **xlsx**
+
+```{r}
+# db <- 'trabajo-con-casen'  #provide the name of your db
+# host_db <- 'post-to-r.postgres.database.azure.com' #i.e. # i.e. 'ec2-54-83-201-96.compute-1.amazonaws.com'
+# db_port <- '5432'  # or any other port specified by the DBA
+# db_user <- 'yomismo@post-to-r'
+# db_password <- '123456Fg*'
+# con <- dbConnect(RPostgres::Postgres(), dbname = db, host=host_db, port=db_port, user=db_user, password=db_password)
+# 
+# library('RPostgreSQL')
+# tn <- 'links'
+# dbWriteTable(con,'entrega_4_nivel_educ_padre',receptaculo, row.names=FALSE)
+
+write_xlsx(receptaculo,"tablas_grandes/entrega_7_trabajado_alguna_vez(revision).xlsx")
+# receptaculo <- read_xlsx("tablas_grandes/4_nivel_educ_padre.xlsx")
+# head(receptaculo,3)
+```
+```{r}
+# tabla_grande <- dbGetQuery(con, 'SELECT * FROM tabla_discapacidad')
+# tabla_grande
+```
+
+
+## 4.4 Gráficos
+
+### 4.4.1 Gráfico I
+
+Hay mayor cantidad de mujeres inactivas que hombres y en ambos sexoses mayoria la cantidad que ha trabajado alguna vez
+
+```{r}
+p1 <- plot_ly(receptaculo , x = ~sexo , color = ~trabajado_alguna_vez) %>% add_histogram() %>%
+    layout(title = "Ha trabajado alguna vez? ",
+         xaxis = list(title = "Años"),showlegend = TRUE, autosize = F, legend = list(font = list(size = 8)))
+p1
+```
+
+### 4.4.2 Gráfico II
+
+En Nacimiento la mayoria de los inactivos declara no haber trabajado nunca
+
+```{r}
+p2 <- plot_ly(receptaculo , x = ~trabajado_alguna_vez , color = ~comuna)  %>% add_histogram()%>%
+    layout(title = "Ha trabajado alguna vez?",
+         xaxis = list(title = "Etnia"),showlegend = TRUE, autosize = F, legend = list(font = list(size = 8)))
+p2
+```
+
+
+<br>
+<hr style="height:1px;border-width:1;color:Gray;background-color:Gray">
+<br>
+
+# 5. Quinta pregunta
+
+5. Buscó trabajo remunerado en las últimas 4 semanas?
+
+```{r}
+funcion1 <- function(n){
+
+
+  comunales<-switch(n, "codigos_comunales_2006.rds","codigos_comunales_2009.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds")
+ xx<-switch(n,"2006","2009","2011","2013","2015","2017")
+ # dataset_06 <<- NA
+
+
+ if(xx==2006) {
+  eliminated <- dataset_2006
+# a <- eliminated$ytotaj
+b <- eliminated$COMUNA
+c <- eliminated$O4
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$SEXO
+anio <- 2006
+cross_tab =  xtabs(eliminated$EXPC ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$EXPC ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+ }
+ 
+  if(xx==2009) {
+  eliminated <- dataset_2009
+# a <- eliminated$ytotaj
+b <- eliminated$COMUNA
+c <- eliminated$O4
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$SEXO
+anio <- 2009
+cross_tab =  xtabs(eliminated$EXPC ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$EXPC ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+ }
+
+if(xx==2011) {
+  eliminated <- dataset_2011
+# a <- eliminated$ytotaj
+b <- eliminated$comuna
+c <- eliminated$o6
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$sexo
+anio <- 2011
+cross_tab =  xtabs(eliminated$expc_full ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc_full ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2013) {
+  eliminated <- dataset_2013
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$o6
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$sexo
+anio <- 2013
+cross_tab =  xtabs(eliminated$expc ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2015) {
+  eliminated <- dataset_2015
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$o6
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$sexo
+anio <- 2015
+cross_tab =  xtabs(eliminated$expc_todas ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc_todas ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2017) {
+  eliminated <- dataset_2017
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$o6
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$sexo
+anio <- 2017
+cross_tab =  xtabs(eliminated$expc ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+
+
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$Año <- anio
+
+names(d)[1] <- "Comuna"
+names(d)[2] <- "busco_trabajo"
+names(d)[3] <- "Alfabetismo"
+names(d)[4] <- "Etnia"
+names(d)[5] <- "sexo"
+codigos_comunales <- readRDS(file = comunales)
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+
+ingreso_rds <- paste("tablas_peque_revision/busco_trabajo_",anio,".rds", sep="")
+saveRDS(df,ingreso_rds)
+
+# print(head(df,10))
+
+}
+
+for (n in 1:6){
+  funcion1(n)
+}
+```
+
+## 5.1 Tratamientos
+
+
+### 5.1.1 Union de tablas
+
+```{r}
+receptaculo <- data.frame()
+for (n in 1 : 6){
+    numero <- switch(n, "2006","2009","2011","2013","2015","2017")
+    direc_tablas <- paste("tablas_peque_revision/busco_trabajo_",numero,".rds", sep="")
+    tablas <- readRDS(direc_tablas)
+
+    receptaculo <<- rbind(receptaculo, tablas)
+
+}
+
+```
+
+### 5.1.2 Diccionario
+
+Para la creación del diccionario se necesita el dataset “receptáculo” al que se le hará un **unique()** en la columna de la variable en cuestion, luego se guarda como **xlsx** para hacer el tratamiento
+
+```{r}
+# receptaculo_unicos <- unique(receptaculo$busco_trabajo)
+# receptaculo_unicos <- as.data.frame(receptaculo_unicos)
+# receptaculo_unicos
+# #write_xlsx(receptaculo_unicos,"diccionario/diccionario_trabajado_alguna_vez.xlsx")
+```
+
+```{r}
+cod_cat <- unique(receptaculo$busco_trabajo)
+cod_cat<- as.data.frame(cod_cat)
+
+rango <- seq(1:nrow(cod_cat))
+cadena<- paste("000",seq(1:nrow(cod_cat)), sep = "")
+cadena <- substr(cadena,(nchar(cadena)[rango])-(4-2),5)
+
+cod_cat$codigo_busco_trabajo <- cadena
+names(cod_cat)[1] <- "busco_trabajo"
+
+cat_disc = merge( x = receptaculo, y = cod_cat, by = "busco_trabajo", all.x = TRUE)
+cat_disc <- cat_disc[,c(1,9)]
+cat_disc <- unique(cat_disc)
+```
+
+```{r}
+alfabetismo <- read_xlsx("diccionario/codigos_alfa.xlsx")
+
+kbl(alfabetismo) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "300px")
+```
+
+### 2.2.2 Diccionario etnia
+
+```{r}
+categorias <- read_xlsx("diccionario/codigos_etnia.xlsx")
+
+kbl(categorias) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "300px")
+```
+
+```{r}
+nuevas_cat = merge( x = receptaculo, y = alfabetismo, by = "Alfabetismo", all.x = TRUE)
+
+categoriasbuenas = merge( x = nuevas_cat, y = categorias, by = "Etnia", all.x = TRUE)
+
+categoriasbuenas = merge( x = categoriasbuenas, y = cat_disc, by = "busco_trabajo", all.x = TRUE)
+
+```
+
+```{r}
+receptaculo<-categoriasbuenas[,c(4,1,11,2,10,3,9,5,6,7,8)]
+
+```
+
+## 5.3 Unificación de categorías 
+
+```{r}
+
+names(receptaculo)[1] <- "comuna"
+names(receptaculo)[2] <- "busco_trabajo"
+names(receptaculo)[4] <- "etnia"
+names(receptaculo)[6] <- "alfabetismo"
+names(receptaculo)[8] <- "sexo"
+names(receptaculo)[9] <- "frec"
+names(receptaculo)[10] <- "anio"
+names(receptaculo)[11] <- "codigo_comuna"
+
+receptaculo_tab <- receptaculo[1:30,]
+kbl(receptaculo_tab) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "500px")
+```
+
+### 5.3.1 Guardado de tablas
+
+También se guardará la tabla de forma local en formato **xlsx**
+
+```{r}
+# db <- 'trabajo-con-casen'  #provide the name of your db
+# host_db <- 'post-to-r.postgres.database.azure.com' #i.e. # i.e. 'ec2-54-83-201-96.compute-1.amazonaws.com'
+# db_port <- '5432'  # or any other port specified by the DBA
+# db_user <- 'yomismo@post-to-r'
+# db_password <- '123456Fg*'
+# con <- dbConnect(RPostgres::Postgres(), dbname = db, host=host_db, port=db_port, user=db_user, password=db_password)
+# 
+# library('RPostgreSQL')
+# tn <- 'links'
+# dbWriteTable(con,'entrega_4_nivel_educ_padre',receptaculo, row.names=FALSE)
+
+write_xlsx(receptaculo,"tablas_grandes/entrega_7_busco_trabajo(revision).xlsx")
+# receptaculo <- read_xlsx("tablas_grandes/4_nivel_educ_padre.xlsx")
+# head(receptaculo,3)
+```
+```{r}
+# tabla_grande <- dbGetQuery(con, 'SELECT * FROM tabla_discapacidad')
+# tabla_grande
+```
+
+
+## 5.4 Gráficos
+
+### 5.4.1 Gráfico I
+
+Transversalmente los desocupados en su mayoria no estan en la busqueda activa de empleo
+
+```{r}
+p1 <- plot_ly(receptaculo , x = ~sexo , color = ~busco_trabajo) %>% add_histogram() %>%
+    layout(title = "Buscó trabajo remunerado en las últimas 4 semanas? ",
+         xaxis = list(title = "Años"),showlegend = TRUE, autosize = F, legend = list(font = list(size = 8)))
+p1
+```
+
+### 5.4.2 Gráfico II
+
+Transversalmente por comuna se aprecia que los desocupados que no buscan trabajo superan a los que si
+
+```{r}
+p2 <- plot_ly(receptaculo , x = ~busco_trabajo , color = ~comuna)  %>% add_histogram()%>%
+    layout(title = "Buscó trabajo remunerado en las últimas 4 semanas?",
+         xaxis = list(title = "Etnia"),showlegend = TRUE, autosize = F, legend = list(font = list(size = 8)))
+p2
+```
+
+
+
+
+<br>
+<hr style="height:1px;border-width:1;color:Gray;background-color:Gray">
+<br>
+
+# 6. Sexta pregunta
+
+6. Esta disponeble para empezar a trabajar?
+
+```{r}
+funcion1 <- function(n){
+
+
+  comunales<-switch(n, "codigos_comunales_2006.rds","codigos_comunales_2009.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds","codigos_comunales_2011-2017.rds")
+ xx<-switch(n,"2006","2009","2011","2013","2015","2017")
+ # dataset_06 <<- NA
+
+
+ if(xx==2006) {
+  eliminated <- dataset_2006
+# a <- eliminated$ytotaj
+b <- eliminated$COMUNA
+c <- eliminated$cat_disponeble_para_trabajar
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$SEXO
+anio <- 2006
+cross_tab =  xtabs(eliminated$EXPC ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$EXPC ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+ }
+ 
+  if(xx==2009) {
+  eliminated <- dataset_2009
+# a <- eliminated$ytotaj
+b <- eliminated$COMUNA
+c <- eliminated$cat_disponeble_para_trabajar
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$SEXO
+anio <- 2009
+cross_tab =  xtabs(eliminated$EXPC ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$EXPC ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+ }
+
+if(xx==2011) {
+  eliminated <- dataset_2011
+# a <- eliminated$ytotaj
+b <- eliminated$comuna
+c <- eliminated$cat_disponeble_para_trabajar
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$sexo
+anio <- 2011
+cross_tab =  xtabs(eliminated$expc_full ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc_full ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2013) {
+  eliminated <- dataset_2013
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$cat_disponeble_para_trabajar
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$sexo
+anio <- 2013
+cross_tab =  xtabs(eliminated$expc ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2015) {
+  eliminated <- dataset_2015
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$cat_disponeble_para_trabajar
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$sexo
+anio <- 2015
+cross_tab =  xtabs(eliminated$expc_todas ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc_todas ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+if(xx==2017) {
+  eliminated <- dataset_2017
+# a <- eliminated$ytotcor
+b <- eliminated$comuna
+c <- eliminated$cat_disponeble_para_trabajar
+d <- eliminated$cat_alfa #alfabetismo
+e <- eliminated$categorias_etnicas #etnia
+f <- eliminated$sexo
+anio <- 2017
+cross_tab =  xtabs(eliminated$expc ~  +  unlist(b) + unlist(c)  + unlist(d)  + unlist(e)+ unlist(f) ,aggregate(eliminated$expc ~  +  unlist(b) + unlist(c) + unlist(d) + unlist(e)+ unlist(f),eliminated,mean))
+}
+
+tabla <- as.data.frame(cross_tab)
+d <-tabla[!(tabla$Freq == 0),]
+d$Año <- anio
+
+names(d)[1] <- "Comuna"
+names(d)[2] <- "disponeble_para_trabajar"
+names(d)[3] <- "Alfabetismo"
+names(d)[4] <- "Etnia"
+names(d)[5] <- "sexo"
+codigos_comunales <- readRDS(file = comunales)
+names(codigos_comunales)[1] <- "Código"
+names(codigos_comunales)[2] <- "Comuna"
+# codigos_comunales
+
+df = merge( x = d, y = codigos_comunales, by = "Comuna", all.x = TRUE)
+
+ingreso_rds <- paste("tablas_peque/disponeble_para_trabajar_",anio,".rds", sep="")
+saveRDS(df,ingreso_rds)
+
+# print(head(df,10))
+
+}
+
+for (n in 1:6){
+  funcion1(n)
+}
+```
+
+## 6.1 Tratamientos
+
+
+### 6.1.1 Union de tablas
+
+```{r}
+receptaculo <- data.frame()
+for (n in 1 : 6){
+    numero <- switch(n, "2006","2009","2011","2013","2015","2017")
+    direc_tablas <- paste("tablas_peque/disponeble_para_trabajar_",numero,".rds", sep="")
+    tablas <- readRDS(direc_tablas)
+
+    receptaculo <<- rbind(receptaculo, tablas)
+
+}
+```
+
+### 6.1.2 Diccionario
+
+Para la creación del diccionario se necesita el dataset “receptáculo” al que se le hará un **unique()** en la columna de la variable en cuestion, luego se guarda como **xlsx** para hacer el tratamiento
+
+```{r}
+# receptaculo_unicos <- unique(receptaculo$disponeble_para_trabajar)
+# receptaculo_unicos <- as.data.frame(receptaculo_unicos)
+# # receptaculo_unicos
+# #write_xlsx(receptaculo_unicos,"diccionario/diccionario_disponeble_para_trabajar.xlsx")
+```
+
+No se necesita diccionario para la variable en cuestion 
+
+## 6.2 Diccionarios
+
+### 6.2.1 Diccionario alfabetismo
+
+```{r}
+alfabetismo <- read_xlsx("diccionario/alfabetismo_unicos.xlsx")
+alfabetismo <- alfabetismo[,c(2,3)]
+names(alfabetismo)[1] <- "Alfabetismo"
+kbl(alfabetismo) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "300px")
+```
+
+### 6.2.2 Diccionario etnia
+
+```{r}
+categorias <- read_xlsx("diccionario/categorias_etnia.xlsx")
+categorias <- categorias[,c(2,3)]
+names(categorias)[1] <- "Etnia"
+kbl(categorias) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "300px")
+```
+
+
+
+### 6.2.3 Diccionario indsan
+
+```{r}
+cat_disc <- read_xlsx("diccionario/diccionario_disponeble_para_trabajar.xlsx")
+
+kbl(cat_disc) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "300px")
+```
+
+
+## 6.3 Unificación de categorías 
+
+```{r}
+cod_cat <- unique(cat_disc$cat_disponeble_para_trabajar)
+cod_cat<- as.data.frame(cod_cat)
+
+rango <- seq(1:nrow(cod_cat))
+cadena<- paste("000",seq(1:nrow(cod_cat)), sep = "")
+cadena <- substr(cadena,(nchar(cadena)[rango])-(4-2),5)
+
+cod_cat$codigo_disponeble_para_trabajar <- cadena
+names(cod_cat)[1] <- "cat_disponeble_para_trabajar"
+```
+
+
+```{r}
+cat_disc = merge( x = cat_disc, y = cod_cat, by = "cat_disponeble_para_trabajar", all.x = TRUE)
+cat_disc <- cat_disc[,c(1,3)]
+names(cat_disc)[1] <- "disponeble_para_trabajar"
+
+```
+
+
+```{r}
+nuevas_cat = merge( x = receptaculo, y = alfabetismo, by = "Alfabetismo", all.x = TRUE)
+# alfa_corr <- nuevas_cat[,c(-1)]
+
+
+categoriasbuenas = merge( x = nuevas_cat, y = categorias, by = "Etnia", all.x = TRUE)
+# etnia_corr <- categoriasbuenas[,c(-1)]
+
+categoriasbuenas = merge( x = categoriasbuenas, y = cat_disc, by = "disponeble_para_trabajar", all.x = TRUE)
+# discapacidad_corr <- categoriasbuenas[,c(-1)]
+
+```
+
+
+```{r}
+receptaculo<-categoriasbuenas[,c(4,1,11,2,10,3,9,5,6,7,8)]
+
+```
+
+
+```{r}
+names(receptaculo)[1] <- "comuna"
+names(receptaculo)[2] <- "disponeble_para_trabajar"
+names(receptaculo)[4] <- "etnia"
+names(receptaculo)[6] <- "alfabetismo"
+names(receptaculo)[8] <- "sexo"
+names(receptaculo)[9] <- "frec"
+names(receptaculo)[10] <- "anio"
+names(receptaculo)[11] <- "codigo_comuna"
+
+receptaculo_tab <- receptaculo[1:30,]
+kbl(receptaculo_tab) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "500px")
+```
+
+### 6.3.1 Guardado de tablas
+
+También se guardará la tabla de forma local en formato **xlsx**
+
+```{r}
+# db <- 'trabajo-con-casen'  #provide the name of your db
+# host_db <- 'post-to-r.postgres.database.azure.com' #i.e. # i.e. 'ec2-54-83-201-96.compute-1.amazonaws.com'
+# db_port <- '5432'  # or any other port specified by the DBA
+# db_user <- 'yomismo@post-to-r'
+# db_password <- '123456Fg*'
+# con <- dbConnect(RPostgres::Postgres(), dbname = db, host=host_db, port=db_port, user=db_user, password=db_password)
+# 
+# library('RPostgreSQL')
+# tn <- 'links'
+# dbWriteTable(con,'entrega_4_nivel_educ_padre',receptaculo, row.names=FALSE)
+
+write_xlsx(receptaculo,"tablas_grandes/entrega_7_disponeble_para_trabajar.xlsx")
+# receptaculo <- read_xlsx("tablas_grandes/4_nivel_educ_padre.xlsx")
+# head(receptaculo,3)
+```
+```{r}
+# tabla_grande <- dbGetQuery(con, 'SELECT * FROM tabla_discapacidad')
+# tabla_grande
+```
+
+
+## 6.4 Gráficos
+
+### 6.4.1 Gráfico I
+
+En ambos sexos es mayor la cantidad de los desocupados que estan con disposicion para trabajar que los que no 
+
+```{r}
+p1 <- plot_ly(receptaculo , x = ~sexo , color = ~disponeble_para_trabajar) %>% add_histogram() %>%
+    layout(title = "Está dísponeble para empezar a trabajar? ",
+         xaxis = list(title = "Años"),showlegend = TRUE, autosize = F, legend = list(font = list(size = 8)))
+p1
+```
+
+### 6.4.2 Gráfico II
+
+En la generalidad de las comunas se observa que los desocupados que tienen disponibilidad para trabajar superan a los que no
+
+```{r}
+p2 <- plot_ly(receptaculo , x = ~disponeble_para_trabajar , color = ~comuna)  %>% add_histogram()%>%
+    layout(title = "Está dísponeble para empezar a trabajar? ",
+         xaxis = list(title = "Etnia"),showlegend = TRUE, autosize = F, legend = list(font = list(size = 8)))
+p2
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
