@@ -1,21 +1,18 @@
 # shiny casen
 
-La nuevas tablas de estan integrando en 
+La nuevas tablas se estan integrando en:
 ds_casen/entregas_zoho/
 
-La tabla con los ingresos totales de la personas están correctas y tienen su tabla de proporcionalidad por categorías llamada receptáculo.
+La tabla con los ingresos totales de la personas están correctas y tienen su tabla de proporcionalidad por categorías llamada receptáculo.\
+ds_casen/entregas_zoho/ingresos_totales_de_las_pesosnas/
+
 
 La entregra 7 tambien fue corregida:
 
 
 El objetivo es ir generando productos en forma de tablas globales, desde la cuales se puede ir agregando información y generando tablas al estilo Zoho
 
-El primer set de productos serán los ingresos.
-
-Semana 26 al 30 de Abril\
-primera a quinta entrega:\
-ds_casen/entregas_zoho/
-
+Hubo un error de arrastre por lo que deben ser corregidas las entregas de la 1 la 6
 
 Nomenclatura de tablas en postgres:
 
