@@ -1,3 +1,4 @@
-![texto_alternativo](ubicacion_de_la_imagen){width=width height=height}
+![texto_alternativo](
+ingresos_totales_de_las_personas.JPG ){width=width height=height}
 
 
