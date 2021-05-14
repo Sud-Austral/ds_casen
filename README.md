@@ -1,6 +1,12 @@
 # shiny casen
 
+La nuevas tablas de estan integrando en 
+ds_casen/entregas_zoho/
+
 La tabla con los ingresos totales de la personas están correctas y tienen su tabla de proporcionalidad por categorías llamada receptáculo.
+
+La entregra 7 tambien fue corregida:
+
 
 El objetivo es ir generando productos en forma de tablas globales, desde la cuales se puede ir agregando información y generando tablas al estilo Zoho
 
