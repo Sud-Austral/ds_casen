@@ -1,6 +1,6 @@
 # shiny casen
 
-La nuevas tablas de estan integrando en 
+La nuevas tablas se estan integrando en:
 ds_casen/entregas_zoho/
 
 La tabla con los ingresos totales de la personas están correctas y tienen su tabla de proporcionalidad por categorías llamada receptáculo.
