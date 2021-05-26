@@ -6,15 +6,16 @@ ds_casen/entregas_zoho/
 La tabla con los ingresos totales de la personas están correctas y tienen su tabla de proporcionalidad por categorías llamada receptáculo.\
 ds_casen/entregas_zoho/ingresos_totales_de_las_pesosnas/
 
-
-La entregra 7 tambien fue corregida:
-
+25 Mayo
+Las estregas deben ser corregidas de la 2 a 6
+Las 1 estas listas y la 7 tambien.
 
 El objetivo es ir generando productos en forma de tablas globales, desde la cuales se puede ir agregando información y generando tablas al estilo Zoho
 
 Hubo un error de arrastre por lo que deben ser corregidas las entregas de la 1 la 6
 
 Nomenclatura de tablas en postgres:
+Se deben revisar las estregas
 
  [1] "entrega_1_consulta_mental.xlsx"            
  [2] "entrega_1_discapacidad.xlsx"               
